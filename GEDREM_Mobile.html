@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0052A2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>GEDREM Mobile – Relatório Fotográfico</title>
+<link rel="manifest" href='data:application/json,{"name":"GEDREM Mobile","short_name":"GEDREM","display":"standalone","background_color":"%230052A2","theme_color":"%230052A2","start_url":".","icons":[{"src":"data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><rect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%230052A2%27/><text x=%2750%27 y=%2766%27 font-size=%2748%27 text-anchor=%27middle%27 fill=%27white%27 font-family=%27sans-serif%27 font-weight=%27bold%27>G</text></svg>","sizes":"any","type":"image/svg+xml"}]}'>
+<style>
+:root{
+  --azul:#0052A2; --azul-esc:#1a3a6b; --azul-claro:#eaf2fb;
+  --verde:#2D7A3A; --amarelo:#854F0B; --verm:#A32D2D;
+  --bg:#f2f4f8; --card:#fff; --txt:#1d2733; --txt2:#5b6675; --borda:#dde3ec;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;padding-bottom:64px}
+/* ── topo ── */
+.top{position:sticky;top:0;z-index:50;background:var(--azul);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.top img{height:32px;background:#fff;border-radius:4px;padding:2px}
+.top .tt{font-weight:700;font-size:15px;line-height:1.1}
+.top .ts{font-size:11px;opacity:.85}
+.top .eqb{margin-left:auto;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+/* ── telas ── */
+.scr{display:none;padding:14px;max-width:640px;margin:0 auto}
+.scr.on{display:block}
+.card{background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(20,40,80,.06)}
+.h1{font-size:17px;font-weight:700;color:var(--azul-esc);margin-bottom:2px}
+.h2{font-size:12px;color:var(--txt2);margin-bottom:12px}
+.sh{font-size:12px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+label{display:block;font-size:11.5px;font-weight:600;color:var(--txt2);margin-bottom:4px}
+input,select,textarea{width:100%;border:1px solid var(--borda);border-radius:8px;padding:11px 12px;font-size:15px;background:#fff;color:var(--txt);font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--azul);border-color:var(--azul)}
+input[readonly]{background:var(--azul-claro);color:var(--azul-esc);font-weight:600}
+textarea{min-height:74px;resize:vertical}
+.fg{margin-bottom:11px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+/* ── botões ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;background:#e8ecf3;color:var(--txt);font-family:inherit}
+.btn:active{transform:scale(.98)}
+.btn.bp{background:var(--azul);color:#fff}
+.btn.bg{background:var(--verde);color:#fff}
+.btn.bd{background:#fbeaea;color:var(--verm)}
+.btn.sm{padding:9px;font-size:13px;border-radius:8px}
+.brow{display:flex;gap:8px;margin-top:6px}
+/* ── lista de demandas ── */
+.dem{background:var(--card);border:1px solid var(--borda);border-left:4px solid var(--azul);border-radius:10px;padding:12px;margin-bottom:10px;cursor:pointer}
+.dem.st-c{border-left-color:var(--verde)}
+.dem.st-a{border-left-color:#c8860a}
+.dem .dl1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.dem .cod{font-weight:800;color:var(--azul);font-size:13px}
+.dem .end{font-size:14px;font-weight:600;margin-bottom:2px}
+.dem .sv{font-size:12.5px;color:var(--txt2)}
+.dem .meta{display:flex;gap:10px;font-size:11px;color:var(--txt2);margin-top:6px;align-items:center;flex-wrap:wrap}
+.st{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.s-p{background:#fdf1dc;color:var(--amarelo)}
+.s-a{background:#e3edfb;color:var(--azul)}
+.s-c{background:#e2f3e5;color:var(--verde)}
+.kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kc{background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:10px 6px;text-align:center}
+.kc .kv{font-size:20px;font-weight:800;color:var(--azul)}
+.kc .kl{font-size:10px;color:var(--txt2);font-weight:600}
+.kc.gn .kv{color:var(--verde)} .kc.am .kv{color:var(--amarelo)}
+.vazio{text-align:center;color:var(--txt2);font-size:13px;padding:30px 10px}
+/* ── fotos ── */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.fslot{position:relative;aspect-ratio:4/3;border:1.5px dashed var(--borda);border-radius:8px;background:#fafbfd center/cover no-repeat;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--txt2);font-weight:600;cursor:pointer;overflow:hidden}
+.fslot.cheia{border-style:solid;color:transparent}
+.fslot .fx{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;display:none;align-items:center;justify-content:center}
+.fslot.cheia .fx{display:flex}
+.fslot.mapa{border-color:var(--azul);color:var(--azul)}
+.fslot .ftag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,82,162,.85);color:#fff;font-size:9px;padding:2px;text-align:center;display:none}
+.fslot.cheia .ftag{display:block}
+.gpsbox{background:var(--azul-claro);border:1px solid #bcd4ee;border-radius:8px;padding:9px 11px;font-size:12px;color:var(--azul-esc);margin-bottom:10px;line-height:1.5;word-break:break-word}
+/* ── nav inferior ── */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:#fff;border-top:1px solid var(--borda);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.nav .ni{flex:1;text-align:center;padding:8px 0 7px;font-size:10.5px;font-weight:600;color:var(--txt2);cursor:pointer;border:none;background:none;font-family:inherit}
+.nav .ni .ic{font-size:20px;display:block;line-height:1.2}
+.nav .ni.on{color:var(--azul)}
+.chip{display:inline-block;background:var(--azul-claro);color:var(--azul);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;margin:0 4px 6px 0;border:1px solid #bcd4ee;cursor:pointer}
+.chip.on{background:var(--azul);color:#fff}
+.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#22304a;color:#fff;padding:11px 18px;border-radius:24px;font-size:13px;z-index:99;display:none;max-width:88%;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.ajuda{font-size:12.5px;color:var(--txt2);line-height:1.65}
+.ajuda b{color:var(--txt)}
+.selrow{display:flex;align-items:center;gap:10px}
+.selrow input[type=checkbox]{width:20px;height:20px;flex-shrink:0}
+/* ── impressão ── */
+#print-modal{display:none;position:fixed;inset:0;background:rgba(15,25,40,.75);z-index:200;overflow-y:auto;padding:10px}
+#print-paper{background:#fff;width:210mm;max-width:100%;margin:0 auto;border-radius:4px}
+#pm-bar{background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px;display:flex;gap:8px;border-radius:4px 4px 0 0}
+#pm-bar button{flex:1}
+.pm-pg{padding:13mm 14mm;background:#fff;position:relative;min-height:275mm;page-break-after:always}
+.pm-pg:last-child{page-break-after:auto}
+@media print{
+  body{padding:0;background:#fff}
+  body>*{display:none!important}
+  #print-modal{display:block!important;position:static;background:#fff;padding:0;overflow:visible}
+  #print-paper{width:auto;max-width:none;border-radius:0}
+  #pm-bar{display:none!important}
+  .pm-pg{min-height:auto;padding:8mm 10mm}
+  @page{size:A4 portrait;margin:8mm}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img id="top-logo" alt="SISEP">
+  <div><div class="tt">GEDREM Mobile</div><div class="ts">Relatório Fotográfico · SISEP / PMCG</div></div>
+  <div class="eqb" id="top-eq">—</div>
+</header>
+
+<!-- ══ TELA: LOGIN ══ -->
+<div class="scr" id="scr-login">
+  <div class="card">
+    <div class="h1">Entrar no GEDREM Mobile</div>
+    <div class="h2">Cada usuário acessa a sua programação de forma independente. Admin e Técnicos A/B têm acesso total; encarregados veem somente a própria equipe.</div>
+    <div class="fg"><label>Usuário</label><select id="lg-user"></select></div>
+    <div class="fg"><label>PIN (senha)</label><input id="lg-pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN inicial: 1234"></div>
+    <button class="btn bp" onclick="fazerLogin()">🔓 Entrar</button>
+  </div>
+</div>
+
+<!-- ══ TELA: DEMANDAS ══ -->
+<div class="scr" id="scr-list">
+  <div class="kg">
+    <div class="kc"><div class="kv" id="k-pend">0</div><div class="kl">Pendentes</div></div>
+    <div class="kc am"><div class="kv" id="k-and">0</div><div class="kl">Em andamento</div></div>
+    <div class="kc gn"><div class="kv" id="k-conc">0</div><div class="kl">Concluídas</div></div>
+  </div>
+  <div id="filtros" style="margin-bottom:8px"></div>
+  <div id="lista"></div>
+</div>
+
+<!-- ══ TELA: FORMULÁRIO ══ -->
+<div class="scr" id="scr-form">
+  <div class="card">
+    <div class="sh">📋 1 · Identificação</div>
+    <div class="fr">
+      <div class="fg"><label>Código</label><input id="f-cod" readonly></div>
+      <div class="fg"><label>Data</label><input id="f-data" type="date"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Origem</label>
+        <select id="f-orig"><option>Programação diária</option><option>Fala Campo Grande</option><option>Ofício</option><option>OS interna</option></select></div>
+      <div class="fg"><label>Nº OS / Referência</label><input id="f-os" placeholder="Ex: 852500"></div>
+    </div>
+    <div class="fr" id="f-eqrow">
+      <div class="fg"><label>Equipe</label><select id="f-eq" onchange="onEqForm()"></select></div>
+      <div class="fg"><label>Encarregado</label><select id="f-enc"></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sh">🔧 2 · Serviço executado</div>
+    <div class="fg"><label>Tipo de serviço</label><select id="f-tipo"></select></div>
+    <div class="fr">
+      <div class="fg"><label>Quantidade</label><input id="f-qtd" type="number" min="0" inputmode="numeric" placeholder="Ex: 3"></div>
+      <div class="fg"><label>Unidade</label>
+        <select id="f-und"><option>Un.</option><option>M</option><option>M²</option><option>M³</option></select></div>
+    </div>
+    <div class="fg"><label>Observações técnicas</label>
+      <textarea id="f-obs" placeholder="Condições encontradas, materiais, intercorrências..."></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="sh">📍 3 · Localização</div>
+    <button class="btn bp" onclick="capturarGPS()" id="btn-gps">📡 Capturar localização (GPS)</button>
+    <div class="gpsbox" id="gps-info" style="display:none;margin-top:10px"></div>
+    <div class="fg" style="margin-top:10px"><label>Endereço por extenso</label>
+      <input id="f-end" placeholder="Preenchido automaticamente pelo GPS"></div>
+    <div class="fr">
+      <div class="fg"><label>Bairro</label><input id="f-bairro"></div>
+      <div class="fg"><label>Região</label>
+        <select id="f-reg"><option value="">Selecione...</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sh">📷 4 · Registro fotográfico</div>
+    <div class="fgrid" id="fgrid"></div>
+    <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none">
+  </div>
+
+  <div class="card">
+    <div class="sh">✅ 5 · Situação</div>
+    <div id="st-chips"></div>
+    <div class="brow">
+      <button class="btn bg" onclick="salvarDemanda()">💾 Salvar</button>
+      <button class="btn bp" onclick="salvarDemanda(true)">🖨 Salvar e gerar PDF</button>
+    </div>
+    <div class="brow">
+      <button class="btn" onclick="nav('list')">← Voltar</button>
+      <button class="btn bd" onclick="excluirDemanda()" id="btn-del">🗑 Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TELA: RELATÓRIO ══ -->
+<div class="scr" id="scr-rel">
+  <div class="card">
+    <div class="h1">Gerar relatório fotográfico</div>
+    <div class="h2">Selecione as demandas — o PDF sai no padrão institucional SISEP, uma página por demanda, com endereço por extenso e quadro de localização.</div>
+    <div class="fg"><label>Filtrar por data</label><input type="date" id="rel-data" onchange="renderRel()"></div>
+    <div id="rel-lista"></div>
+    <button class="btn bp" onclick="gerarRelatorio()">🖨 Gerar relatório (PDF)</button>
+  </div>
+</div>
+
+<!-- ══ TELA: CONFIG ══ -->
+<div class="scr" id="scr-cfg">
+  <div class="card">
+    <div class="sh">👤 Usuário conectado</div>
+    <div class="gpsbox" id="cfg-eq-info"></div>
+    <div class="brow">
+      <button class="btn sm" onclick="alterarPIN()">🔑 Alterar meu PIN</button>
+      <button class="btn bd sm" onclick="sair()">Sair / trocar usuário</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sh">☁ Conexão com o sistema GEDREM</div>
+    <div class="ajuda" style="margin-bottom:10px">O app usa o <b>mesmo banco de dados do sistema</b> — já vem configurado, nada a preencher. A programação lançada no sistema aparece sozinha aqui, e as demandas concluídas voltam com fotos direto ao Relatório Fotográfico do sistema.</div>
+    <div class="gpsbox" id="sy-status" style="display:none"></div>
+    <div class="brow">
+      <button class="btn bp sm" onclick="syTestar()">Testar conexão</button>
+      <button class="btn bg sm" onclick="sincronizar(false)">🔄 Sincronizar agora</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sh">📥 Programação (demandas da equipe)</div>
+    <div class="ajuda" style="margin-bottom:10px">Importe o arquivo de programação do dia gerado no sistema. <b>Encarregado:</b> só entram as demandas da sua equipe — as demais são ignoradas. <b>Admin / Técnicos A e B:</b> entram todas as equipes.</div>
+    <input type="file" id="imp-input" accept=".json,application/json" style="display:none">
+    <button class="btn bp sm" onclick="document.getElementById('imp-input').click()">📥 Importar programação (.json)</button>
+    <div style="height:8px"></div>
+    <button class="btn sm" onclick="baixarModelo()">📄 Baixar modelo de programação</button>
+  </div>
+  <div class="card">
+    <div class="sh">💾 Dados</div>
+    <button class="btn sm" onclick="exportarBackup()">⬇ Exportar backup (.json)</button>
+  </div>
+  <div class="card">
+    <div class="sh">ℹ Como instalar / usar</div>
+    <div class="ajuda">
+      <b>Instalar como aplicativo:</b> abra este arquivo no Chrome do celular → menu ⋮ → <b>"Adicionar à tela inicial"</b>. O ícone GEDREM aparece como um app normal.<br><br>
+      <b>Usuários e acesso:</b> Admin, Técnico A e Técnico B veem todas as demandas de todas as equipes; cada encarregado vê apenas as da própria equipe. PIN inicial de todos: <b>1234</b> — cada um deve alterar o seu em Config.<br><br>
+      <b>Distribuir para as equipes:</b> envie este mesmo arquivo por WhatsApp para cada encarregado; cada um entra com o próprio usuário e recebe a própria programação.<br><br>
+      <b>Fluxo diário:</b> 1) importar programação (ou lançar manual) → 2) no local, capturar GPS (endereço sai por extenso e o quadro de mapa entra nas fotos) → 3) fotografar → 4) concluir → 5) gerar PDF e enviar ao fiscal.<br><br>
+      <b>GPS/endereço:</b> precisa de internet no momento da captura para converter as coordenadas em endereço e montar o mapa. Sem internet, as coordenadas ficam salvas e você pode capturar o endereço depois.<br><br>
+      <b>Conexão com o sistema:</b> automática — o app lê a Programação do sistema (cada equipe só vê a sua) e, ao concluir uma demanda, o relatório com fotos entra sozinho no Relatório Fotográfico do sistema com o próximo código sequencial. A demanda correspondente na Programação vira "Executado".
+    </div>
+  </div>
+</div>
+
+<!-- ══ NAV ══ -->
+<nav class="nav">
+  <button class="ni on" id="n-list" onclick="nav('list')"><span class="ic">📋</span>Demandas</button>
+  <button class="ni" id="n-nova" onclick="novaDemanda()"><span class="ic">➕</span>Nova</button>
+  <button class="ni" id="n-rel" onclick="nav('rel')"><span class="ic">🖨</span>Relatório</button>
+  <button class="ni" id="n-cfg" onclick="nav('cfg')"><span class="ic">⚙️</span>Config</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══ MODAL DE IMPRESSÃO ══ -->
+<div id="print-modal" onclick="if(event.target===this)this.style.display='none'">
+  <div id="print-paper">
+    <div id="pm-bar">
+      <button class="btn bp sm" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+      <button class="btn sm" onclick="document.getElementById('print-modal').style.display='none'">✕ Fechar</button>
+    </div>
+    <div id="pm-body"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════ CONSTANTES ════════════════ */
+const SISEP_LOGO="data:image/png;base64,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";
+const CI_RODAPE="Rua Mestre Estanislau Pannatier, 1199 | Jr. Monumento | Campo Grande – MS | CEP: 79063-000 | www.campogrande.ms.gov.br | Telefone: 67 3314-3600";
+const ENC_MAP={
+  'Manutenção I':['José Carlos (M1-A)','Paulo Roberto (M1-B)'],
+  'Manutenção II':['Antônio Silva (M2)'],
+  'Manutenção III':['Carlos Souza (M3)'],
+  'Manutenção IV':['Marcos Lima (M4)'],
+  'Limpeza I':['Fábio Santos (L1)'],
+  'Limpeza II':['Rogério Alves (L2)']
+};
+const EQ_PREFIX={'Manutenção I':'M1','Manutenção II':'M2','Manutenção III':'M3','Manutenção IV':'M4','Limpeza I':'L1','Limpeza II':'L2'};
+const TIPOS=['Limpeza de Boca de Lobo','Reparo de Boca de Lobo','Reparo de Poço de Visita','Limpeza de PV','Implantação de sarjetão','Implantação de BL','Desobstrução de galeria','Reparo de rede','Solapamento','Execução de calçada','Visita técnica','Reparo de meio-fio'];
+const N_FOTOS=6;
+
+/* ════════════════ USUÁRIOS E PERFIS ════════════════ */
+const USUARIOS=[
+  {id:'admin',nome:'Juvenil Ferreira Lopes',papel:'Administrador',acesso:'total'},
+  {id:'tec-a',nome:'Técnico A',papel:'Adm. Técnico',acesso:'total'},
+  {id:'tec-b',nome:'Técnico B',papel:'Adm. Técnico',acesso:'total'}
+];
+Object.keys(ENC_MAP).forEach(eq=>ENC_MAP[eq].forEach((nome,i)=>
+  USUARIOS.push({id:'enc-'+(EQ_PREFIX[eq]||eq).toLowerCase()+(i?'-'+(i+1):''),
+    nome:nome,papel:'Encarregado',acesso:'equipe',equipe:eq})));
+
+let USER=null, DB=null, atual=null, filtro='todas', filtroEq='todas';
+function acessoTotal(){return !!USER&&USER.acesso==='total'}
+function getPins(){try{return JSON.parse(localStorage.getItem('gedrem_pins'))||{}}catch(e){return{}}}
+function pinDe(u){return getPins()[u.id]||'1234'}
+function loadSessao(){const id=localStorage.getItem('gedrem_user');USER=USUARIOS.find(u=>u.id===id)||null}
+function getSeq(){return parseInt(localStorage.getItem('gedrem_seq')||'1',10)}
+function proxCodigo(equipe){const n=getSeq();localStorage.setItem('gedrem_seq',String(n+1));
+  return (EQ_PREFIX[equipe]||'EQ')+'-'+String(n).padStart(4,'0')}
+
+/* ════════════════ INDEXEDDB ════════════════ */
+const DB_NAME='gedrem_mobile_db', DB_VERSION=1;
+function abrirDB(){return new Promise((res,rej)=>{
+  const rq=indexedDB.open(DB_NAME,DB_VERSION);
+  rq.onupgradeneeded=e=>{const d=e.target.result;
+    if(!d.objectStoreNames.contains('demandas'))d.createObjectStore('demandas',{keyPath:'id',autoIncrement:true});};
+  rq.onsuccess=e=>{DB=e.target.result;res()};
+  rq.onerror=e=>rej(e);
+});}
+function dbPut(o){return new Promise((res,rej)=>{const t=DB.transaction('demandas','readwrite');
+  const r=t.objectStore('demandas').put(o);r.onsuccess=()=>res(r.result);r.onerror=rej;});}
+function dbAll(){return new Promise((res,rej)=>{const r=DB.transaction('demandas').objectStore('demandas').getAll();
+  r.onsuccess=()=>res(r.result||[]);r.onerror=rej;});}
+function dbGet(id){return new Promise((res,rej)=>{const r=DB.transaction('demandas').objectStore('demandas').get(id);
+  r.onsuccess=()=>res(r.result);r.onerror=rej;});}
+function dbDel(id){return new Promise((res,rej)=>{const r=DB.transaction('demandas','readwrite').objectStore('demandas').delete(id);
+  r.onsuccess=()=>res();r.onerror=rej;});}
+
+/* ════════════════ UTIL ════════════════ */
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function hoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fmtBR(iso){if(!iso)return'—';const p=iso.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.style.display='none',3200)}
+function nav(s){
+  if(!USER){mostrarLogin();return}
+  document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
+  $('scr-'+s).classList.add('on');
+  document.querySelectorAll('.nav .ni').forEach(x=>x.classList.remove('on'));
+  const b=$('n-'+s);if(b)b.classList.add('on');
+  if(s==='list')renderLista();
+  if(s==='rel')renderRel();
+  if(s==='cfg')renderCfg();
+  window.scrollTo(0,0);}
+
+/* ════════════════ LOGIN ════════════════ */
+function initLogin(){
+  $('lg-user').innerHTML='<option value="">Selecione o usuário...</option>'+
+    USUARIOS.map(u=>`<option value="${u.id}">${esc(u.nome)} — ${u.acesso==='total'?u.papel:'Enc. '+u.equipe}</option>`).join('');
+}
+function fazerLogin(){
+  const u=USUARIOS.find(x=>x.id===$('lg-user').value);
+  if(!u){toast('Selecione o usuário.');return}
+  if($('lg-pin').value!==pinDe(u)){toast('PIN incorreto.');return}
+  USER=u;localStorage.setItem('gedrem_user',u.id);
+  $('lg-pin').value='';
+  atualizaTopo();nav('list');sincronizar(true);
+  toast('Bem-vindo, '+u.nome.split(' ')[0]+'! '+(acessoTotal()?'Acesso total.':'Equipe '+u.equipe+'.'));
+}
+function sair(){
+  if(!confirm('Sair e trocar de usuário? As demandas continuam salvas no aparelho.'))return;
+  USER=null;localStorage.removeItem('gedrem_user');
+  mostrarLogin();
+}
+function mostrarLogin(){
+  initLogin();atualizaTopo();
+  document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
+  $('scr-login').classList.add('on');
+}
+function alterarPIN(){
+  const pa=prompt('PIN atual:');if(pa===null)return;
+  if(pa!==pinDe(USER)){toast('PIN atual incorreto.');return}
+  const novo=prompt('Novo PIN (4 a 6 dígitos):');if(novo===null)return;
+  if(!/^\d{4,6}$/.test(novo)){toast('Use de 4 a 6 números.');return}
+  const p=getPins();p[USER.id]=novo;localStorage.setItem('gedrem_pins',JSON.stringify(p));
+  toast('PIN alterado (vale neste aparelho).');
+}
+function atualizaTopo(){
+  $('top-eq').textContent=USER?(acessoTotal()?USER.nome.split(' ')[0]+' · total':USER.equipe):'—';
+}
+function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
+
+/* ════════════════ NUVEM — mesmo banco do sistema (Supabase) ════════════════ */
+const SUPA_URL='https://bmmakxofvzyjatscwfex.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
+async function supaReq(path,opts){
+  opts=opts||{};
+  const r=await fetch(SUPA_URL+'/rest/v1/'+path,Object.assign({},opts,{
+    headers:Object.assign({apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},opts.headers||{})
+  }));
+  if(!r.ok)throw new Error('Nuvem HTTP '+r.status);
+  return r;
+}
+async function supaGet(q){return (await supaReq(q)).json()}
+async function storeGet(store,extra){
+  const rows=await supaGet('records?store=eq.'+encodeURIComponent(store)+'&select=id,data&order=id.asc'+(extra||''));
+  return rows.map(r=>Object.assign({cloudId:r.id},r.data));
+}
+async function storeAdd(store,data){
+  const r=await supaReq('records',{method:'POST',headers:{Prefer:'return=representation'},
+    body:JSON.stringify({store:store,data:Object.assign({},data,{_ts:Date.now(),_user:'app:'+(USER?USER.id:'?')})})});
+  const rows=await r.json();return rows[0].id;
+}
+async function storePatch(id,data){
+  await supaReq('records?id=eq.'+id,{method:'PATCH',
+    body:JSON.stringify({data:data,updated_at:new Date().toISOString()})});
+}
+function b64ToBlob(b64){
+  const p=b64.split(','),bin=atob(p[1]),arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:(p[0].match(/data:(.*?);/)||[])[1]||'image/jpeg'});
+}
+async function fotoUpload(cod,letra,b64){
+  const r=await fetch(SUPA_URL+'/storage/v1/object/gedrem-fotos/rf/'+cod+'/'+letra+'.jpg',{
+    method:'POST',
+    headers:{Authorization:'Bearer '+SUPA_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
+    body:b64ToBlob(b64)});
+  if(!r.ok)throw new Error('Upload de foto falhou ('+r.status+')');
+  return SUPA_URL+'/storage/v1/object/public/gedrem-fotos/rf/'+cod+'/'+letra+'.jpg';
+}
+function syInfo(t){const b=$('sy-status');if(!b)return;b.style.display='block';b.textContent=t}
+async function syTestar(){
+  try{await supaGet('records?select=id&limit=1');syInfo('✅ Conectado ao banco do sistema GEDREM.')}
+  catch(e){syInfo('❌ Falha: '+e.message+'. Verifique a internet.')}}
+
+/* Equipes vindas do sistema (Gerenciar equipes) */
+function equipesCache(){try{return JSON.parse(localStorage.getItem('gedrem_equipes'))||[]}catch(e){return[]}}
+function aplicarEquipes(eqs){
+  if(!eqs||!eqs.length)return;
+  localStorage.setItem('gedrem_equipes',JSON.stringify(eqs.map(e=>({nome:e.nome,enc:e.enc||'',tipo:e.tipo||''}))));
+  eqs.forEach(e=>{
+    if(!e.nome)return;
+    if(!ENC_MAP[e.nome])ENC_MAP[e.nome]=[];
+    if(e.enc&&!ENC_MAP[e.nome].includes(e.enc))ENC_MAP[e.nome].push(e.enc);
+    if(!EQ_PREFIX[e.nome])EQ_PREFIX[e.nome]=e.nome.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'EQ';
+    if(!USUARIOS.some(u=>u.acesso==='equipe'&&u.equipe===e.nome)){
+      USUARIOS.push({id:'enc-dyn-'+e.nome.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+        nome:e.enc||('Encarregado '+e.nome),papel:'Encarregado',acesso:'equipe',equipe:e.nome});
+    }
+  });
+}
+
+async function maxCod(store,campo,base){
+  const rows=await supaGet('records?store=eq.'+store+'&select=cod:data->>'+campo);
+  let max=base||0;rows.forEach(r=>{const n=parseInt(r.cod,10);if(n>max)max=n});
+  return max;
+}
+async function enviarRelatorio(d){
+  const concl=d.status==='concluida';
+  const marca={_ts:Date.now(),_user:'app:'+(USER?USER.id:'?')};
+  // ── Rel. Fotográfico: cria na 1ª vez (código -M), atualiza nas seguintes ──
+  let cod=d.codSistema;
+  if(!cod)cod=String(await maxCod('relatorio_foto','codigo',0)+1)+'-M';
+  const imgs=[];
+  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Localização (mapa)'});
+  (d.fotos||[]).forEach((f,i)=>{if(f)imgs.push({b64:f,descricao:'Foto '+String(i+1).padStart(2,'0')})});
+  const LET=['A','B','C','D','E','F'],fotos=[];
+  for(let i=0;i<imgs.length&&i<LET.length;i++){
+    let url;
+    try{url=await fotoUpload(cod,LET[i],imgs[i].b64)}
+    catch(e){url=imgs[i].b64} // sem storage, envia a foto embutida (o sistema aceita)
+    fotos.push({letra:LET[i],url:url,nome:cod+'_'+LET[i]+'.jpg',descricao:imgs[i].descricao});
+  }
+  const rfData={codigo:cod,data:d.data,equipe:d.equipe,encarregado:d.encarregado||'',
+    endereco:d.endereco,bairro:d.bairro||'',regiao:d.regiao||'',tipo:d.tipo||'',obs:d.obs||'',
+    os:d.os||'',origem:d.origem||'',lat:d.lat,lon:d.lon,viaMobile:true,
+    fotos:fotos,status:concl?(fotos.length?'Concluído':'Sem fotos'):'Em andamento'};
+  if(d.relId){
+    try{ // preserva validações dos técnicos feitas no sistema
+      const cur=await supaGet('records?id=eq.'+d.relId+'&select=data');
+      if(cur[0]&&cur[0].data&&cur[0].data.validacoes)rfData.validacoes=cur[0].data.validacoes;
+    }catch(e){}
+    await storePatch(d.relId,Object.assign({},rfData,marca));
+  }else{d.relId=await storeAdd('relatorio_foto',rfData)}
+  // ── Ctrl. Serviços: idem — cria com OS -M, atualiza depois ──
+  try{
+    let os=d.osSistema;
+    if(!os)os=String(await maxCod('ctrl_servicos','os',852499)+1)+'-M';
+    const csData={os:os,data:d.data,equipe:d.equipe,encarregado:d.encarregado||'',
+      tipo:d.tipo||'',quantidade:parseFloat(d.qtd)||1,endereco:d.endereco,
+      bairro:d.bairro||'',regiao:d.regiao||'',
+      obs:(concl?'[VIA MOBILE — aguardando validação do técnico] ':'[VIA MOBILE — em execução] ')+'Rel. Fotográfico nº '+cod+'. '+(d.obs||''),
+      houveMateriais:false,servicoExecutado:'',composicaoUsada:'',materiais:[],
+      viaMobile:true,rf_codigo:cod,status:concl?'Aguardando validação':'Em execução (app)'};
+    if(d.csId){
+      try{ // não desfaz validações já feitas pelos técnicos no sistema
+        const cur=await supaGet('records?id=eq.'+d.csId+'&select=data');
+        if(cur[0]&&cur[0].data){
+          if(cur[0].data.validacoes)csData.validacoes=cur[0].data.validacoes;
+          if(cur[0].data.status==='Validado'){csData.status='Validado';csData.obs=cur[0].data.obs||csData.obs;}
+        }
+      }catch(e){}
+      await storePatch(d.csId,Object.assign({},csData,marca));
+    }else{d.csId=await storeAdd('ctrl_servicos',csData)}
+    d.osSistema=os;
+  }catch(e){}
+  // ── Programação: marca a origem como executada (só ao concluir) ──
+  if(concl&&d.cloudId){
+    try{
+      const r=await supaGet('records?id=eq.'+d.cloudId+'&select=data');
+      if(r[0]&&r[0].data){const nd=r[0].data;nd.status='Executado';nd.rf_codigo=cod;await storePatch(d.cloudId,nd);}
+    }catch(e){}
+  }
+  d.enviada=true;d.codSistema=cod;await dbPut(d);
+}
+async function enviarAgora(d){
+  const primeira=!d.enviada;
+  toast('☁ Enviando ao sistema...');
+  try{
+    await enviarRelatorio(d);
+    toast((primeira?'✅ Registrado no sistema! ':'✅ Atualizado no sistema! ')+'Rel. Fotográfico nº '+d.codSistema+(d.osSistema?' · Ctrl. Serviços OS '+d.osSistema:'')+(d.status==='concluida'?'':' (em andamento)')+'. No sistema, recarregue a página (F5) para ver.');
+  }catch(e){
+    toast('❌ Não foi ao sistema: '+e.message+'. Verifique a internet — será reenviada na próxima sincronização.');
+  }
+}
+let syncBusy=false;
+async function sincronizar(silencioso){
+  if(syncBusy||!USER)return;syncBusy=true;
+  try{
+    try{aplicarEquipes(await storeGet('equipes'))}catch(e){}
+    const locais=await dbAll();
+    const vistos=new Set(locais.map(d=>d.cloudId).filter(Boolean));
+    const prog=await storeGet('programacao');
+    let novos=0;
+    for(const it of prog){
+      if(vistos.has(it.cloudId))continue;
+      if((it.status||'Programado')!=='Programado')continue;
+      if(!it.equipe)continue;
+      if(!acessoTotal()&&it.equipe!==USER.equipe)continue;
+      await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:it.data||hoje(),origem:it.origem||'Programação',
+        os:it.os||'',tipo:it.servico||it.tipo||'',qtd:'',und:'Un.',obs:it.obs||'',
+        endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||'',
+        lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
+        status:'pendente',equipe:it.equipe,encarregado:it.encarregado||(ENC_MAP[it.equipe]||[''])[0]||''});
+      novos++;
+    }
+    let enviadas=0;
+    for(const d of visiveis(locais)){
+      if(!d.enviada&&d.endereco&&(d.tocada||d.status==='concluida')){await enviarRelatorio(d);enviadas++;}
+    }
+    if(novos||enviadas){
+      toast((novos?novos+' demanda(s) nova(s) da programação. ':'')+(enviadas?enviadas+' relatório(s) enviado(s) ao sistema.':''));
+      if($('scr-list').classList.contains('on'))renderLista();
+    }else if(!silencioso)toast('Sincronizado — nada novo na nuvem.');
+  }catch(e){if(!silencioso)toast('Sincronização falhou: '+e.message)}
+  finally{syncBusy=false}
+}
+
+/* ════════════════ LISTA DE DEMANDAS ════════════════ */
+async function renderLista(){
+  const all=visiveis(await dbAll()).sort((a,b)=>(b.data||'').localeCompare(a.data||'')|| (b.id-a.id));
+  $('k-pend').textContent=all.filter(d=>d.status==='pendente').length;
+  $('k-and').textContent=all.filter(d=>d.status==='andamento').length;
+  $('k-conc').textContent=all.filter(d=>d.status==='concluida').length;
+  let fh=['todas','pendente','andamento','concluida'].map(f=>
+    `<span class="chip ${filtro===f?'on':''}" onclick="filtro='${f}';renderLista()">${
+      {todas:'Todas',pendente:'Pendentes',andamento:'Em andamento',concluida:'Concluídas'}[f]}</span>`).join('');
+  if(acessoTotal()){
+    fh+='<div style="margin-top:2px">'+['todas',...Object.keys(ENC_MAP)].map(e=>
+      `<span class="chip ${filtroEq===e?'on':''}" onclick="filtroEq='${e}';renderLista()">${e==='todas'?'👷 Todas equipes':e}</span>`).join('')+'</div>';
+  }
+  $('filtros').innerHTML=fh;
+  let vis=filtro==='todas'?all:all.filter(d=>d.status===filtro);
+  if(acessoTotal()&&filtroEq!=='todas')vis=vis.filter(d=>d.equipe===filtroEq);
+  if(!vis.length){$('lista').innerHTML='<div class="vazio">Nenhuma demanda aqui.<br>Toque em ➕ Nova ou importe a programação em ⚙️ Config.</div>';return}
+  const stCls={pendente:'',andamento:'st-a',concluida:'st-c'};
+  const stTag={pendente:'<span class="st s-p">Pendente</span>',andamento:'<span class="st s-a">Em andamento</span>',concluida:'<span class="st s-c">Concluída</span>'};
+  $('lista').innerHTML=vis.map(d=>{
+    const nf=(d.fotos||[]).filter(Boolean).length;
+    return `<div class="dem ${stCls[d.status]||''}" onclick="abrirDemanda(${d.id})">
+      <div class="dl1"><span class="cod">${esc(d.codigo)}</span>${stTag[d.status]||''}</div>
+      <div class="end">${esc(d.endereco||'(sem endereço)')}</div>
+      <div class="sv">${esc(d.tipo||'—')}${d.qtd?' · '+esc(d.qtd)+' '+esc(d.und||''):''}</div>
+      <div class="meta"><span>📅 ${fmtBR(d.data)}</span>${acessoTotal()?'<span>👷 '+esc(d.equipe||'—')+'</span>':''}<span>📷 ${nf} foto${nf===1?'':'s'}</span>${d.mapa?'<span>🗺 mapa</span>':''}${d.enviada?'<span>☁ nº '+(d.codSistema||'')+'</span>':'<span style="color:var(--verm)">⏳ aguardando envio</span>'}${d.os?'<span>OS '+esc(d.os)+'</span>':''}</div>
+    </div>`;}).join('');
+}
+
+/* ════════════════ FORMULÁRIO ════════════════ */
+function novaDemanda(){
+  if(!USER){mostrarLogin();return}
+  atual={codigo:'',data:hoje(),origem:'Programação diária',os:'',tipo:'',qtd:'',und:'Un.',
+    obs:'',endereco:'',bairro:'',regiao:'',lat:null,lon:null,mapa:null,
+    fotos:Array(N_FOTOS).fill(null),status:'pendente',
+    equipe:acessoTotal()?'':USER.equipe,
+    encarregado:acessoTotal()?'':USER.nome};
+  preencherForm();nav('form');
+}
+function onEqForm(){
+  const eq=$('f-eq').value;
+  $('f-enc').innerHTML='<option value="">Selecione...</option>'+
+    (ENC_MAP[eq]||[]).map(e=>`<option>${e}</option>`).join('');
+}
+async function abrirDemanda(id){atual=await dbGet(id);
+  if(!atual){toast('Demanda não encontrada.');return}
+  if(!atual.fotos)atual.fotos=Array(N_FOTOS).fill(null);
+  preencherForm();nav('form');}
+function preencherForm(){
+  if(acessoTotal()){
+    $('f-eqrow').style.display='grid';
+    $('f-eq').innerHTML='<option value="">Selecione...</option>'+
+      Object.keys(ENC_MAP).map(e=>`<option>${e}</option>`).join('');
+    $('f-eq').value=atual.equipe||'';onEqForm();
+    $('f-enc').value=atual.encarregado||'';
+  }else{$('f-eqrow').style.display='none'}
+  $('f-cod').value=atual.codigo||'(auto ao salvar)';$('f-data').value=atual.data||hoje();
+  $('f-orig').value=atual.origem||'Programação diária';$('f-os').value=atual.os||'';
+  if(atual.tipo&&!Array.from($('f-tipo').options).some(o=>o.value===atual.tipo)){
+    const op=document.createElement('option');op.textContent=atual.tipo;$('f-tipo').appendChild(op);
+  }
+  $('f-tipo').value=atual.tipo||'';$('f-qtd').value=atual.qtd||'';$('f-und').value=atual.und||'Un.';
+  $('f-obs').value=atual.obs||'';$('f-end').value=atual.endereco||'';
+  $('f-bairro').value=atual.bairro||'';$('f-reg').value=atual.regiao||'';
+  $('btn-del').style.display=atual.id?'flex':'none';
+  renderGpsInfo();renderFotos();renderStChips();
+}
+function lerForm(){
+  if(acessoTotal()){
+    atual.equipe=$('f-eq').value;
+    atual.encarregado=$('f-enc').value||( ENC_MAP[atual.equipe]||[''] )[0]||'';
+  }
+  atual.data=$('f-data').value;atual.origem=$('f-orig').value;atual.os=$('f-os').value.trim();
+  atual.tipo=$('f-tipo').value;atual.qtd=$('f-qtd').value;atual.und=$('f-und').value;
+  atual.obs=$('f-obs').value.trim();atual.endereco=$('f-end').value.trim();
+  atual.bairro=$('f-bairro').value.trim();atual.regiao=$('f-reg').value;
+}
+function renderStChips(){
+  const ops=[['pendente','Pendente'],['andamento','Em andamento'],['concluida','Concluída']];
+  $('st-chips').innerHTML=ops.map(([v,l])=>
+    `<span class="chip ${atual.status===v?'on':''}" onclick="atual.status='${v}';renderStChips()">${l}</span>`).join('');
+}
+async function salvarDemanda(imprimir){
+  lerForm();
+  if(!atual.equipe){toast('Selecione a equipe.');return}
+  if(!atual.tipo){toast('Informe o tipo de serviço.');return}
+  if(!atual.endereco){toast('Informe o endereço (use o GPS).');return}
+  if(!atual.codigo)atual.codigo=proxCodigo(atual.equipe);
+  atual.tocada=true;
+  const id=await dbPut(atual);atual.id=id;
+  await enviarAgora(atual);
+  if(imprimir===true){imprimirDemandas([atual])}else{nav('list')}
+}
+async function excluirDemanda(){
+  if(!atual.id)return;
+  if(!confirm('Excluir a demanda '+atual.codigo+'? Esta ação não pode ser desfeita.'))return;
+  await dbDel(atual.id);toast('Demanda excluída.');nav('list');
+}
+
+/* ════════════════ FOTOS ════════════════ */
+let slotAtivo=-1;
+function renderFotos(){
+  let h=`<div class="fslot mapa ${atual.mapa?'cheia':''}" style="${atual.mapa?`background-image:url(${atual.mapa})`:''}" onclick="slotMapa()">
+    🗺<br>Mapa da localização
+    <button class="fx" onclick="event.stopPropagation();atual.mapa=null;renderFotos()">✕</button>
+    <span class="ftag">Localização</span></div>`;
+  for(let i=0;i<N_FOTOS;i++){
+    const f=atual.fotos[i];
+    h+=`<div class="fslot ${f?'cheia':''}" style="${f?`background-image:url(${f})`:''}" onclick="slotFoto(${i})">
+      📷<br>Foto ${i+1}
+      <button class="fx" onclick="event.stopPropagation();atual.fotos[${i}]=null;renderFotos()">✕</button>
+      <span class="ftag">Foto ${String(i+1).padStart(2,'0')}</span></div>`;
+  }
+  $('fgrid').innerHTML=h;
+}
+function slotMapa(){
+  if(atual.mapa)return;
+  if(atual.lat!=null){gerarMapa()}else{toast('Capture o GPS primeiro (bloco 3) — o mapa é gerado automaticamente.')}
+}
+function slotFoto(i){slotAtivo=i;$('foto-input').click()}
+document.addEventListener('DOMContentLoaded',()=>{
+  $('foto-input').addEventListener('change',async e=>{
+    const f=e.target.files[0];e.target.value='';
+    if(!f||slotAtivo<0)return;
+    const data=await comprimirFoto(f);
+    atual.fotos[slotAtivo]=data;renderFotos();
+  });
+  $('imp-input').addEventListener('change',importarProgramacao);
+});
+function comprimirFoto(file){return new Promise(res=>{
+  const img=new Image();
+  img.onload=()=>{
+    const MAX=1280;let w=img.width,h=img.height;
+    if(w>h&&w>MAX){h=Math.round(h*MAX/w);w=MAX}else if(h>=w&&h>MAX){w=Math.round(w*MAX/h);h=MAX}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    URL.revokeObjectURL(img.src);
+    res(c.toDataURL('image/jpeg',0.72));
+  };
+  img.src=URL.createObjectURL(file);
+});}
+
+/* ════════════════ GPS · ENDEREÇO · MAPA ════════════════ */
+function renderGpsInfo(){
+  const b=$('gps-info');
+  if(atual.lat==null){b.style.display='none';return}
+  b.style.display='block';
+  b.innerHTML=`<b>Coordenadas:</b> ${atual.lat.toFixed(6)}, ${atual.lon.toFixed(6)}`+
+    (atual.endereco?`<br><b>Endereço:</b> ${esc(atual.endereco)}`:'')+
+    (atual.mapa?'<br>🗺 Quadro de mapa gerado.':'');
+}
+function capturarGPS(){
+  if(!navigator.geolocation){toast('GPS não disponível neste aparelho.');return}
+  const btn=$('btn-gps');btn.textContent='📡 Obtendo posição...';btn.disabled=true;
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    atual.lat=pos.coords.latitude;atual.lon=pos.coords.longitude;
+    renderGpsInfo();
+    btn.textContent='🌐 Buscando endereço...';
+    await buscarEndereco();
+    await gerarMapa();
+    btn.textContent='📡 Capturar localização (GPS)';btn.disabled=false;
+    renderGpsInfo();
+  },err=>{
+    btn.textContent='📡 Capturar localização (GPS)';btn.disabled=false;
+    toast('Não foi possível obter o GPS: '+(err.message||'erro')+'. Verifique a permissão de localização.');
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+async function buscarEndereco(){
+  try{
+    const u=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${atual.lat}&lon=${atual.lon}&zoom=18&addressdetails=1&accept-language=pt-BR&email=gedrem.sisep@gmail.com`;
+    const r=await fetch(u);if(!r.ok)throw 0;
+    const j=await r.json();const a=j.address||{};
+    const rua=a.road||a.pedestrian||a.footway||'';
+    const num=a.house_number?', nº '+a.house_number:'';
+    const bairro=a.suburb||a.neighbourhood||a.quarter||'';
+    const cid=a.city||a.town||'Campo Grande';
+    let end=rua?`${rua}${num}`:(j.display_name||'').split(',').slice(0,2).join(',');
+    if(bairro)end+=` – ${bairro}`;
+    end+=`, ${cid} – MS`;
+    $('f-end').value=end;atual.endereco=end;
+    if(bairro){$('f-bairro').value=bairro;atual.bairro=bairro}
+    toast('Endereço preenchido automaticamente.');
+  }catch(e){toast('Sem internet para converter o endereço — coordenadas salvas; tente de novo quando houver sinal.')}
+}
+function carregarTile(z,x,y){return new Promise(res=>{
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=()=>res(img);img.onerror=()=>res(null);
+  img.src=`https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+});}
+async function gerarMapa(){
+  if(atual.lat==null)return;
+  try{
+    const z=16,T=256,W=520,H=390;
+    const n=Math.pow(2,z);
+    const xt=(atual.lon+180)/360*n;
+    const lr=atual.lat*Math.PI/180;
+    const yt=(1-Math.log(Math.tan(lr)+1/Math.cos(lr))/Math.PI)/2*n;
+    const c=document.createElement('canvas');c.width=W;c.height=H;
+    const ctx=c.getContext('2d');
+    ctx.fillStyle='#dde3ec';ctx.fillRect(0,0,W,H);
+    const px=xt*T,py=yt*T,ox=px-W/2,oy=py-H/2;
+    const x0=Math.floor(ox/T),y0=Math.floor(oy/T),x1=Math.floor((ox+W)/T),y1=Math.floor((oy+H)/T);
+    const jobs=[];
+    for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)
+      jobs.push(carregarTile(z,((x%n)+n)%n,y).then(im=>{if(im)ctx.drawImage(im,x*T-ox,y*T-oy)}));
+    await Promise.all(jobs);
+    // marcador
+    const mx=W/2,my=H/2;
+    ctx.beginPath();ctx.arc(mx,my+2,10,0,7);ctx.fillStyle='rgba(0,0,0,.25)';ctx.fill();
+    ctx.beginPath();ctx.moveTo(mx,my);ctx.bezierCurveTo(mx-14,my-18,mx-9,my-34,mx,my-34);
+    ctx.bezierCurveTo(mx+9,my-34,mx+14,my-18,mx,my);ctx.fillStyle='#D32F2F';ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle='#8E1B1B';ctx.stroke();
+    ctx.beginPath();ctx.arc(mx,my-24,4.5,0,7);ctx.fillStyle='#fff';ctx.fill();
+    // atribuição
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.fillRect(W-120,H-14,120,14);
+    ctx.fillStyle='#333';ctx.font='9px sans-serif';ctx.fillText('© OpenStreetMap',W-112,H-4);
+    atual.mapa=c.toDataURL('image/jpeg',0.82);
+    renderFotos();
+  }catch(e){toast('Não foi possível montar o mapa (sem internet?). Coordenadas ficam salvas.')}
+}
+
+/* ════════════════ IMPORTAR PROGRAMAÇÃO ════════════════ */
+async function importarProgramacao(e){
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  let j;try{j=JSON.parse(await f.text())}catch(_){toast('Arquivo inválido — use o modelo .json.');return}
+  const itens=Array.isArray(j)?j:(j.demandas||[]);
+  if(!itens.length){toast('Nenhuma demanda no arquivo.');return}
+  const norm=s=>String(s||'').trim().toLowerCase();
+  let add=0,ign=0;
+  for(const it of itens){
+    const eqIt=Object.keys(ENC_MAP).find(e=>norm(e)===norm(it.equipe));
+    if(!eqIt){ign++;continue}
+    if(!acessoTotal()&&eqIt!==USER.equipe){ign++;continue}
+    const enc=it.encarregado||((!acessoTotal()&&eqIt===USER.equipe)?USER.nome:(ENC_MAP[eqIt]||[''])[0]);
+    await dbPut({codigo:proxCodigo(eqIt),data:it.data||hoje(),origem:it.origem||'Programação diária',
+      os:it.os||'',tipo:it.servico||it.tipo||'',qtd:it.qtd||'',und:it.und||'Un.',obs:it.obs||'',
+      endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||'',
+      lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
+      status:'pendente',equipe:eqIt,encarregado:enc});
+    add++;
+  }
+  toast(`${add} demanda(s) importada(s)${acessoTotal()?' (todas as equipes)':' para '+USER.equipe}.`+
+    (ign?` ${ign} ignorada(s) (outra equipe / equipe desconhecida).`:''));
+  nav('list');
+}
+function baixarModelo(){
+  const mod={tipo:'gedrem_programacao',data:hoje(),demandas:[
+    {equipe:'Manutenção I',data:hoje(),origem:'Fala Campo Grande',os:'852500',servico:'Limpeza de Boca de Lobo',qtd:'3',und:'Un.',endereco:'Rua Castanheiras c/ Av. Florestal',bairro:'Santo Amaro',regiao:'Imbirussu',obs:''},
+    {equipe:'Limpeza I',data:hoje(),origem:'Programação diária',os:'',servico:'Desobstrução de galeria',qtd:'12',und:'M',endereco:'Av. Ernesto Geisel, 1500',bairro:'Nova Lima',regiao:'Segredo',obs:'Levar hidrojato'}
+  ]};
+  baixarArquivo('modelo_programacao_gedrem.json',JSON.stringify(mod,null,2));
+}
+async function exportarBackup(){
+  const all=visiveis(await dbAll());
+  baixarArquivo(`backup_gedrem_${USER.id}_${hoje()}.json`,
+    JSON.stringify({tipo:'gedrem_mobile_backup',usuario:USER.nome,perfil:USER.papel,exportado:new Date().toISOString(),demandas:all},null,2));
+  toast('Backup exportado ('+all.length+' demandas).');
+}
+function baixarArquivo(nome,conteudo){
+  const b=new Blob([conteudo],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+
+/* ════════════════ TELA RELATÓRIO ════════════════ */
+let relSel=new Set();
+async function renderRel(){
+  if(!$('rel-data').value)$('rel-data').value=hoje();
+  const dt=$('rel-data').value;
+  const all=visiveis(await dbAll()).filter(d=>d.data===dt).sort((a,b)=>a.id-b.id);
+  relSel=new Set(all.filter(d=>d.status==='concluida').map(d=>d.id));
+  if(!all.length){$('rel-lista').innerHTML='<div class="vazio">Nenhuma demanda nesta data.</div>';return}
+  $('rel-lista').innerHTML=all.map(d=>`
+    <div class="dem ${d.status==='concluida'?'st-c':''}" style="cursor:default">
+      <div class="selrow">
+        <input type="checkbox" ${relSel.has(d.id)?'checked':''} onchange="this.checked?relSel.add(${d.id}):relSel.delete(${d.id})">
+        <div style="flex:1">
+          <div class="dl1"><span class="cod">${esc(d.codigo)}</span></div>
+          <div class="end">${esc(d.endereco||'(sem endereço)')}</div>
+          <div class="sv">${acessoTotal()?esc(d.equipe||'—')+' · ':''}${esc(d.tipo||'—')} · 📷 ${(d.fotos||[]).filter(Boolean).length}${d.mapa?' · 🗺':''}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function gerarRelatorio(){
+  if(!relSel.size){toast('Selecione ao menos uma demanda.');return}
+  const all=await dbAll();
+  const sel=all.filter(d=>relSel.has(d.id)).sort((a,b)=>a.id-b.id);
+  imprimirDemandas(sel);
+}
+
+/* ════════════════ IMPRESSÃO INSTITUCIONAL ════════════════ */
+function pgDemanda(d){
+  const AZ='#0052A2';
+  const dt=fmtBR(d.data);
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid ${AZ};padding-bottom:10px;margin-bottom:14px">
+    <img src="${SISEP_LOGO}" alt="Logo" style="height:50px;object-fit:contain;flex-shrink:0">
+    <div style="text-align:center;flex:1;padding:0 12px">
+      <div style="font-size:9.5pt;font-weight:700;color:#1a3a6b">PREFEITURA MUNICIPAL DE CAMPO GRANDE - MS</div>
+      <div style="font-size:8.5pt;color:#333">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS - SISEP</div>
+      <div style="display:inline-block;background:${AZ};color:#fff;font-size:10.5pt;font-weight:700;padding:4px 18px;border-radius:4px;margin-top:6px">RELATÓRIO FOTOGRÁFICO</div>
+    </div>
+    <div style="text-align:right;font-size:8.5pt;color:#333;min-width:100px;flex-shrink:0">
+      <div style="font-size:12pt;font-weight:700;color:${AZ};border:1.5px solid ${AZ};border-radius:4px;padding:3px 8px;margin-bottom:4px;text-align:center">${esc(d.codigo)}</div>
+      <div><b style="color:${AZ}">Data:</b> ${dt}</div>
+    </div>
+  </div>`;
+  const cel=(l,v)=>`<td style="width:110px;font-weight:700;padding:6px 9px;border:1px solid #ccc;background:#f0f5ff;color:${AZ};font-size:8.5pt">${l}</td><td style="padding:6px 9px;border:1px solid #ccc;font-size:9.5pt">${v||'—'}</td>`;
+  h+=`<table style="width:100%;border-collapse:collapse;margin-bottom:12px;border:1.5px solid ${AZ}">
+    <tr style="background:${AZ}"><td colspan="4" style="padding:4px 9px;color:#fff;font-size:8.5pt;font-weight:700">GEDREM – GERÊNCIA DE DRENAGEM URBANA — IDENTIFICAÇÃO DO SERVIÇO</td></tr>
+    <tr>${cel('EQUIPE:',esc(d.equipe))}${cel('ENCARREGADO:',esc(d.encarregado))}</tr>
+    <tr>${cel('ORIGEM:',esc(d.origem))}${cel('Nº OS / REF.:',esc(d.os))}</tr>
+    <tr>${cel('SERVIÇO:',esc(d.tipo))}${cel('QUANTIDADE:',d.qtd?esc(d.qtd)+' '+esc(d.und||''):'—')}</tr>
+    <tr>${cel('ENDEREÇO:',esc(d.endereco))}${cel('BAIRRO / REGIÃO:',[esc(d.bairro),esc(d.regiao)].filter(Boolean).join(' / ')||'—')}</tr>
+    ${d.lat!=null?`<tr>${cel('COORDENADAS:',d.lat.toFixed(6)+', '+d.lon.toFixed(6))}${cel('SITUAÇÃO:',{pendente:'Pendente',andamento:'Em andamento',concluida:'Concluída'}[d.status]||'—')}</tr>`:''}
+  </table>`;
+  if(d.obs){h+=`<div style="border:1.5px solid ${AZ};border-radius:3px;padding:9px 12px;font-size:9.5pt;line-height:1.6;background:#fafcff;white-space:pre-wrap;margin-bottom:12px"><b style="color:${AZ};font-size:8pt">OBSERVAÇÕES TÉCNICAS:</b><br>${esc(d.obs)}</div>`}
+  const imgs=[];
+  if(d.mapa)imgs.push({src:d.mapa,tag:'Localização (mapa)'});
+  (d.fotos||[]).forEach((f,i)=>{if(f)imgs.push({src:f,tag:'Foto '+String(i+1).padStart(2,'0')})});
+  if(imgs.length){
+    h+=`<div style="font-size:8.5pt;font-weight:700;color:${AZ};text-transform:uppercase;margin-bottom:6px">Registro Fotográfico</div>
+    <div style="display:grid;grid-template-columns:${imgs.length>1?'1fr 1fr':'1fr'};gap:8px">`+
+    imgs.map(o=>`<div style="border:1px solid #ccc;border-radius:3px;overflow:hidden">
+      <img src="${o.src}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">
+      <div style="font-size:7.5pt;text-align:center;padding:2px;background:#f0f5ff;color:${AZ};font-weight:700">${o.tag}</div>
+    </div>`).join('')+`</div>`;
+  }
+  h+=`<div style="margin-top:30px;display:flex;justify-content:center">
+    <div style="text-align:center;min-width:280px">
+      <div style="border-top:1.5px solid #333;padding-top:8px">
+        <div style="font-size:11pt;font-weight:700;color:${AZ}">${esc((d.encarregado||'').replace(/\s*\(.*\)$/,'').toUpperCase())}</div>
+        <div style="font-size:9pt;color:#333;font-weight:500">Encarregado – ${esc(d.equipe)}</div>
+        <div style="font-size:8.5pt;color:#555">SETOR DE DRENAGEM URBANA – GEDREM / SISEP</div>
+      </div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:10mm;left:14mm;right:14mm;border-top:1px solid #aaa;padding-top:4px;text-align:center;font-size:7pt;color:#666">${CI_RODAPE}</div>`;
+  return `<div class="pm-pg">${h}</div>`;
+}
+function imprimirDemandas(lista){
+  $('pm-body').innerHTML=lista.map(pgDemanda).join('');
+  $('print-modal').style.display='block';
+  window.scrollTo(0,0);
+}
+
+/* ════════════════ CONFIG ════════════════ */
+function renderCfg(){
+  $('cfg-eq-info').innerHTML=USER?`<b>Usuário:</b> ${esc(USER.nome)}<br><b>Perfil:</b> ${esc(USER.papel)}${USER.equipe?' – '+esc(USER.equipe):''}<br><b>Acesso:</b> ${acessoTotal()?'Total — todas as equipes':'Parcial — somente '+esc(USER.equipe)}<br><b>Próximo nº sequencial:</b> ${String(getSeq()).padStart(4,'0')}`:'Nenhum usuário conectado.';
+}
+
+/* ════════════════ INICIALIZAÇÃO ════════════════ */
+(async function(){
+  $('top-logo').src=SISEP_LOGO;
+  $('f-tipo').innerHTML='<option value="">Selecione...</option>'+TIPOS.map(t=>`<option>${t}</option>`).join('');
+  try{await abrirDB()}catch(e){alert('Erro ao abrir o banco de dados local: '+e)}
+  aplicarEquipes(equipesCache());
+  loadSessao();atualizaTopo();
+  if(USER){nav('list');sincronizar(true)}else{mostrarLogin()}
+  setInterval(()=>sincronizar(true),60000);
+})();
+</script>
+<!-- GEDREM Mobile v2 · usuários e perfis de acesso -->
+</body>
+</html>
