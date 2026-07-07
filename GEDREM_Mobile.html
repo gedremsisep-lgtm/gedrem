@@ -123,6 +123,8 @@ textarea{min-height:74px;resize:vertical}
 .login-foot{text-align:center;font-size:10.5px;color:rgba(255,255,255,.55);padding:8px 0 14px}
 #up-banner{position:fixed;top:0;left:0;right:0;z-index:300;background:var(--verde);color:#fff;
   text-align:center;font-size:12.5px;font-weight:600;padding:9px;display:none}
+body.on-login .top,body.on-login .nav{display:none!important}
+body.on-login{padding-bottom:0}
 </style>
 </head>
 <body>
@@ -381,6 +383,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.style.display='none',3200)}
 function nav(s){
   if(!USER){mostrarLogin();return}
+  document.body.classList.remove('on-login');
   document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
   $('scr-'+s).classList.add('on');
   document.querySelectorAll('.nav .ni').forEach(x=>x.classList.remove('on'));
@@ -426,6 +429,7 @@ function sair(){
   mostrarLogin();
 }
 function mostrarLogin(){
+  document.body.classList.add('on-login');
   initLogin();atualizaTopo();
   document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
   $('scr-login').classList.add('on');
@@ -446,7 +450,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260707-47';
+const APP_VERSION='20260707-48';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
