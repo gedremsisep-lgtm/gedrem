@@ -3859,7 +3859,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260707-44'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260707-45'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -12477,6 +12477,49 @@ async function compGetAll(){
   return all;
 }
 
+/* ── Metodologia SINAPI: Encargos Sociais + BDI + Preço ── */
+function sinapiCfg(){ try{return JSON.parse(localStorage.getItem('gedrem_sinapi'))||{}}catch(e){return{}} }
+function sinapiSalvar(){
+  const es=parseFloat(document.getElementById('sin-es')?.value)||0;
+  const bdi=parseFloat(document.getElementById('sin-bdi')?.value)||0;
+  localStorage.setItem('gedrem_sinapi',JSON.stringify({es:es,bdi:bdi}));
+  compRender();
+}
+function sinapiBloco(totMat,totMO,totEq){
+  const c=sinapiCfg(); const es=(c.es!=null?c.es:113.6); const bdi=(c.bdi!=null?c.bdi:26.87);
+  const moComEnc=totMO*(1+es/100);
+  const custoDireto=totMat+totEq+moComEnc;
+  const valorBDI=custoDireto*(bdi/100);
+  const preco=custoDireto+valorBDI;
+  const linha=(l,val,cor,neg)=>`<div style="display:flex;justify-content:space-between;padding:5px 0;${neg?'':'border-bottom:1px dashed var(--border)'}">
+    <span style="font-size:12px;color:${cor||'var(--text2)'}">${l}</span>
+    <span style="font-size:12px;font-weight:600;color:${cor||'var(--text)'}">${BRL(val)}</span></div>`;
+  return `<div style="margin-top:14px;padding-top:12px;border-top:2px solid var(--blue-lt)">
+    <div class="fhead" style="border-color:var(--blue-lt)"><span style="color:var(--blue)">📐</span> Formação de Preço — Metodologia SINAPI (Decreto 7.983/2013)</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:10px">
+      <div class="fg" style="margin:0"><label style="font-size:10px">Encargos Sociais (%) sobre mão de obra</label>
+        <input type="number" step="0.01" id="sin-es" value="${es}" style="width:120px;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--radius-sm)"></div>
+      <div class="fg" style="margin:0"><label style="font-size:10px">BDI (%)</label>
+        <input type="number" step="0.01" id="sin-bdi" value="${bdi}" style="width:100px;font-size:12px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--radius-sm)"></div>
+      <button class="btn bp" onclick="sinapiSalvar()" style="font-size:11px"><i class="ti ti-calculator"></i>Recalcular</button>
+      <span style="font-size:10px;color:var(--text3)">Percentuais oficiais no Livro SINAPI – Cálculos e Parâmetros (Caixa). ES desonerado padrão ~113,6% · BDI conforme obra.</span>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px">
+      ${linha('Materiais',totMat)}
+      ${linha('Mão de obra (custo horário)',totMO)}
+      ${linha('Encargos Sociais ('+es+'%) sobre mão de obra',moComEnc-totMO,'var(--amber)')}
+      ${linha('Equipamentos',totEq)}
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid var(--border);margin-top:3px">
+        <span style="font-size:13px;font-weight:700">CUSTO DIRETO (unitário)</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text)">${BRL(custoDireto)}</span></div>
+      ${linha('BDI ('+bdi+'%)',valorBDI,'var(--purple)')}
+      <div style="display:flex;justify-content:space-between;padding:9px 0 3px;border-top:2px solid var(--green)">
+        <span style="font-size:14px;font-weight:800;color:var(--green)">PREÇO UNITÁRIO DE REFERÊNCIA</span>
+        <span style="font-size:18px;font-weight:800;color:var(--green)">${BRL(preco)}</span></div>
+    </div>
+  </div>`;
+}
+
 async function compRender(){
   try{
     const mats=await matEnsureDefault();
@@ -12512,7 +12555,7 @@ async function compRender(){
       <td style="font-size:11px">${it.desc}</td>
       <td><span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${
         it.cat==='Serviço'?'var(--amber-bg)':it.cat==='Equipamento'?'var(--purple-bg)':'var(--blue-bg)'
-      };color:${it.cat==='Serviço'?'var(--amber)':it.cat==='Equipamento'?'var(--purple)':'var(--blue)'}">${it.cat}</span></td>
+      };color:${it.cat==='Serviço'?'var(--amber)':it.cat==='Equipamento'?'var(--purple)':'var(--blue)'}">${it.cat==='Serviço'?'Mão de obra':it.cat}</span></td>
       <td style="text-align:center">${it.und}</td>
       <td style="text-align:center">
         <input type="number" step="0.01" min="0" value="${it.qtd}" data-comp-idx="${i}" data-pu="${pu}"
@@ -12531,7 +12574,7 @@ async function compRender(){
       <div class="fhead" style="border-color:${ci}99"><span style="color:${ci}">⬤</span> Composição: ${_compSrv}</div>
       <div class="tw"><table>
         <thead><tr><th>Código</th><th>Descrição</th><th>Categoria</th><th style="text-align:center">Und.</th>
-          <th style="text-align:center">Qtd/OS</th><th style="text-align:right">Custo unit.</th>
+          <th style="text-align:center" title="Coeficiente de consumo por unidade de serviço (SINAPI)">Coef.</th><th style="text-align:right">Custo unit.</th>
           <th style="text-align:right">Subtotal</th><th class="no-print"></th></tr></thead>
         <tbody>${rows||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:16px">Nenhum item</td></tr>'}</tbody>
       </table></div>
@@ -12552,6 +12595,7 @@ async function compRender(){
         <span style="font-size:12px;color:var(--blue);font-weight:600">Custo unitário total</span>
         <span style="font-size:18px;font-weight:700;color:var(--blue)" id="comp-total-geral">${BRL(totGeral)}</span>
       </div>
+      ${sinapiBloco(totMat,totServ,totEq)}
     </div>`;
     
     compRenderChart(all,matMap);
