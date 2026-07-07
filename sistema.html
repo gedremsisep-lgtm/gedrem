@@ -3859,7 +3859,8 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260706-43'; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
+const SYSTEM_VERSION = '20260707-44'; // + segurança por token (RLS)
+let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
 function supStorageUrl(bucket, filePath){
@@ -3878,6 +3879,7 @@ async function supStorageUpload(bucket, filePath, b64dataUrl, mime){
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': detectedMime,
       'x-upsert': 'true',
+      ...(GEDREM_TOKEN?{'x-gedrem-token':GEDREM_TOKEN}:{}),
     },
     body: blob,
   });
@@ -3956,9 +3958,11 @@ async function cloudRequest(path, opts={}){
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
       'Content-Type': 'application/json',
+      ...(GEDREM_TOKEN?{'x-gedrem-token':GEDREM_TOKEN}:{}),
       ...(opts.headers||{}),
     },
   });
+  if(res.status===401){ localStorage.removeItem('gedrem_token'); }
   if(!res.ok){
     const txt = await res.text().catch(()=>'');
     throw new Error(`Supabase ${res.status}: ${txt}`);
@@ -4616,12 +4620,14 @@ async function loginStep2(){
   if(!pass){ if(msgEl) msgEl.textContent='Digite a senha.'; return; }
   if(msgEl) msgEl.textContent='Verificando...';
   try{
-    const res=await cloudRequest('rpc/check_login',{ method:'POST', body: JSON.stringify({p_name:PROFILE_NAMES[u], p_password:pass}) });
+    const res=await cloudRequest('rpc/gedrem_login',{ method:'POST', body: JSON.stringify({p_name:PROFILE_NAMES[u], p_password:pass}) });
     const rows=await res.json();
     if(!rows.length || !rows[0].ok){
       if(msgEl) msgEl.textContent='Senha incorreta. Tente novamente.'; else alert('Senha incorreta.');
       return;
     }
+    GEDREM_TOKEN=rows[0].token||'';
+    localStorage.setItem('gedrem_token',GEDREM_TOKEN);
   }catch(e){
     const txt='N\u00e3o foi poss\u00edvel verificar o login (sem conex\u00e3o?): '+e.message;
     if(msgEl) msgEl.textContent=txt; else alert(txt);
@@ -4747,6 +4753,7 @@ const SISEP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA54AAAOvCAYAAAHT
 
 // ── pré-carregamento antes do login para navegação instantânea ───────────────
 (function preloadBeforeLogin(){
+  if(!GEDREM_TOKEN) return; // sem token o banco não responde — evita erros antes do login
   const STORES_PRE=['falacg','ctrl_servicos','relatorio_foto','oficios','funcionarios','equipes','ci','ssi','programacao'];
   STORES_PRE.forEach(s=>cloudGetAll(s).catch(()=>{}));
   // Setar logo imediatamente
@@ -15256,7 +15263,7 @@ async function admPublicarSistema(evt){
     const blob = new Blob([buf], {type:'text/html'});
     const resHtml = await fetch(`${SUPABASE_URL}/storage/v1/object/gedrem-docs/sistema/sisep_gedrem_latest.html`, {
       method:'POST',
-      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'text/html','x-upsert':'true'},
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'text/html','x-upsert':'true',...(GEDREM_TOKEN?{'x-gedrem-token':GEDREM_TOKEN}:{})},
       body: blob
     });
     if(!resHtml.ok){ const t=await resHtml.text(); throw new Error(`Erro ao enviar HTML: ${resHtml.status} ${t}`); }
@@ -15266,7 +15273,7 @@ async function admPublicarSistema(evt){
     const meta = JSON.stringify({versao, publicado_em: new Date().toISOString(), changelog:`Atualização ${versao}`});
     const resJson = await fetch(`${SUPABASE_URL}/storage/v1/object/gedrem-docs/sistema/versao.json`, {
       method:'POST',
-      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','x-upsert':'true'},
+      headers:{'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','x-upsert':'true',...(GEDREM_TOKEN?{'x-gedrem-token':GEDREM_TOKEN}:{})},
       body: meta
     });
     if(!resJson.ok){ const t=await resJson.text(); throw new Error(`Erro ao salvar versão: ${resJson.status} ${t}`); }

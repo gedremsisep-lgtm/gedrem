@@ -120,7 +120,7 @@ textarea{min-height:74px;resize:vertical}
     <div class="h1">Entrar no GEDREM Mobile</div>
     <div class="h2">Cada usuário acessa a sua programação de forma independente. Admin e Técnicos A/B têm acesso total; encarregados veem somente a própria equipe.</div>
     <div class="fg"><label>Usuário</label><select id="lg-user"></select></div>
-    <div class="fg"><label>PIN (senha)</label><input id="lg-pin" type="password" inputmode="numeric" maxlength="6" placeholder="PIN inicial: 1234"></div>
+    <div class="fg"><label>Senha (Admin/Técnicos: a mesma do sistema · Encarregados: PIN inicial 1234)</label><input id="lg-pin" type="password" placeholder="Senha ou PIN"></div>
     <button class="btn bp" onclick="fazerLogin()">🔓 Entrar</button>
   </div>
 </div>
@@ -292,21 +292,37 @@ const EQ_PREFIX={'Manutenção I':'M1','Manutenção II':'M2','Manutenção III'
 const TIPOS=['Limpeza de Boca de Lobo','Reparo de Boca de Lobo','Reparo de Poço de Visita','Limpeza de PV','Implantação de sarjetão','Implantação de BL','Desobstrução de galeria','Reparo de rede','Solapamento','Execução de calçada','Visita técnica','Reparo de meio-fio'];
 const N_FOTOS=6;
 
-/* ════════════════ USUÁRIOS E PERFIS ════════════════ */
+/* ════════════════ USUÁRIOS E PERFIS (sincronizados com o sistema) ════════════════ */
 const USUARIOS=[
-  {id:'admin',nome:'Juvenil Ferreira Lopes',papel:'Administrador',acesso:'total'},
-  {id:'tec-a',nome:'Técnico A',papel:'Adm. Técnico',acesso:'total'},
-  {id:'tec-b',nome:'Técnico B',papel:'Adm. Técnico',acesso:'total'}
+  {id:'admin',nome:'Juvenil Ferreira Lopes',papel:'Administrador',acesso:'total',sist:'Gestor'},
+  {id:'tec-a',nome:'Técnico A',papel:'Adm. Técnico',acesso:'total',sist:'Técnico A'},
+  {id:'tec-b',nome:'Técnico B',papel:'Adm. Técnico',acesso:'total',sist:'Técnico B'}
 ];
-Object.keys(ENC_MAP).forEach(eq=>ENC_MAP[eq].forEach((nome,i)=>
-  USUARIOS.push({id:'enc-'+(EQ_PREFIX[eq]||eq).toLowerCase()+(i?'-'+(i+1):''),
-    nome:nome,papel:'Encarregado',acesso:'equipe',equipe:eq})));
+function slugU(n){return 'enc-'+String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-')}
+function aplicarUsuarios(lista){
+  if(!lista||!lista.length)return;
+  localStorage.setItem('gedrem_userlist',JSON.stringify(lista));
+  lista.forEach(u=>{
+    if(u.perfil!=='encarregado'||!u.nome)return;
+    if(!USUARIOS.some(x=>x.id===slugU(u.nome)))
+      USUARIOS.push({id:slugU(u.nome),nome:u.nome,papel:'Encarregado',acesso:'equipe',equipe:u.equipe||''});
+    if(u.equipe){
+      if(!ENC_MAP[u.equipe])ENC_MAP[u.equipe]=[];
+      if(!ENC_MAP[u.equipe].includes(u.nome))ENC_MAP[u.equipe].push(u.nome);
+      if(!EQ_PREFIX[u.equipe])EQ_PREFIX[u.equipe]=u.equipe.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'EQ';
+    }
+  });
+}
+function usuariosCache(){try{return JSON.parse(localStorage.getItem('gedrem_userlist'))||[]}catch(e){return[]}}
 
 let USER=null, DB=null, atual=null, filtro='todas', filtroEq='todas';
+let TOKEN=localStorage.getItem('gedrem_token_app')||'';
+function tokensMap(){try{return JSON.parse(localStorage.getItem('gedrem_tokens'))||{}}catch(e){return{}}}
+function salvarToken(uid,tk){const m=tokensMap();m[uid]=tk;localStorage.setItem('gedrem_tokens',JSON.stringify(m));
+  TOKEN=tk;localStorage.setItem('gedrem_token_app',tk)}
 function acessoTotal(){return !!USER&&USER.acesso==='total'}
-function getPins(){try{return JSON.parse(localStorage.getItem('gedrem_pins'))||{}}catch(e){return{}}}
-function pinDe(u){return getPins()[u.id]||'1234'}
-function loadSessao(){const id=localStorage.getItem('gedrem_user');USER=USUARIOS.find(u=>u.id===id)||null}
+function loadSessao(){const id=localStorage.getItem('gedrem_user');USER=USUARIOS.find(u=>u.id===id)||null;
+  if(USER){const tk=tokensMap()[USER.id];if(tk){TOKEN=tk}}}
 function getSeq(){return parseInt(localStorage.getItem('gedrem_seq')||'1',10)}
 function proxCodigo(equipe){const n=getSeq();localStorage.setItem('gedrem_seq',String(n+1));
   return (EQ_PREFIX[equipe]||'EQ')+'-'+String(n).padStart(4,'0')}
@@ -352,10 +368,26 @@ function initLogin(){
   $('lg-user').innerHTML='<option value="">Selecione o usuário...</option>'+
     USUARIOS.map(u=>`<option value="${u.id}">${esc(u.nome)} — ${u.acesso==='total'?u.papel:'Enc. '+u.equipe}</option>`).join('');
 }
-function fazerLogin(){
+async function fazerLogin(){
   const u=USUARIOS.find(x=>x.id===$('lg-user').value);
   if(!u){toast('Selecione o usuário.');return}
-  if($('lg-pin').value!==pinDe(u)){toast('PIN incorreto.');return}
+  const senha=$('lg-pin').value;
+  if(!senha){toast('Digite a senha/PIN.');return}
+  toast('Verificando...');
+  try{
+    TOKEN='';// login sempre sem token antigo
+    const rows=u.acesso==='total'
+      ?await supaRpc('gedrem_login',{p_name:u.sist,p_password:senha})
+      :await supaRpc('gedrem_login_app',{p_nome:u.nome,p_pin:senha});
+    const r=rows&&rows[0];
+    if(!r||!r.ok){toast('Senha/PIN incorreto.');return}
+    salvarToken(u.id,r.token);
+    if(u.acesso==='equipe'&&r.equipe)u.equipe=r.equipe;
+  }catch(e){
+    const tk=tokensMap()[u.id];
+    if(tk){TOKEN=tk;toast('Sem conexão — entrando com o acesso salvo deste aparelho.')}
+    else{toast('Sem conexão para o primeiro acesso deste usuário. Conecte à internet.');return}
+  }
   USER=u;localStorage.setItem('gedrem_user',u.id);
   $('lg-pin').value='';
   atualizaTopo();nav('list');sincronizar(true);
@@ -370,14 +402,16 @@ function mostrarLogin(){
   initLogin();atualizaTopo();
   document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
   $('scr-login').classList.add('on');
+  supaRpc('gedrem_lista_usuarios').then(l=>{aplicarUsuarios(l);initLogin()}).catch(()=>{});
 }
-function alterarPIN(){
-  const pa=prompt('PIN atual:');if(pa===null)return;
-  if(pa!==pinDe(USER)){toast('PIN atual incorreto.');return}
+async function alterarPIN(){
+  if(acessoTotal()){toast('A senha dos perfis administrativos é a mesma do sistema — altere por lá.');return}
   const novo=prompt('Novo PIN (4 a 6 dígitos):');if(novo===null)return;
   if(!/^\d{4,6}$/.test(novo)){toast('Use de 4 a 6 números.');return}
-  const p=getPins();p[USER.id]=novo;localStorage.setItem('gedrem_pins',JSON.stringify(p));
-  toast('PIN alterado (vale neste aparelho).');
+  try{
+    const ok=await supaRpc('gedrem_set_pin',{p_novo:novo});
+    toast(ok?'PIN alterado — vale em todos os aparelhos.':'Não foi possível alterar.');
+  }catch(e){toast('Sem conexão — tente novamente com internet.')}
 }
 function atualizaTopo(){
   $('top-eq').textContent=USER?(acessoTotal()?USER.nome.split(' ')[0]+' · total':USER.equipe):'—';
@@ -389,12 +423,15 @@ const SUPA_URL='https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
 async function supaReq(path,opts){
   opts=opts||{};
+  const h={apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+  if(TOKEN)h['x-gedrem-token']=TOKEN;
   const r=await fetch(SUPA_URL+'/rest/v1/'+path,Object.assign({},opts,{
-    headers:Object.assign({apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},opts.headers||{})
+    headers:Object.assign(h,opts.headers||{})
   }));
   if(!r.ok)throw new Error('Nuvem HTTP '+r.status);
   return r;
 }
+async function supaRpc(fn,body){const r=await supaReq('rpc/'+fn,{method:'POST',body:JSON.stringify(body||{})});return r.json()}
 async function supaGet(q){return (await supaReq(q)).json()}
 async function storeGet(store,extra){
   const rows=await supaGet('records?store=eq.'+encodeURIComponent(store)+'&select=id,data&order=id.asc'+(extra||''));
@@ -415,9 +452,11 @@ function b64ToBlob(b64){
   return new Blob([arr],{type:(p[0].match(/data:(.*?);/)||[])[1]||'image/jpeg'});
 }
 async function fotoUpload(cod,letra,b64){
+  const hf={Authorization:'Bearer '+SUPA_KEY,'Content-Type':'image/jpeg','x-upsert':'true'};
+  if(TOKEN)hf['x-gedrem-token']=TOKEN;
   const r=await fetch(SUPA_URL+'/storage/v1/object/gedrem-fotos/rf/'+cod+'/'+letra+'.jpg',{
     method:'POST',
-    headers:{Authorization:'Bearer '+SUPA_KEY,'Content-Type':'image/jpeg','x-upsert':'true'},
+    headers:hf,
     body:b64ToBlob(b64)});
   if(!r.ok)throw new Error('Upload de foto falhou ('+r.status+')');
   return SUPA_URL+'/storage/v1/object/public/gedrem-fotos/rf/'+cod+'/'+letra+'.jpg';
@@ -437,10 +476,6 @@ function aplicarEquipes(eqs){
     if(!ENC_MAP[e.nome])ENC_MAP[e.nome]=[];
     if(e.enc&&!ENC_MAP[e.nome].includes(e.enc))ENC_MAP[e.nome].push(e.enc);
     if(!EQ_PREFIX[e.nome])EQ_PREFIX[e.nome]=e.nome.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'EQ';
-    if(!USUARIOS.some(u=>u.acesso==='equipe'&&u.equipe===e.nome)){
-      USUARIOS.push({id:'enc-dyn-'+e.nome.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
-        nome:e.enc||('Encarregado '+e.nome),papel:'Encarregado',acesso:'equipe',equipe:e.nome});
-    }
   });
 }
 
@@ -908,6 +943,7 @@ function renderCfg(){
   $('f-tipo').innerHTML='<option value="">Selecione...</option>'+TIPOS.map(t=>`<option>${t}</option>`).join('');
   try{await abrirDB()}catch(e){alert('Erro ao abrir o banco de dados local: '+e)}
   aplicarEquipes(equipesCache());
+  aplicarUsuarios(usuariosCache());
   loadSessao();atualizaTopo();
   if(USER){nav('list');sincronizar(true)}else{mostrarLogin()}
   setInterval(()=>sincronizar(true),60000);
