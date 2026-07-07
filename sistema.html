@@ -3859,7 +3859,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260707-46'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260707-47'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -15265,6 +15265,13 @@ async function checkSistemaUpdate(){
     if(!res.ok){ statusEl.textContent='Sem informações de versão disponíveis.'; return; }
     _updMeta = await res.json();
     if(_updMeta.versao !== SYSTEM_VERSION){
+      // AUTO-ATUALIZAÇÃO: recarrega buscando a versão nova (com cache-bust), sem re-download
+      if(location.protocol.startsWith('http') && sessionStorage.getItem('gedrem_sys_upd')!==_updMeta.versao){
+        sessionStorage.setItem('gedrem_sys_upd',_updMeta.versao);
+        statusEl.innerHTML='<span style="color:#16a34a;font-weight:600">⬇ Atualizando o sistema para '+_updMeta.versao+'...</span>';
+        setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(_updMeta.versao)),1200);
+        return;
+      }
       // Há versão nova
       statusEl.innerHTML = `<span style="color:#16a34a;font-weight:600">✅ Nova versão disponível: <b>${_updMeta.versao}</b></span>`
         + (_updMeta.changelog ? `<br><span style="color:#64748b">${_updMeta.changelog}</span>` : '')
