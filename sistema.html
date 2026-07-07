@@ -3859,7 +3859,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260707-45'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260707-46'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4753,12 +4753,14 @@ const SISEP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA54AAAOvCAYAAAHT
 
 // ── pré-carregamento antes do login para navegação instantânea ───────────────
 (function preloadBeforeLogin(){
+  // Logo sempre visível, mesmo antes do login
+  const _ll=document.getElementById('login-logo');
+  if(_ll) _ll.src=SISEP_LOGO;
+  const _li=document.getElementById('logo-img');
+  if(_li) _li.src=SISEP_LOGO;
   if(!GEDREM_TOKEN) return; // sem token o banco não responde — evita erros antes do login
   const STORES_PRE=['falacg','ctrl_servicos','relatorio_foto','oficios','funcionarios','equipes','ci','ssi','programacao'];
   STORES_PRE.forEach(s=>cloudGetAll(s).catch(()=>{}));
-  // Setar logo imediatamente
-  const _ll=document.getElementById('login-logo');
-  if(_ll) _ll.src=SISEP_LOGO;
 })();
 async function rfOnEquipe(){
   const eq=document.getElementById('rf-eq').value;
