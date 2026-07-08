@@ -3863,7 +3863,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260707-48'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260707-49'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10866,7 +10866,7 @@ function progAbrirPrint(){
         return `<td style="border:1px solid #ddd;vertical-align:top;padding:4px 5px;font-size:8px;line-height:1.35;background:${ri%2?'#F9FAFB':'#fff'};overflow:hidden;word-break:break-word">
           <span style="display:block;font-size:8px;color:#111;margin-bottom:1px;font-weight:500;white-space:normal">${it.end||'—'}</span>
           <span style="display:block;font-size:7px;color:#555;margin-bottom:1px">${[it.bairro,reg].filter(Boolean).join(' · ')}</span>
-          <span style="display:block;font-size:7px;color:#0052A2;font-style:italic;white-space:normal">${it.srv||''}</span>
+          <span style="display:block;font-size:7px;color:#0052A2;font-style:italic;white-space:normal">${it.srv||((it.end||it.bairro)?progSrvPadrao((PROG_EQ[ei]&&PROG_EQ[ei].nome)||''):'')}</span>
         </td>`;
       }
       return `<td style="border:1px solid #ddd;text-align:center;color:#ddd;font-size:8px;background:#FAFAFA">—</td>`;
@@ -10909,6 +10909,7 @@ function progAbrirPrint(){
 }
 
 /* ── Exportar Excel ───────────────────────────────────────────*/
+function progSrvPadrao(eqNome){ return /limpeza/i.test(eqNome||'') ? 'Limpeza de Boca de Lobo' : ''; }
 function progExportExcel(){
   const dt   = document.getElementById('prog-data')?.value || new Date().toISOString().slice(0,10);
   const dtFmt = dt ? (function(){ const p=dt.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; })() : '';
@@ -10951,12 +10952,13 @@ function progExportExcel(){
     const cells = eqAtivasIdx.map(ei => {
       const it = (PROG_DATA[ei]||[])[ri] || {};
       const reg = it.bairro ? (PROG_BR[it.bairro]||'') : '';
-      if(it.end || it.bairro || it.srv){
+      const srvShow = it.srv || ((it.end||it.bairro) ? progSrvPadrao((PROG_EQ[ei]&&PROG_EQ[ei].nome)||'') : '');
+      if(it.end || it.bairro || srvShow){
         const loc = [it.bairro, reg].filter(Boolean).join(' · ');
         return '<td style="border:1px solid #ddd;vertical-align:top;padding:5px 6px;background:'+bg+'">'
           +(it.end ? '<div style="font-size:10pt;font-weight:bold;color:#111;margin-bottom:2px">'+esc(it.end)+'</div>' : '')
           +(loc    ? '<div style="font-size:8.5pt;color:#555;margin-bottom:2px">'+esc(loc)+'</div>' : '')
-          +(it.srv ? '<div style="font-size:8.5pt;color:#0052A2;font-style:italic">'+esc(it.srv)+'</div>' : '')
+          +(srvShow ? '<div style="font-size:8.5pt;color:#0052A2;font-style:italic">'+esc(srvShow)+'</div>' : '')
           +'</td>';
       }
       
