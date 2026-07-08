@@ -2612,10 +2612,14 @@ textarea{resize:vertical;min-height:60px}
         <option value="">Todos status</option><option>Programado</option><option>Executado</option><option>Cancelado</option>
       </select>
     </div>
+    <div class="brow no-print" style="margin-bottom:8px;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn" style="color:var(--red);border-color:var(--red)" onclick="progExcluirSelecionados()"><i class="ti ti-trash"></i> Excluir selecionados (<span id="prog-sel-n">0</span>)</button>
+      <span style="font-size:11px;color:var(--text3)">Marque as caixas na primeira coluna para selecionar.</span>
+    </div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="prog-count">0</b> registros</div>
     <div class="card tw">
       <table>
-        <thead><tr><th>Data</th><th>Equipe</th><th>Serviço</th><th>Endereço</th><th>Bairro</th><th>Região</th><th>Origem</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+        <thead><tr><th class="no-print" style="width:30px;text-align:center"><input type="checkbox" id="prog-chk-all" onclick="progToggleAll(this.checked)" title="Selecionar todos" style="accent-color:var(--blue)"></th><th>Data</th><th>Equipe</th><th>Serviço</th><th>Endereço</th><th>Bairro</th><th>Região</th><th>Origem</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
         <tbody id="prog-tb"></tbody>
       </table>
     </div>
@@ -3859,7 +3863,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260707-47'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260707-48'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10792,13 +10796,17 @@ async function progRenderLista(){
     return true;
   }).sort((a,b)=>b.data>a.data?1:b.data<a.data?-1:(b._ts||0)-(a._ts||0));
   document.getElementById('prog-count').textContent=fil.length;
+  PROG_SEL=new Set([...PROG_SEL].filter(id=>fil.some(x=>x.id===id)));
+  const _pn=document.getElementById('prog-sel-n'); if(_pn)_pn.textContent=PROG_SEL.size;
+  const _pa=document.getElementById('prog-chk-all'); if(_pa)_pa.checked=false;
   const eq=await progGetEquipes();
   const eqMap=Object.fromEntries(eq.map(e=>[e.nome,e.cor||'#ccc']));
   const stMap={Programado:'s-bl',Executado:'s-ok',Cancelado:'s-rd'};
   const tb=document.getElementById('prog-tb'); if(!tb) return;
   tb.innerHTML=fil.length===0
-    ?`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">Nenhum item encontrado</td></tr>`
+    ?`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">Nenhum item encontrado</td></tr>`
     :fil.map(x=>`<tr>
+      <td class="no-print" style="text-align:center"><input type="checkbox" class="prog-row-chk" data-id="${x.id}" ${PROG_SEL.has(x.id)?'checked':''} onchange="progToggleRow(${x.id},this.checked)" style="accent-color:var(--blue)"></td>
       <td>${x.data||'—'}</td>
       <td><span style="display:inline-flex;align-items:center;gap:4px">
         <span style="width:8px;height:8px;border-radius:50%;background:${eqMap[x.equipe]||'#ccc'};flex-shrink:0"></span>
@@ -10813,6 +10821,19 @@ async function progRenderLista(){
         <button class="btn" style="padding:2px 6px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="progDel(${x.id})"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`).join('');
+}
+
+let PROG_SEL=new Set();
+function progToggleRow(id,ch){ if(ch)PROG_SEL.add(id); else PROG_SEL.delete(id); const el=document.getElementById('prog-sel-n'); if(el)el.textContent=PROG_SEL.size; }
+function progToggleAll(ch){ document.querySelectorAll('.prog-row-chk').forEach(c=>{ c.checked=ch; const id=parseInt(c.dataset.id); if(ch)PROG_SEL.add(id); else PROG_SEL.delete(id); }); const el=document.getElementById('prog-sel-n'); if(el)el.textContent=PROG_SEL.size; }
+async function progExcluirSelecionados(){
+  if(!PROG_SEL.size){ alert('Selecione ao menos um item para excluir (marque as caixas na primeira coluna).'); return; }
+  if(!confirm('Excluir '+PROG_SEL.size+' item(ns) selecionado(s)? Esta ação não pode ser desfeita.')) return;
+  const ids=Array.from(PROG_SEL);
+  for(const id of ids){ try{ await dbDelete('programacao',id); }catch(e){ console.error('falha ao excluir',id,e); } }
+  PROG_SEL.clear();
+  await progRenderLista();
+  await progUpdateKpis();
 }
 
 async function progDel(id){
