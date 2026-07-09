@@ -390,6 +390,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn" style="padding:14px 22px;font-size:14px" onclick="loginStep1('a')"><i class="ti ti-user"></i>Técnico A</button>
     <button class="btn" style="padding:14px 22px;font-size:14px" onclick="loginStep1('b')"><i class="ti ti-user"></i>Técnico B</button>
   </div>
+  <img id="login-emblema" alt="Emblema GEDREM · Drenagem Urbana" style="height:96px;width:auto;margin-top:6px;filter:drop-shadow(0 3px 12px rgba(0,0,0,0.4))">
   <div id="login-pass-box" style="display:none;flex-direction:column;align-items:center;gap:8px;margin-top:4px">
     <div id="login-pass-label" style="color:#cdd8e8;font-size:13px"></div>
     <div style="display:flex;gap:8px">
@@ -3863,7 +3864,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260708-50'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260708-51'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4322,6 +4323,7 @@ function aplicarDisplayNames(){
   const elB=document.getElementById('pu-b-name'); if(elB) elB.textContent = DISPLAY_NAMES.b;
   const ll=document.getElementById('login-logo'); if(ll&&SISEP_LOGO) ll.src=SISEP_LOGO;
   const li=document.getElementById('logo-img'); if(li&&SISEP_LOGO) li.src=SISEP_LOGO;
+  const le=document.getElementById('login-emblema'); if(le&&GEDREM_LOGO) le.src=GEDREM_LOGO;
   // atualizar nome do gestor no botão de login
   const lb=document.querySelector('#login-overlay .btn');
   if(lb) lb.innerHTML='<i class="ti ti-user-shield"></i>'+DISPLAY_NAMES.g;
@@ -4763,6 +4765,8 @@ const GEDREM_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAYAAAC
   if(_ll) _ll.src=SISEP_LOGO;
   const _li=document.getElementById('logo-img');
   if(_li) _li.src=SISEP_LOGO;
+  const _le=document.getElementById('login-emblema');
+  if(_le) _le.src=GEDREM_LOGO;
   if(!GEDREM_TOKEN) return; // sem token o banco não responde — evita erros antes do login
   const STORES_PRE=['falacg','ctrl_servicos','relatorio_foto','oficios','funcionarios','equipes','ci','ssi','programacao'];
   STORES_PRE.forEach(s=>cloudGetAll(s).catch(()=>{}));
