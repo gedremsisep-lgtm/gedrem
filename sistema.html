@@ -3888,7 +3888,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260709-55'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260709-56'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -14666,13 +14666,13 @@ function dboardPrint(){
 /* ═══════════════ REQUISIÇÃO DE ALMOÇO (MARMITEX) ═══════════════ */
 const MTX_EF_SEED=[['287326','ADJALMA OSORIO DOS SANTOS'],['217131','ADEMILDO ARNAS CRUZ'],['296244','CLAUDIVAM JOSE DA SILVA'],['116840','DANIEL LISBOA DA SILVA'],['143430','JOSE CICERO'],['374735','NIVALDO SOARES OLIVEIRA'],['230723','VALDEIR DIAS DA SILVA'],['',''],['',''],['','']];
 const MTX_NOM_SEED=[['437157','IVAN GUILHERME MEDRADO'],['437498','JULIO CESAR RIBEIRO DA SILVA'],['438667','MATHEUS GUSTAVO FERREIRA'],['420575','MARCOS ANTONIO PEREIRA BAZANE'],['437150','OSVALDO JOSÉ VICENTE DA SILVA'],['',''],['',''],['',''],['',''],['','']];
-const MTX_TERC_SEED=[['','JOÃO TOMÉ (MS BRASIL)'],['','MAILSON (MS BRASIL)']].concat(Array.from({length:18},()=>['','']));
+const MTX_TERC_SEED=[['','JOÃO TOMÉ (MS BRASIL)'],['','MAILSON (MS BRASIL)']].concat(Array.from({length:20},()=>['','']));
 const MTX_PRO_SEED=[['7675','AGNALDO LOPES ELIAS'],['7267','ALDENIR SOUZA DA SILVA'],['21674','DONAVAN GODOY ALMEDO'],['15305','PAULO HENRIQUE DIAS DE AZEVEDO']].concat(Array.from({length:36},()=>['','']));
 let MTX=null;
 function mtxHoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function mtxFmtData(d){if(!d)return'___/___/______';const p=String(d).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
 function mtxEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function mtxNovo(){return {para1:mtxHoje(),para2:mtxHoje(),
+function mtxNovo(){return {para1:mtxHoje(),para2:mtxHoje(),setor:'DRENAGEM URBANA',resp:'JUVENIL FERREIRA LOPES',
   ef:MTX_EF_SEED.map(x=>x.slice()),nom:MTX_NOM_SEED.map(x=>x.slice()),terc:MTX_TERC_SEED.map(x=>x.slice()),
   pro:MTX_PRO_SEED.map(x=>x.slice())};}
 
@@ -14682,6 +14682,9 @@ async function marmitexRender(){
       const all=await dbGetAll('marmitex').catch(()=>[]);
       MTX = (all&&all[0]) ? Object.assign(mtxNovo(),all[0]) : mtxNovo();
       MTX._id = (all&&all[0])?all[0].id:undefined;
+      const _pad=(x,n)=>{x=Array.isArray(x)?x.slice(0,n):[];while(x.length<n)x.push(['','']);return x;};
+      MTX.ef=_pad(MTX.ef,10);MTX.nom=_pad(MTX.nom,10);MTX.terc=_pad(MTX.terc,22);MTX.pro=_pad(MTX.pro,40);
+      if(!MTX.setor)MTX.setor='DRENAGEM URBANA';if(!MTX.resp)MTX.resp='JUVENIL FERREIRA LOPES';
     }
     // — Aba 1 —
     const rowsEd=(pref,arr,startItem,labelCod)=>arr.map((r,i)=>`<tr>
@@ -14694,6 +14697,8 @@ async function marmitexRender(){
       <div class="fcard">
         <div class="fr2">
           <div class="fg"><label>PARA (data)</label><input type="date" id="mtx-data1" value="${MTX.para1||mtxHoje()}"></div>
+          <div class="fg"><label>Setor</label><input id="mtx-setor" value="${mtxEsc(MTX.setor||'')}"></div>
+          <div class="fg fl"><label>Responsável</label><input id="mtx-resp" value="${mtxEsc(MTX.resp||'')}"></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -14736,6 +14741,8 @@ function mtxColeta(){
   const gv=id=>(document.getElementById(id)?document.getElementById(id).value:'');
   MTX.para1=gv('mtx-data1')||MTX.para1;
   MTX.para2=gv('mtx-data2')||MTX.para2;
+  if(document.getElementById('mtx-setor'))MTX.setor=gv('mtx-setor');
+  if(document.getElementById('mtx-resp'))MTX.resp=gv('mtx-resp');
   MTX.ef=MTX.ef.map((_,i)=>[gv('mtx-ef-c-'+i),gv('mtx-ef-n-'+i)]);
   MTX.nom=MTX.nom.map((_,i)=>[gv('mtx-nom-c-'+i),gv('mtx-nom-n-'+i)]);
   MTX.terc=MTX.terc.map((_,i)=>[gv('mtx-terc-c-'+i),gv('mtx-terc-n-'+i)]);
@@ -14744,7 +14751,7 @@ function mtxColeta(){
 async function marmitexSalvar(){
   mtxColeta();
   try{
-    const rec={id:MTX._id,para1:MTX.para1,para2:MTX.para2,ef:MTX.ef,nom:MTX.nom,terc:MTX.terc,pro:MTX.pro};
+    const rec={id:MTX._id,para1:MTX.para1,para2:MTX.para2,setor:MTX.setor,resp:MTX.resp,ef:MTX.ef,nom:MTX.nom,terc:MTX.terc,pro:MTX.pro};
     if(MTX._id){await dbPut('marmitex',rec);}else{MTX._id=await dbAdd('marmitex',rec);}
     cacheInvalidate('marmitex');
     alert('Requisição de marmitex salva.');
@@ -14753,7 +14760,8 @@ async function marmitexSalvar(){
 
 /* Cabeçalho idêntico à planilha (GELP) */
 function mtxHdr(subtitulo){
-  return `<div style="text-align:center;line-height:1.4;margin-bottom:8px">
+  return `<div style="text-align:center;margin-bottom:2px"><img src="${SISEP_LOGO}" alt="Brasão" style="height:16mm;object-fit:contain"></div>
+  <div style="text-align:center;line-height:1.4;margin-bottom:8px">
     <div style="font-weight:bold;font-size:10pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE/MS</div>
     <div style="font-size:9pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
     <div style="font-weight:bold;font-size:9pt">GERÊNCIA DE LIMPEZA PÚBLICA - PROAD - GELP</div>
@@ -14799,8 +14807,24 @@ function marmitexImprimir(aba){
           <div>${mtxTabela('PROINC / PRIMT','CÓD.',MTX.pro.slice(20,40),21)}</div>
         </div>`;
   }
+  body += mtxRodape(aba===1?MTX.para1:MTX.para2, aba===2);
   document.getElementById('marmitex-print-content').innerHTML=style+body;
   document.getElementById('marmitex-print-modal').style.display='flex';
+}
+function mtxRodape(para,comAnotacoes){
+  let dt='';try{dt=para?new Date(para+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';}catch(e){dt=mtxFmtData(para);}
+  return `<div style="margin-top:16px;font-size:10pt">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <div style="font-weight:bold">CAMPO GRANDE/MS</div><div>${dt}</div>
+    </div>
+    <div style="margin-bottom:8px"><b>SETOR:</b> <span style="font-weight:bold;border-bottom:1px solid #000;padding:0 60px 1px 6px">${mtxEsc(MTX.setor||'')}</span></div>
+    <div><b>RESPONSÁVEL:</b> <span style="font-weight:bold;border-bottom:1px solid #000;padding:0 60px 1px 6px">${mtxEsc(MTX.resp||'')}</span></div>
+    <div style="margin-top:34px;text-align:center">
+      <div style="border-top:1px solid #000;width:78mm;margin:0 auto"></div>
+      <div style="font-size:9pt;margin-top:3px">ASSINATURA e CARIMBO</div>
+    </div>
+    ${comAnotacoes?'<div style="margin-top:16px"><b style="font-size:9.5pt">ANOTAÇÕES / PROAD-GELP</b><div style="border:1px solid #000;height:22mm;margin-top:3px"></div></div>':''}
+  </div>`;
 }
 
 function _dbHdr(gedrem){
