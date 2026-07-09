@@ -3888,7 +3888,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260709-56'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260709-57'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -14759,53 +14759,60 @@ async function marmitexSalvar(){
 }
 
 /* Cabeçalho idêntico à planilha (GELP) */
-function mtxHdr(subtitulo){
-  return `<div style="text-align:center;margin-bottom:2px"><img src="${SISEP_LOGO}" alt="Brasão" style="height:16mm;object-fit:contain"></div>
-  <div style="text-align:center;line-height:1.4;margin-bottom:8px">
-    <div style="font-weight:bold;font-size:10pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE/MS</div>
-    <div style="font-size:9pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
-    <div style="font-weight:bold;font-size:9pt">GERÊNCIA DE LIMPEZA PÚBLICA - PROAD - GELP</div>
+function mtxHdr(subtitulo,data){
+  return `<div style="text-align:center">
+    <img src="${SISEP_LOGO}" alt="Brasão" style="height:17mm;object-fit:contain">
+    <div style="font-weight:bold;font-size:11pt;line-height:1.35">PREFEITURA MUNICIPAL DE CAMPO GRANDE/MS</div>
+    <div style="font-weight:bold;font-size:9.5pt;line-height:1.35">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
+    <div style="font-weight:bold;font-size:9.5pt;line-height:1.35">GERÊNCIA DE LIMPEZA PÚBLICA - PROAD - GELP</div>
+    <div style="font-weight:bold;font-size:17pt;margin-top:12px">${subtitulo}</div>
+    <div style="font-weight:bold;font-size:12pt">RELAÇÃO NOMINAL PARA REQUISIÇÃO</div>
   </div>
-  <div style="text-align:center;margin:10px 0 4px"><div style="font-weight:bold;font-size:11pt">${subtitulo}</div>
-    <div style="font-weight:bold;font-size:10pt">RELAÇÃO NOMINAL PARA REQUISIÇÃO</div></div>`;
-}
-function mtxLinhaReq(data){
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin:12px 0 2px">
-    <div style="font-weight:bold;font-size:11pt;border-bottom:1.5px solid #000;padding:0 4px 2px">MARMITEX - REQUISIÇÃO</div>
-    <div style="font-size:10pt"><b>PARA:</b> <span style="border-bottom:1px solid #000;padding:0 18px">${mtxFmtData(data)}</span></div>
+  <div style="display:flex;align-items:baseline;margin:14px 2px 4px">
+    <div style="flex:1;text-align:center;font-weight:bold;font-size:16pt">MARMITEX - REQUISIÇÃO</div>
+    <div style="font-weight:bold;font-size:12pt;white-space:nowrap;padding-left:10px">PARA: <span style="border-bottom:1px solid #000;padding:0 22px">${mtxFmtData(data)}</span></div>
   </div>`;
 }
-function mtxTabela(titulo,codLbl,linhas,start){
-  const tr=linhas.map((r,i)=>`<tr>
-    <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:1px 3px;width:9mm">${String(start+i).padStart(2,'0')}</td>
-    <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:1px 3px;width:16mm">${mtxEsc(r[0])||'&nbsp;'}</td>
-    <td style="border:1px solid #000;font-size:9pt;padding:1px 4px">${mtxEsc(r[1])||'&nbsp;'}</td>
-  </tr>`).join('');
-  return `<table style="width:100%;border-collapse:collapse;margin-bottom:6px">
-    <tr><td colspan="3" style="border:1px solid #000;background:#e8e8e8;font-weight:bold;text-align:center;font-size:9.5pt;padding:2px">${titulo}</td></tr>
-    <tr style="background:#f2f2f2"><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">ITEM</td><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">${codLbl}</td><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">NOME</td></tr>
-    ${tr}</table>`;
+const MTX_BD='border:1px solid #000;';
+function _mtxItem(it){return `<td style="${MTX_BD}text-align:center;font-size:8pt;padding:1px 2px">${it}</td>`;}
+function _mtxCod(c){return `<td style="${MTX_BD}text-align:center;font-size:11pt;padding:1px 2px">${mtxEsc(c)||'&nbsp;'}</td>`;}
+function _mtxNome(n){return `<td style="${MTX_BD}text-align:left;font-weight:bold;font-size:10.5pt;padding:1px 4px">${mtxEsc(n)||'&nbsp;'}</td>`;}
+function _mtxHdr3(t){return `<td colspan="3" style="${MTX_BD}text-align:center;font-weight:bold;font-size:11pt;padding:2px">${t}</td>`;}
+function _mtxColHdr(codLbl){return `<td style="${MTX_BD}text-align:center;font-weight:bold;font-size:9pt;padding:1px">ITEM</td><td style="${MTX_BD}text-align:center;font-weight:bold;font-size:9pt;padding:1px">${codLbl}</td><td style="${MTX_BD}text-align:center;font-weight:bold;font-size:9pt;padding:1px">NOME</td>`;}
+const _MTX_COLS='<colgroup><col style="width:5%"><col style="width:8%"><col style="width:35%"><col style="width:4%"><col style="width:5%"><col style="width:8%"><col style="width:35%"></colgroup>';
+const _MTX_GAP='<td style="border:none;padding:0"></td>';
+function mtxGridEFN(){
+  const L=[],R=[];
+  L[0]=_mtxHdr3('EFETIVOS'); L[1]=_mtxColHdr('CAD.');
+  for(let i=0;i<10;i++) L[2+i]=_mtxItem(String(i+1).padStart(2,'0'))+_mtxCod(MTX.ef[i][0])+_mtxNome(MTX.ef[i][1]);
+  L[12]=_mtxHdr3('NOMEADOS'); L[13]=_mtxColHdr('CAD.');
+  for(let i=0;i<10;i++) L[14+i]=_mtxItem(String(i+11).padStart(2,'0'))+_mtxCod(MTX.nom[i][0])+_mtxNome(MTX.nom[i][1]);
+  R[0]=_mtxHdr3('TERCEIRIZADOS'); R[1]=_mtxColHdr('CÓD.');
+  for(let i=0;i<22;i++) R[2+i]=_mtxItem(String(i+21).padStart(2,'0'))+_mtxCod(MTX.terc[i][0])+_mtxNome(MTX.terc[i][1]);
+  let rows='';
+  for(let r=0;r<24;r++) rows+=`<tr>${L[r]}${_MTX_GAP}${R[r]}</tr>`;
+  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed">${_MTX_COLS}${rows}</table>`;
+}
+function mtxGridPROINC(){
+  let rows=`<tr>${_mtxColHdr('CÓD.')}${_MTX_GAP}${_mtxColHdr('CÓD.')}</tr>`;
+  for(let i=0;i<20;i++){
+    const e=MTX.pro[i], d=MTX.pro[20+i];
+    rows+=`<tr>${_mtxItem(String(i+1).padStart(2,'0'))+_mtxCod(e[0])+_mtxNome(e[1])}${_MTX_GAP}${_mtxItem(String(i+21).padStart(2,'0'))+_mtxCod(d[0])+_mtxNome(d[1])}</tr>`;
+  }
+  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed">${_MTX_COLS}${rows}</table>`;
 }
 function marmitexImprimir(aba){
   mtxColeta();
-  const style='<style>@media print{@page{size:A4 portrait;margin:10mm}body *{visibility:hidden}#marmitex-print-modal,#marmitex-print-modal *{visibility:visible}#marmitex-print-modal{position:fixed;top:0;left:0;width:100%;display:block!important;background:#fff}#marmitex-print-modal .no-print{display:none!important}#marmitex-print-wrapper{box-shadow:none!important;margin:0!important;width:100%!important}}</style>';
+  const style='<style>@media print{@page{size:A4 portrait;margin:9mm}body *{visibility:hidden}#marmitex-print-modal,#marmitex-print-modal *{visibility:visible}#marmitex-print-modal{position:fixed;top:0;left:0;width:100%;display:block!important;background:#fff}#marmitex-print-modal .no-print{display:none!important}#marmitex-print-wrapper{box-shadow:none!important;margin:0!important;width:100%!important}}</style>';
   let body='';
   if(aba===1){
-    const solic='SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS RELACIONADOS ABAIXO.';
-    body=mtxHdr('EFETIVOS / NOMEADOS / TERCEIRIZADOS')+mtxLinhaReq(MTX.para1)
-      +`<div style="font-size:9.5pt;margin:8px 0 10px">${solic}</div>`
-      +`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
-          <div>${mtxTabela('EFETIVOS','CAD.',MTX.ef,1)}${mtxTabela('NOMEADOS','CAD.',MTX.nom,11)}</div>
-          <div>${mtxTabela('TERCEIRIZADOS','CÓD.',MTX.terc,21)}</div>
-        </div>`;
+    body=mtxHdr('EFETIVOS / NOMEADOS / TERCEIRIZADOS',MTX.para1)
+      +`<div style="font-size:9.5pt;margin:8px 2px 10px">SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS RELACIONADOS ABAIXO.</div>`
+      +mtxGridEFN();
   }else{
-    const solic='SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS BENEFICIÁRIOS RELACIONADOS ABAIXO.';
-    body=mtxHdr('PRIMT')+mtxLinhaReq(MTX.para2)
-      +`<div style="font-size:9.5pt;margin:8px 0 10px">${solic}</div>`
-      +`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
-          <div>${mtxTabela('PROINC / PRIMT','CÓD.',MTX.pro.slice(0,20),1)}</div>
-          <div>${mtxTabela('PROINC / PRIMT','CÓD.',MTX.pro.slice(20,40),21)}</div>
-        </div>`;
+    body=mtxHdr('PRIMT',MTX.para2)
+      +`<div style="font-size:9.5pt;margin:8px 2px 10px">SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS BENEFICIÁRIOS RELACIONADOS ABAIXO.</div>`
+      +mtxGridPROINC();
   }
   body += mtxRodape(aba===1?MTX.para1:MTX.para2, aba===2);
   document.getElementById('marmitex-print-content').innerHTML=style+body;
@@ -14813,20 +14820,19 @@ function marmitexImprimir(aba){
 }
 function mtxRodape(para,comAnotacoes){
   let dt='';try{dt=para?new Date(para+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):'';}catch(e){dt=mtxFmtData(para);}
-  return `<div style="margin-top:16px;font-size:10pt">
+  return `<div style="margin-top:14px;font-size:10pt">
     <div style="display:flex;justify-content:space-between;margin-bottom:12px">
       <div style="font-weight:bold">CAMPO GRANDE/MS</div><div>${dt}</div>
     </div>
     <div style="margin-bottom:8px"><b>SETOR:</b> <span style="font-weight:bold;border-bottom:1px solid #000;padding:0 60px 1px 6px">${mtxEsc(MTX.setor||'')}</span></div>
     <div><b>RESPONSÁVEL:</b> <span style="font-weight:bold;border-bottom:1px solid #000;padding:0 60px 1px 6px">${mtxEsc(MTX.resp||'')}</span></div>
-    <div style="margin-top:34px;text-align:center">
+    <div style="margin-top:30px;text-align:center">
       <div style="border-top:1px solid #000;width:78mm;margin:0 auto"></div>
       <div style="font-size:9pt;margin-top:3px">ASSINATURA e CARIMBO</div>
     </div>
-    ${comAnotacoes?'<div style="margin-top:16px"><b style="font-size:9.5pt">ANOTAÇÕES / PROAD-GELP</b><div style="border:1px solid #000;height:22mm;margin-top:3px"></div></div>':''}
+    ${comAnotacoes?'<div style="margin-top:14px"><b style="font-size:9.5pt">ANOTAÇÕES / PROAD-GELP</b><div style="border:1px solid #000;height:22mm;margin-top:3px"></div></div>':''}
   </div>`;
 }
-
 function _dbHdr(gedrem){
   gedrem=gedrem||'GEDREM';
   return `<table style="width:100%;border-collapse:collapse">
