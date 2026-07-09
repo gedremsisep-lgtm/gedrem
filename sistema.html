@@ -440,6 +440,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="ni" id="n-said" onclick="go('said')"><i class="ti ti-truck"></i>Saideiras</div>
   <div class="ni" id="n-reqab" onclick="go('reqab')"><i class="ti ti-droplet"></i>Req. Abastecimento</div>
   <div class="ni" id="n-solalm" onclick="go('solalm')"><i class="ti ti-package"></i>Sol. Almoxarifado</div>
+  <div class="ni" id="n-marmitex" onclick="go('marmitex');marmitexRender()"><i class="ti ti-tools-kitchen-2"></i>Req. Almoço</div>
   <div class="ni" id="n-dboard" onclick="go('dboard')"><i class="ti ti-notebook"></i>Diário de Bordo</div>
   <div class="ns" style="margin-top:auto">Administrador</div>
   <div class="ni" id="n-adm" onclick="go('adm')"><i class="ti ti-shield-lock"></i>Área do Admin.</div>
@@ -1948,7 +1949,7 @@ textarea{resize:vertical;min-height:60px}
         </div>
         <div class="fg"><label>Data *</label><input type="date" id="ci-data"></div>
         <div class="fg"><label>Remetente</label>
-          <input id="ci-remetente" value="Juvenil Ferreira Lopes" readonly style="background:var(--bg2)">
+          <input id="ci-remetente" value="GEDREM" readonly style="background:var(--bg2)">
         </div>
         <div class="fg fl"><label>Destinatário *</label>
           <div style="display:flex;gap:6px">
@@ -2075,7 +2076,7 @@ textarea{resize:vertical;min-height:60px}
         </div>
         <div class="fg"><label>Data *</label><input type="date" id="ssi-data"></div>
         <div class="fg"><label>Remetente</label>
-          <input id="ssi-remetente" value="Juvenil Ferreira Lopes" readonly style="background:var(--bg2)">
+          <input id="ssi-remetente" value="GEDREM" readonly style="background:var(--bg2)">
         </div>
         <div class="fg fl"><label>Destinatário *</label>
           <div style="display:flex;gap:6px">
@@ -2911,6 +2912,30 @@ textarea{resize:vertical;min-height:60px}
 </div>
 
 <!-- ── ÁREA DO ADMINISTRADOR ── -->
+
+<!-- ── REQUISIÇÃO DE ALMOÇO (MARMITEX) ── -->
+<div class="pg" id="pg-marmitex">
+  <div class="pt">Requisição de Almoço (Marmitex)</div>
+  <div class="ps">Relação nominal para requisição de marmitex · GELP</div>
+  <div class="tabs">
+    <div class="tab on" onclick="stab(this,'mtx-t1')">Efetivos / Nomeados / Terceirizados</div>
+    <div class="tab" onclick="stab(this,'mtx-t2')">PROINC</div>
+  </div>
+  <div id="mtx-t1"><div id="mtx-t1-body"></div></div>
+  <div id="mtx-t2" style="display:none"><div id="mtx-t2-body"></div></div>
+</div>
+
+<div id="marmitex-print-modal" class="modal-overlay" style="display:none;padding:0;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div id="marmitex-print-wrapper" style="background:#fff;width:220mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);margin:16px auto">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('marmitex-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Retrato</span>
+    </div>
+    <div id="marmitex-print-content" style="padding:10mm;font-family:Arial,sans-serif;font-size:9pt;color:#000;background:#fff"></div>
+  </div>
+</div>
+
 <div class="pg" id="pg-adm">
   <div class="pt">Área do Administrador</div>
   <div class="ps">Funcionários · Equipes · Materiais e Custos · Composições · Despesas · Frequência · Mobile · Configurações</div>
@@ -3863,7 +3888,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260708-52'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260709-54'; // + segurança por token (RLS)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4593,9 +4618,9 @@ function onBairro(input, regId){
 }
 
 const PERMS={
-  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','resumo','prog','mapa','adm','cfg'],
-  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','resumo','prog','mapa'],
-  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','resumo','prog','mapa'],
+  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa','adm','cfg'],
+  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa'],
+  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa'],
 };
 const HOMES={g:'dash',a:'cs',b:'a60'};
 let CU='g';
@@ -4670,6 +4695,7 @@ function go(pg){
   if(pg==='reqab'){ reqabInit(); reqabRenderLista(); }
   if(pg==='solalm'){ solalmInit(); solalmRenderLista(); }
   if(pg==='dboard') dboardInit();
+  if(pg==='marmitex') marmitexRender();
 }
 
 function stab(el,tid){
@@ -4729,6 +4755,7 @@ async function refreshDash(){
 
   
   document.getElementById('badge-fcg').textContent=fcgPend||'0';
+  { const _bo=document.getElementById('badge-ofc'); if(_bo) _bo.textContent=ofcPend||'0'; }
 }
 
 const ENC_MAP={};
@@ -6009,7 +6036,7 @@ async function csRenderHist(){
       <td><b>${x.os||'—'}</b>${csBadgeMob(x)}</td><td>${x.data?x.data.split('-').reverse().join('/'):'—'}</td><td>${x.equipe||'—'}</td>
       <td>${x.tipo||'—'}</td><td>${x.quantidade||1}</td><td>${x.endereco||'—'}</td><td>${x.regiao||'—'}</td>
       <td style="white-space:nowrap">
-        ${x.status==='Aguardando validação'?`<button class="btn" style="padding:3px 7px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A" onclick="csValidar(${x.id})" title="Conferir e validar lançamento do app"><i class="ti ti-check"></i>Validar</button>`:''}
+        ${((x.viaMobile||String(x.os||'').endsWith('-M'))&&x.status!=='Validado')?`<button class="btn" style="padding:3px 7px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A" onclick="csValidar(${x.id})" title="Conferir e validar lançamento do app"><i class="ti ti-check"></i>Validar</button>`:''}
         <button class="btn" style="padding:3px 7px;font-size:11px;color:var(--blue);border-color:var(--blue)" onclick="csEditar(${x.id})" title="Editar"><i class="ti ti-pencil"></i></button>
         <button class="btn" style="padding:3px 7px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="csExcluir(${x.id},'${x.os||''}')" title="Excluir"><i class="ti ti-trash"></i></button>
       </td>
@@ -13480,7 +13507,7 @@ function ciPrintPreview(){
   const cad=document.getElementById('ci-cad').value||'—';
   const data=document.getElementById('ci-data').value;
   const dataFmt=data?(()=>{const[y,m,d]=data.split('-');return`${d}/${m}/${y}`;})():'—';
-  const rem=document.getElementById('ci-remetente').value||'Juvenil Ferreira Lopes';
+  const rem=document.getElementById('ci-remetente').value||'GEDREM';
   const dest=document.getElementById('ci-destinatario').value||'—';
   const desc=document.getElementById('ci-desc').value||'';
   const fotos=ciGetFotos();
@@ -13632,7 +13659,7 @@ function ssiPrintPreview(){
   const cad=document.getElementById('ssi-cad').value||'—';
   const data=document.getElementById('ssi-data').value;
   const dataFmt=data?(()=>{const[y,m,d]=data.split('-');return`${d}/${m}/${y}`;})():'—';
-  const rem=document.getElementById('ssi-remetente').value||'Juvenil Ferreira Lopes';
+  const rem=document.getElementById('ssi-remetente').value||'GEDREM';
   const dest=document.getElementById('ssi-destinatario').value||'—';
   const desc=document.getElementById('ssi-desc').value||'';
   const fotos=ssiGetFotos();
@@ -14630,6 +14657,147 @@ function dboardPrint(){
 }
 
 /* ─── Helpers compartilhados ─── */
+
+/* ═══════════════ REQUISIÇÃO DE ALMOÇO (MARMITEX) ═══════════════ */
+const MTX_EF_SEED=[['287326','ADJALMA OSORIO DOS SANTOS'],['217131','ADEMILDO ARNAS CRUZ'],['296244','CLAUDIVAM JOSE DA SILVA'],['116840','DANIEL LISBOA DA SILVA'],['143430','JOSE CICERO'],['374735','NIVALDO SOARES OLIVEIRA'],['230723','VALDEIR DIAS DA SILVA'],['',''],['',''],['','']];
+const MTX_NOM_SEED=[['437157','IVAN GUILHERME MEDRADO'],['437498','JULIO CESAR RIBEIRO DA SILVA'],['438667','MATHEUS GUSTAVO FERREIRA'],['420575','MARCOS ANTONIO PEREIRA BAZANE'],['437150','OSVALDO JOSÉ VICENTE DA SILVA'],['',''],['',''],['',''],['',''],['','']];
+const MTX_TERC_SEED=[['','JOÃO TOMÉ (MS BRASIL)'],['','MAILSON (MS BRASIL)']].concat(Array.from({length:18},()=>['','']));
+const MTX_PRO_SEED=[['7675','AGNALDO LOPES ELIAS'],['7267','ALDENIR SOUZA DA SILVA'],['21674','DONAVAN GODOY ALMEDO'],['15305','PAULO HENRIQUE DIAS DE AZEVEDO']].concat(Array.from({length:36},()=>['','']));
+let MTX=null;
+function mtxHoje(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function mtxFmtData(d){if(!d)return'___/___/______';const p=String(d).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+function mtxEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function mtxNovo(){return {para1:mtxHoje(),para2:mtxHoje(),
+  ef:MTX_EF_SEED.map(x=>x.slice()),nom:MTX_NOM_SEED.map(x=>x.slice()),terc:MTX_TERC_SEED.map(x=>x.slice()),
+  pro:MTX_PRO_SEED.map(x=>x.slice())};}
+
+async function marmitexRender(){
+  try{
+    if(!MTX){
+      const all=await dbGetAll('marmitex').catch(()=>[]);
+      MTX = (all&&all[0]) ? Object.assign(mtxNovo(),all[0]) : mtxNovo();
+      MTX._id = (all&&all[0])?all[0].id:undefined;
+    }
+    // — Aba 1 —
+    const rowsEd=(pref,arr,startItem,labelCod)=>arr.map((r,i)=>`<tr>
+      <td style="text-align:center;font-weight:600;color:#185FA5;padding:1px 4px;font-size:11px">${String(startItem+i).padStart(2,'0')}</td>
+      <td style="padding:1px 2px"><input id="${pref}-c-${i}" value="${mtxEsc(r[0])}" style="width:70px;font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:3px"></td>
+      <td style="padding:1px 2px"><input id="${pref}-n-${i}" value="${mtxEsc(r[1])}" style="width:100%;min-width:150px;font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:3px"></td>
+    </tr>`).join('');
+    const th=labelCod=>`<tr style="background:var(--bg2)"><th style="font-size:10px;padding:2px 4px">ITEM</th><th style="font-size:10px;padding:2px 4px">${labelCod}</th><th style="font-size:10px;padding:2px 4px;text-align:left">NOME</th></tr>`;
+    document.getElementById('mtx-t1-body').innerHTML=`
+      <div class="fcard">
+        <div class="fr2">
+          <div class="fg"><label>PARA (data)</label><input type="date" id="mtx-data1" value="${MTX.para1||mtxHoje()}"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div>
+          <div class="fcard"><div class="fhead"><i class="ti ti-user-check"></i>EFETIVOS (01–10)</div>
+            <table style="width:100%;border-collapse:collapse">${th('CAD.')}${rowsEd('mtx-ef',MTX.ef,1)}</table></div>
+          <div class="fcard"><div class="fhead"><i class="ti ti-user-star"></i>NOMEADOS (11–20)</div>
+            <table style="width:100%;border-collapse:collapse">${th('CAD.')}${rowsEd('mtx-nom',MTX.nom,11)}</table></div>
+        </div>
+        <div>
+          <div class="fcard"><div class="fhead"><i class="ti ti-users"></i>TERCEIRIZADOS (21–40)</div>
+            <table style="width:100%;border-collapse:collapse">${th('CÓD.')}${rowsEd('mtx-terc',MTX.terc,21)}</table></div>
+        </div>
+      </div>
+      <div class="brow" style="margin-top:10px">
+        <button class="btn bp" onclick="marmitexSalvar()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button class="btn bg2" onclick="marmitexImprimir(1)"><i class="ti ti-printer"></i>Imprimir requisição</button>
+      </div>`;
+    // — Aba 2 (PROINC) —
+    const proEsq=MTX.pro.slice(0,20), proDir=MTX.pro.slice(20,40);
+    const colPro=(arr,start)=>`<table style="width:100%;border-collapse:collapse">${th('CÓD.')}${arr.map((r,i)=>`<tr>
+      <td style="text-align:center;font-weight:600;color:#185FA5;padding:1px 4px;font-size:11px">${String(start+i).padStart(2,'0')}</td>
+      <td style="padding:1px 2px"><input id="mtx-pro-c-${start-1+i}" value="${mtxEsc(r[0])}" style="width:64px;font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:3px"></td>
+      <td style="padding:1px 2px"><input id="mtx-pro-n-${start-1+i}" value="${mtxEsc(r[1])}" style="width:100%;min-width:140px;font-size:11px;padding:2px 4px;border:1px solid var(--border);border-radius:3px"></td>
+    </tr>`).join('')}</table>`;
+    document.getElementById('mtx-t2-body').innerHTML=`
+      <div class="fcard"><div class="fr2"><div class="fg"><label>PARA (data)</label><input type="date" id="mtx-data2" value="${MTX.para2||mtxHoje()}"></div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="fcard"><div class="fhead"><i class="ti ti-users-group"></i>PROINC / PRIMT (01–20)</div>${colPro(proEsq,1)}</div>
+        <div class="fcard"><div class="fhead"><i class="ti ti-users-group"></i>PROINC / PRIMT (21–40)</div>${colPro(proDir,21)}</div>
+      </div>
+      <div class="brow" style="margin-top:10px">
+        <button class="btn bp" onclick="marmitexSalvar()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button class="btn bg2" onclick="marmitexImprimir(2)"><i class="ti ti-printer"></i>Imprimir requisição</button>
+      </div>`;
+  }catch(err){console.error('marmitexRender',err);}
+}
+
+function mtxColeta(){
+  const gv=id=>(document.getElementById(id)?document.getElementById(id).value:'');
+  MTX.para1=gv('mtx-data1')||MTX.para1;
+  MTX.para2=gv('mtx-data2')||MTX.para2;
+  MTX.ef=MTX.ef.map((_,i)=>[gv('mtx-ef-c-'+i),gv('mtx-ef-n-'+i)]);
+  MTX.nom=MTX.nom.map((_,i)=>[gv('mtx-nom-c-'+i),gv('mtx-nom-n-'+i)]);
+  MTX.terc=MTX.terc.map((_,i)=>[gv('mtx-terc-c-'+i),gv('mtx-terc-n-'+i)]);
+  MTX.pro=MTX.pro.map((_,i)=>[gv('mtx-pro-c-'+i),gv('mtx-pro-n-'+i)]);
+}
+async function marmitexSalvar(){
+  mtxColeta();
+  try{
+    const rec={id:MTX._id,para1:MTX.para1,para2:MTX.para2,ef:MTX.ef,nom:MTX.nom,terc:MTX.terc,pro:MTX.pro};
+    if(MTX._id){await dbPut('marmitex',rec);}else{MTX._id=await dbAdd('marmitex',rec);}
+    cacheInvalidate('marmitex');
+    alert('Requisição de marmitex salva.');
+  }catch(e){alert('Erro ao salvar: '+e.message);}
+}
+
+/* Cabeçalho idêntico à planilha (GELP) */
+function mtxHdr(subtitulo){
+  return `<div style="text-align:center;line-height:1.4;margin-bottom:8px">
+    <div style="font-weight:bold;font-size:10pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE/MS</div>
+    <div style="font-size:9pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
+    <div style="font-weight:bold;font-size:9pt">GERÊNCIA DE LIMPEZA PÚBLICA - PROAD - GELP</div>
+  </div>
+  <div style="text-align:center;margin:10px 0 4px"><div style="font-weight:bold;font-size:11pt">${subtitulo}</div>
+    <div style="font-weight:bold;font-size:10pt">RELAÇÃO NOMINAL PARA REQUISIÇÃO</div></div>`;
+}
+function mtxLinhaReq(data){
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-end;margin:12px 0 2px">
+    <div style="font-weight:bold;font-size:11pt;border-bottom:1.5px solid #000;padding:0 4px 2px">MARMITEX - REQUISIÇÃO</div>
+    <div style="font-size:10pt"><b>PARA:</b> <span style="border-bottom:1px solid #000;padding:0 18px">${mtxFmtData(data)}</span></div>
+  </div>`;
+}
+function mtxTabela(titulo,codLbl,linhas,start){
+  const tr=linhas.map((r,i)=>`<tr>
+    <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:1px 3px;width:9mm">${String(start+i).padStart(2,'0')}</td>
+    <td style="border:1px solid #000;text-align:center;font-size:9pt;padding:1px 3px;width:16mm">${mtxEsc(r[0])||'&nbsp;'}</td>
+    <td style="border:1px solid #000;font-size:9pt;padding:1px 4px">${mtxEsc(r[1])||'&nbsp;'}</td>
+  </tr>`).join('');
+  return `<table style="width:100%;border-collapse:collapse;margin-bottom:6px">
+    <tr><td colspan="3" style="border:1px solid #000;background:#e8e8e8;font-weight:bold;text-align:center;font-size:9.5pt;padding:2px">${titulo}</td></tr>
+    <tr style="background:#f2f2f2"><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">ITEM</td><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">${codLbl}</td><td style="border:1px solid #000;font-weight:bold;text-align:center;font-size:8.5pt;padding:1px">NOME</td></tr>
+    ${tr}</table>`;
+}
+function marmitexImprimir(aba){
+  mtxColeta();
+  const style='<style>@media print{@page{size:A4 portrait;margin:10mm}body *{visibility:hidden}#marmitex-print-modal,#marmitex-print-modal *{visibility:visible}#marmitex-print-modal{position:fixed;top:0;left:0;width:100%;display:block!important;background:#fff}#marmitex-print-modal .no-print{display:none!important}#marmitex-print-wrapper{box-shadow:none!important;margin:0!important;width:100%!important}}</style>';
+  let body='';
+  if(aba===1){
+    const solic='SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS RELACIONADOS ABAIXO.';
+    body=mtxHdr('EFETIVOS / NOMEADOS / TERCEIRIZADOS')+mtxLinhaReq(MTX.para1)
+      +`<div style="font-size:9.5pt;margin:8px 0 10px">${solic}</div>`
+      +`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+          <div>${mtxTabela('EFETIVOS','CAD.',MTX.ef,1)}${mtxTabela('NOMEADOS','CAD.',MTX.nom,11)}</div>
+          <div>${mtxTabela('TERCEIRIZADOS','CÓD.',MTX.terc,21)}</div>
+        </div>`;
+  }else{
+    const solic='SOLICITO PROVIDÊNCIAS NECESSÁRIAS PARA FORNECIMENTO DE MARMITEX PARA OS BENEFICIÁRIOS RELACIONADOS ABAIXO.';
+    body=mtxHdr('PRIMT')+mtxLinhaReq(MTX.para2)
+      +`<div style="font-size:9.5pt;margin:8px 0 10px">${solic}</div>`
+      +`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+          <div>${mtxTabela('PROINC / PRIMT','CÓD.',MTX.pro.slice(0,20),1)}</div>
+          <div>${mtxTabela('PROINC / PRIMT','CÓD.',MTX.pro.slice(20,40),21)}</div>
+        </div>`;
+  }
+  document.getElementById('marmitex-print-content').innerHTML=style+body;
+  document.getElementById('marmitex-print-modal').style.display='flex';
+}
+
 function _dbHdr(gedrem){
   gedrem=gedrem||'GEDREM';
   return `<table style="width:100%;border-collapse:collapse">
