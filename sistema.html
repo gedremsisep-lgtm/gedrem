@@ -3919,7 +3919,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260710-59'; // Situações Eventuais de equipamentos + cadastro de caminhões
+const SYSTEM_VERSION = '20260710-60'; // exclusão de RF Mobile + O.S. vinculada
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5262,9 +5262,25 @@ async function rfSalvarLote(){
 }
 
 async function rfExcluir(id, codigo){
-  if(!confirm(`Excluir o relatório ${codigo}? Esta ação não pode ser desfeita.`)) return;
+  const all=await dbGetAll('relatorio_foto');
+  const rec=all.find(x=>x.id===id);
+  const isMobile=rec&&(rec.viaMobile||String(codigo).endsWith('-M'));
+  if(!confirm(`Excluir o relatório ${codigo}${isMobile?' (originado do app Mobile)':''}? Esta ação não pode ser desfeita.`)) return;
   await dbDelete('relatorio_foto', id);
   cacheInvalidate('relatorio_foto');
+  // Se for do Mobile, oferecer remover também a O.S. vinculada no Ctrl. de Serviços
+  if(isMobile){
+    try{
+      const cs=await dbGetAll('ctrl_servicos');
+      const vinc=cs.filter(c=>c.rf_codigo===codigo);
+      if(vinc.length){
+        if(confirm(`Remover também a Ordem de Serviço vinculada (OS ${vinc.map(v=>v.os).join(', ')}) no Ctrl. de Serviços?`)){
+          for(const v of vinc){ await dbDelete('ctrl_servicos', v.id); }
+          cacheInvalidate('ctrl_servicos');
+        }
+      }
+    }catch(e){}
+  }
   await rfRenderLista();
   rfUpdateKpis();
 }
