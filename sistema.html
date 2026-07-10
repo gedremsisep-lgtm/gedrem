@@ -2925,6 +2925,57 @@ textarea{resize:vertical;min-height:60px}
   <div id="mtx-t2" style="display:none"><div id="mtx-t2-body"></div></div>
 </div>
 
+<div id="modal-oc" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <span><i class="ti ti-alert-triangle"></i> <span id="oc-title">Registrar situação eventual</span></span>
+      <button class="close-btn" onclick="document.getElementById('modal-oc').style.display='none'"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="oc-id">
+      <div class="fg"><label>Data *</label><input type="date" id="oc-dt"></div>
+      <div class="fg"><label>Placa / Identificação *</label><select id="oc-placa"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Situação *</label><select id="oc-sit">
+        <option value="">Selecione...</option>
+        <option>Quebra / Defeito</option><option>Não rodou no dia</option><option>Em manutenção</option><option>Sem operador / Sem combustível</option>
+      </select></div>
+      <div class="fg fl"><label>Observação</label><textarea id="oc-obs" rows="3" placeholder="Detalhes da ocorrência..."></textarea></div>
+      <div id="oc-err" style="display:none;color:var(--red);font-size:12px;margin-top:6px"><i class="ti ti-alert-circle"></i> <span id="oc-err-txt"></span></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+        <button class="btn" onclick="document.getElementById('modal-oc').style.display='none'">Cancelar</button>
+        <button class="btn bp" onclick="ocEventualSalvar()"><i class="ti ti-device-floppy"></i>Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-cam" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <span><i class="ti ti-truck"></i> Cadastro de Caminhões</span>
+      <button class="close-btn" onclick="document.getElementById('modal-cam').style.display='none'"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap">
+        <div class="fg" style="flex:0 0 130px"><label>Placa *</label><input id="cam-placa" placeholder="RWJ2B04" style="text-transform:uppercase"></div>
+        <div class="fg fl" style="flex:1;min-width:180px"><label>Descrição</label><input id="cam-desc" placeholder="Ex: Caminhão Carroceria"></div>
+        <button class="btn bp" style="height:36px" onclick="caminhaoSalvar()"><i class="ti ti-plus"></i>Adicionar</button>
+      </div>
+      <div class="card tw" style="max-height:300px;overflow:auto"><table><thead><tr><th>Placa</th><th>Descrição</th><th style="width:50px"></th></tr></thead><tbody id="cam-tb"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="oc-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="ocPrintNow()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('oc-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+    </div>
+    <div id="oc-print-content" style="padding:10mm 12mm;font-family:Arial,sans-serif;font-size:9pt;color:#000;background:#fff"></div>
+  </div>
+</div>
+
 <div id="marmitex-print-modal" class="modal-overlay" style="display:none;padding:0;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div id="marmitex-print-wrapper" style="background:#fff;width:220mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);margin:16px auto">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
@@ -3210,7 +3261,7 @@ textarea{resize:vertical;min-height:60px}
     <!-- Sub-abas -->
     <div class="tabs" id="freq-tabs">
       <div class="tab on" onclick="freqSubTab(this,'freq-func')">👤 Funcionários</div>
-      <div class="tab" onclick="freqSubTab(this,'freq-eq-prop')">🚜 Equipamentos Próprios</div>
+      <div class="tab" onclick="freqSubTab(this,'freq-eq-prop')">🚜 Situações Eventuais</div>
       <div class="tab" onclick="freqSubTab(this,'freq-eq-priv')">🏗 Equipamentos Privados</div>
     </div>
 
@@ -3254,32 +3305,29 @@ textarea{resize:vertical;min-height:60px}
     <!-- SUB: EQUIPAMENTOS PRÓPRIOS -->
     <div id="freq-eq-prop" style="display:none">
       <div class="kg">
-        <div class="kc gn"><div class="kl">Disponíveis</div><div class="kv" id="fq-p-dis">0</div></div>
-        <div class="kc bl"><div class="kl">Em uso</div><div class="kv" id="fq-p-uso">0</div></div>
-        <div class="kc rd"><div class="kl">Em manutenção</div><div class="kv" id="fq-p-man">0</div></div>
-        <div class="kc am"><div class="kl">Indisponíveis</div><div class="kv" id="fq-p-ind">0</div></div>
+        <div class="kc rd"><div class="kl">Quebra / Defeito</div><div class="kv" id="fq-oc-quebra">0</div></div>
+        <div class="kc am"><div class="kl">Não rodou no dia</div><div class="kv" id="fq-oc-nrodou">0</div></div>
+        <div class="kc bl"><div class="kl">Em manutenção</div><div class="kv" id="fq-oc-manut">0</div></div>
+        <div class="kc gn"><div class="kl">Total ocorrências</div><div class="kv" id="fq-oc-total">0</div></div>
       </div>
       <div class="search-bar">
-        <input type="date" id="fq-p-dt" onchange="freqRenderEqProp()">
-        <select id="fq-p-eq" onchange="freqRenderEqProp()">
-          <option value="">Todas as equipes</option>
-          <option>Manutenção I</option><option>Manutenção II</option><option>Manutenção III</option>
-          <option>Manutenção IV</option><option>Limpeza I</option><option>Limpeza II</option><option>Limpeza III</option>
+        <input type="date" id="fq-oc-dt" onchange="freqRenderEqProp()">
+        <select id="fq-oc-placa" onchange="freqRenderEqProp()"><option value="">Todas as placas</option></select>
+        <select id="fq-oc-sit" onchange="freqRenderEqProp()">
+          <option value="">Todas as situações</option>
+          <option>Quebra / Defeito</option><option>Não rodou no dia</option><option>Em manutenção</option><option>Sem operador / Sem combustível</option>
         </select>
-        <select id="fq-p-st" onchange="freqRenderEqProp()">
-          <option value="">Todos status</option>
-          <option>Disponível</option><option>Em uso</option><option>Em manutenção</option><option>Indisponível</option>
-        </select>
-        <button class="btn bp" onclick="freqOpenModal('eq_prop')"><i class="ti ti-plus"></i>Registrar</button>
+        <button class="btn bp" onclick="ocEventualAbrir()"><i class="ti ti-plus"></i>Registrar situação</button>
+        <button class="btn" onclick="caminhoesAbrir()"><i class="ti ti-truck"></i>Caminhões</button>
+        <button class="btn bg2" onclick="ocEventualPrint()"><i class="ti ti-printer"></i>Imprimir</button>
       </div>
       <div class="card tw">
         <table><thead><tr>
-          <th>Data</th><th>Equipamento</th><th>Placa / ID</th><th>Equipe</th><th>Status</th><th>Observação</th><th>Ações</th>
+          <th>Data</th><th>Placa / Identificação</th><th>Situação</th><th>Observação</th><th>Ações</th>
         </tr></thead><tbody id="freq-prop-tb"></tbody></table>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:4px" id="freq-prop-count"></div>
     </div>
-
     <!-- SUB: EQUIPAMENTOS PRIVADOS -->
     <div id="freq-eq-priv" style="display:none">
       <div class="kg">
@@ -3413,24 +3461,7 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>E-mail OneDrive</label><input id="mu-email" placeholder="email@pmcg.ms.gov.br"></div>
       </div>
       <div class="sh"><i class="ti ti-lock"></i>Módulos permitidos</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px" id="mu-modulos">
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-dash"> Dashboard</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-rf"> Rel. Fotográfico</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-cs"> Ctrl. Serviços</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-a60"> ATA 038</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-a059"> ATA 059</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-a100"> ATA 100</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-a107"> ATA 107</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-a109"> ATA 109</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-falacg"> Fala CG</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-oficios"> Ofícios</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-ci"> C.I.</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-ssi"> S.S.I.</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-prog"> Programação</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-mapa"> Mapa</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-adm"> Área Admin.</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer"><input type="checkbox" id="mu-m-cfg"> Configurações</label>
-      </div>
+      <div id="mu-modulos" style="margin-bottom:12px"></div>
       <div id="mu-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="mu-ok-txt"></b></div>
     </div>
     <div class="modal-foot">
@@ -3888,7 +3919,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260709-57'; // + segurança por token (RLS)
+const SYSTEM_VERSION = '20260710-59'; // Situações Eventuais de equipamentos + cadastro de caminhões
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10401,39 +10432,173 @@ function freqAtualizarKpis(){
 }
 
 /* ── EQUIPAMENTOS PRÓPRIOS ── */
-async function freqRenderEqProp(){
-  const dt=document.getElementById('fq-p-dt')?.value||'';
-  const feq=document.getElementById('fq-p-eq')?.value||'';
-  const fst=document.getElementById('fq-p-st')?.value||'';
-  const all=(await dbGetAll('frequencia').catch(()=>[])).filter(x=>x.tipo==='eq_prop');
-  const fil=all.filter(x=>{
-    if(dt&&x.data!==dt)return false;
-    if(feq&&x.equipe!==feq)return false;
-    if(fst&&x.status!==fst)return false;
-    return true;
-  }).sort((a,b)=>(b._ts||0)-(a._ts||0));
-  const s=id=>document.getElementById(id);
-  if(s('fq-p-dis'))s('fq-p-dis').textContent=fil.filter(x=>x.status==='Disponível').length;
-  if(s('fq-p-uso'))s('fq-p-uso').textContent=fil.filter(x=>x.status==='Em uso').length;
-  if(s('fq-p-man'))s('fq-p-man').textContent=fil.filter(x=>x.status==='Em manutenção').length;
-  if(s('fq-p-ind'))s('fq-p-ind').textContent=fil.filter(x=>x.status==='Indisponível').length;
-  const tb=s('freq-prop-tb');if(!tb)return;
-  tb.innerHTML=fil.length===0?'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:20px">Nenhum registro encontrado</td></tr>'
-    :fil.map(x=>`<tr>
-      <td style="font-size:11px">${x.data||'—'}</td>
-      <td style="font-weight:600;font-size:12px">${x.equipamento||'—'}</td>
-      <td style="font-size:11px">${x.placa||'—'}</td>
-      <td style="font-size:11px">${x.equipe||'—'}</td>
-      <td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${FREQ_STATUS_COR[x.status]||'#ccc'}22;color:${FREQ_STATUS_COR[x.status]||'#555'};border:1px solid ${FREQ_STATUS_COR[x.status]||'#ccc'}">${x.status||'—'}</span></td>
-      <td style="font-size:11px;color:var(--text2)">${x.obs||''}</td>
-      <td style="white-space:nowrap">
-        <button class="btn bg2" style="padding:3px 8px;font-size:10px" onclick="freqEdit(${x.id})"><i class="ti ti-pencil"></i></button>
-        <button class="btn" style="padding:3px 8px;font-size:10px;color:var(--red);border-color:var(--red)" onclick="freqDel(${x.id},'eq_prop')"><i class="ti ti-trash"></i></button>
-      </td>
-    </tr>`).join('');
-  if(s('freq-prop-count'))s('freq-prop-count').textContent=`${fil.length} registro(s)`;
+/* ── SITUAÇÕES EVENTUAIS DE EQUIPAMENTOS + CADASTRO DE CAMINHÕES ── */
+const OC_COR={'Quebra / Defeito':'#A32D2D','Não rodou no dia':'#854F0B','Em manutenção':'#185FA5','Sem operador / Sem combustível':'#7A4A0A'};
+function _ocFmtData(d){ return d?String(d).split('-').reverse().join('/'):'—'; }
+async function _camList(){
+  const l=await dbGetAll('caminhoes').catch(()=>[]);
+  return l.slice().sort((a,b)=>(a.placa||'').localeCompare(b.placa||''));
+}
+function _preenchePlacas(sel,cams,todas){
+  if(!sel)return;
+  const atual=sel.value;
+  sel.innerHTML=(todas?'<option value="">Todas as placas</option>':'<option value="">Selecione...</option>')
+    +cams.map(c=>`<option value="${(c.placa||'').replace(/"/g,'&quot;')}">${(c.placa||'')}${c.descricao?' — '+c.descricao:''}</option>`).join('');
+  if(atual&&cams.some(c=>c.placa===atual))sel.value=atual;
 }
 
+async function freqRenderEqProp(){
+  const cams=await _camList();
+  _preenchePlacas(document.getElementById('fq-oc-placa'),cams,true);
+  const s=id=>document.getElementById(id);
+  const dt=s('fq-oc-dt')?.value||'', fplaca=s('fq-oc-placa')?.value||'', fsit=s('fq-oc-sit')?.value||'';
+  const all=await dbGetAll('ocorrencias_eq').catch(()=>[]);
+  const fil=all.filter(x=>{
+    if(dt&&x.data!==dt)return false;
+    if(fplaca&&x.placa!==fplaca)return false;
+    if(fsit&&x.situacao!==fsit)return false;
+    return true;
+  }).sort((a,b)=>(b.data||'').localeCompare(a.data||'')||(b._ts||0)-(a._ts||0));
+  if(s('fq-oc-quebra'))s('fq-oc-quebra').textContent=all.filter(x=>x.situacao==='Quebra / Defeito').length;
+  if(s('fq-oc-nrodou'))s('fq-oc-nrodou').textContent=all.filter(x=>x.situacao==='Não rodou no dia').length;
+  if(s('fq-oc-manut'))s('fq-oc-manut').textContent=all.filter(x=>x.situacao==='Em manutenção').length;
+  if(s('fq-oc-total'))s('fq-oc-total').textContent=all.length;
+  const tb=s('freq-prop-tb');if(!tb)return;
+  tb.innerHTML=fil.length===0?'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhuma ocorrência registrada</td></tr>'
+    :fil.map(x=>`<tr>
+      <td style="font-size:11px">${_ocFmtData(x.data)}</td>
+      <td style="font-weight:600;font-size:12px">${esc(x.placa||'—')}</td>
+      <td><span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${(OC_COR[x.situacao]||'#888')}22;color:${OC_COR[x.situacao]||'#888'};border:1px solid ${OC_COR[x.situacao]||'#888'}">${esc(x.situacao||'—')}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${esc(x.obs||'')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bg2" style="padding:3px 8px;font-size:10px" onclick="ocEventualAbrir(${x.id})"><i class="ti ti-pencil"></i></button>
+        <button class="btn" style="padding:3px 8px;font-size:10px;color:var(--red);border-color:var(--red)" onclick="ocEventualExcluir(${x.id})"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`).join('');
+  if(s('freq-prop-count'))s('freq-prop-count').textContent=`${fil.length} ocorrência(s)`;
+}
+
+async function ocEventualAbrir(id){
+  const cams=await _camList();
+  const s=i=>document.getElementById(i);
+  if(!cams.length){ if(confirm('Nenhum caminhão cadastrado ainda. Deseja cadastrar agora?')){caminhoesAbrir();} return; }
+  _preenchePlacas(s('oc-placa'),cams,false);
+  s('oc-id').value=''; s('oc-dt').value=new Date().toISOString().slice(0,10);
+  s('oc-placa').value=''; s('oc-sit').value=''; s('oc-obs').value='';
+  s('oc-title').textContent='Registrar situação eventual';
+  if(s('oc-err'))s('oc-err').style.display='none';
+  if(id){
+    const rec=(await dbGetAll('ocorrencias_eq').catch(()=>[])).find(x=>x.id===id);
+    if(rec){ s('oc-id').value=rec.id; s('oc-dt').value=rec.data||''; s('oc-placa').value=rec.placa||''; s('oc-sit').value=rec.situacao||''; s('oc-obs').value=rec.obs||''; s('oc-title').textContent='Editar situação eventual'; }
+  }
+  document.getElementById('modal-oc').style.display='flex';
+}
+async function ocEventualSalvar(){
+  const s=i=>document.getElementById(i);
+  const data=s('oc-dt').value, placa=s('oc-placa').value, situacao=s('oc-sit').value, obs=s('oc-obs').value.trim();
+  if(!data||!placa||!situacao){ const e=s('oc-err'); if(e){s('oc-err-txt').textContent='Preencha Data, Placa e Situação.';e.style.display='block';} return; }
+  const id=s('oc-id').value;
+  const rec={data,placa,situacao,obs};
+  try{
+    if(id)await dbPut('ocorrencias_eq',{...rec,id:parseInt(id,10)}); else await dbAdd('ocorrencias_eq',rec);
+    document.getElementById('modal-oc').style.display='none';
+    await freqRenderEqProp();
+    if(typeof toast==='function')toast(id?'Ocorrência atualizada.':'Ocorrência registrada.');
+  }catch(e){ alert('Erro ao salvar: '+e.message); }
+}
+async function ocEventualExcluir(id){
+  if(!confirm('Excluir esta ocorrência?'))return;
+  try{ await dbDelete('ocorrencias_eq',id); await freqRenderEqProp(); }catch(e){ alert('Erro ao excluir: '+e.message); }
+}
+
+async function caminhoesAbrir(){ await caminhoesRender(); document.getElementById('modal-cam').style.display='flex'; }
+async function caminhoesRender(){
+  const cams=await _camList();
+  const tb=document.getElementById('cam-tb');if(!tb)return;
+  tb.innerHTML=cams.length===0?'<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:14px">Nenhum caminhão cadastrado</td></tr>'
+    :cams.map(c=>`<tr>
+      <td style="font-weight:600">${esc(c.placa||'—')}</td>
+      <td style="font-size:11px">${esc(c.descricao||'')}</td>
+      <td><button class="btn" style="padding:2px 7px;font-size:10px;color:var(--red);border-color:var(--red)" onclick="caminhaoExcluir(${c.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('');
+}
+async function caminhaoSalvar(){
+  const p=document.getElementById('cam-placa').value.trim().toUpperCase();
+  const d=document.getElementById('cam-desc').value.trim();
+  if(!p){ alert('Informe a placa.'); return; }
+  const cams=await _camList();
+  if(cams.some(c=>(c.placa||'').toUpperCase()===p)){ alert('Essa placa já está cadastrada.'); return; }
+  try{
+    await dbAdd('caminhoes',{placa:p,descricao:d});
+    document.getElementById('cam-placa').value=''; document.getElementById('cam-desc').value='';
+    await caminhoesRender(); await freqRenderEqProp();
+  }catch(e){ alert('Erro: '+e.message); }
+}
+async function caminhaoExcluir(id){
+  if(!confirm('Remover este caminhão do cadastro?'))return;
+  try{ await dbDelete('caminhoes',id); await caminhoesRender(); await freqRenderEqProp(); }catch(e){ alert('Erro: '+e.message); }
+}
+
+async function ocEventualPrint(){
+  const s=id=>document.getElementById(id);
+  const dt=s('fq-oc-dt')?.value||'', fplaca=s('fq-oc-placa')?.value||'', fsit=s('fq-oc-sit')?.value||'';
+  const all=await dbGetAll('ocorrencias_eq').catch(()=>[]);
+  const fil=all.filter(x=>{
+    if(dt&&x.data!==dt)return false;
+    if(fplaca&&x.placa!==fplaca)return false;
+    if(fsit&&x.situacao!==fsit)return false;
+    return true;
+  }).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const hoje=new Date();
+  const dExt=hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  let filtroTxt=[];
+  if(dt)filtroTxt.push('Data: '+_ocFmtData(dt));
+  if(fplaca)filtroTxt.push('Placa: '+fplaca);
+  if(fsit)filtroTxt.push('Situação: '+fsit);
+  const cab=`
+    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:6px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="${GEDREM_LOGO}" style="height:52px">
+        <div style="line-height:1.25">
+          <div style="font-size:8pt;font-weight:bold">PREFEITURA MUNICIPAL DE CAMPO GRANDE</div>
+          <div style="font-size:8pt">SISEP — Secretaria Municipal de Infraestrutura e Serviços Públicos</div>
+          <div style="font-size:8pt;font-weight:bold">GEDREM — Gerência de Drenagem Urbana</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:12pt;font-weight:bold;margin:10px 0 2px">RELATÓRIO DE SITUAÇÕES EVENTUAIS DE EQUIPAMENTOS</div>
+    <div style="text-align:center;font-size:8pt;color:#333;margin-bottom:8px">${filtroTxt.length?filtroTxt.join('  •  '):'Todas as ocorrências'}</div>`;
+  const linhas=fil.length===0?'<tr><td colspan="4" style="border:1px solid #000;padding:8px;text-align:center">Nenhuma ocorrência no período/filtro selecionado.</td></tr>'
+    :fil.map(x=>`<tr>
+      <td style="border:1px solid #000;padding:3px 5px;text-align:center;white-space:nowrap">${_ocFmtData(x.data)}</td>
+      <td style="border:1px solid #000;padding:3px 5px;font-weight:bold">${esc(x.placa||'—')}</td>
+      <td style="border:1px solid #000;padding:3px 5px">${esc(x.situacao||'—')}</td>
+      <td style="border:1px solid #000;padding:3px 5px">${esc(x.obs||'')}</td>
+    </tr>`).join('');
+  const tabela=`
+    <table style="width:100%;border-collapse:collapse;font-size:8.5pt">
+      <thead><tr style="background:#d9d9d9">
+        <th style="border:1px solid #000;padding:4px 5px;width:70px">DATA</th>
+        <th style="border:1px solid #000;padding:4px 5px;width:110px">PLACA / IDENT.</th>
+        <th style="border:1px solid #000;padding:4px 5px;width:150px">SITUAÇÃO</th>
+        <th style="border:1px solid #000;padding:4px 5px">OBSERVAÇÃO</th>
+      </tr></thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    <div style="font-size:8pt;margin-top:6px">Total de ocorrências: <b>${fil.length}</b></div>
+    <div style="margin-top:40px;text-align:center;font-size:8.5pt">
+      <div>Campo Grande/MS, ${dExt}.</div>
+      <div style="margin-top:46px;display:inline-block;border-top:1px solid #000;padding-top:3px;min-width:260px">GEDREM — Gerência de Drenagem Urbana</div>
+    </div>`;
+  s('oc-print-content').innerHTML=cab+tabela;
+  document.getElementById('oc-print-modal').style.display='flex';
+}
+function ocPrintNow(){
+  const style='<style>@media print{@page{size:A4 portrait;margin:10mm}body *{visibility:hidden}#oc-print-modal,#oc-print-modal *{visibility:visible}#oc-print-modal{position:fixed;top:0;left:0;width:100%;display:block!important;background:#fff;padding:0!important}#oc-print-modal .no-print{display:none!important}}</style>';
+  const c=document.getElementById('oc-print-content');
+  if(!document.getElementById('oc-print-style')){ const d=document.createElement('div'); d.id='oc-print-style'; d.innerHTML=style; c.appendChild(d); }
+  window.print();
+}
 /* ── EQUIPAMENTOS LOCADOS/PRIVADOS ── */
 async function freqRenderEqPriv(){
   const dt=document.getElementById('fq-v-dt')?.value||'';
@@ -13255,6 +13420,31 @@ async function cfgAdmRender(){
   el2.innerHTML=Object.entries(counts).map(([k,v])=>`<div class="kc" style="padding:8px 10px"><div class="kl" style="font-size:9px">${labels[k]||k}</div><div class="kv" style="font-size:16px">${v}</div></div>`).join('');
 }
 
+const MOD_GROUPS=[
+  {t:'Painel',ms:['dash']},
+  {t:'Financeiro',ms:['a60','a059','a100','a107','a109']},
+  {t:'Serviços do Setor',ms:['rf','cs','falacg','oficios','prog','mapa']},
+  {t:'Serviços Internos',ms:['ci','ssi','said','reqab','solalm','marmitex','dboard']},
+  {t:'Geral',ms:['resumo']},
+  {t:'Administração',ms:['adm','cfg']}
+];
+function cfgRenderModulos(selected,isGestor){
+  selected=selected||[];
+  const box=document.getElementById('mu-modulos'); if(!box)return;
+  box.innerHTML='<div class="no-print" style="display:flex;gap:8px;margin-bottom:12px">'
+    +'<button type="button" class="btn" style="font-size:11px;padding:5px 12px" onclick="cfgMarcarModulos(true)"><i class="ti ti-checks"></i> Marcar todos</button>'
+    +'<button type="button" class="btn" style="font-size:11px;padding:5px 12px" onclick="cfgMarcarModulos(false)"><i class="ti ti-square-off"></i> Limpar</button>'
+    +(isGestor?'<span style="font-size:11px;color:var(--text3);align-self:center">Gestor tem acesso total</span>':'')
+    +'</div>'
+    + MOD_GROUPS.map(g=>`<div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;border-bottom:1.5px solid var(--border);padding-bottom:4px;margin-bottom:8px">${g.t}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+        ${g.ms.map(m=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--bg2);transition:border-color .12s" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+          <input type="checkbox" id="mu-m-${m}" ${(isGestor||selected.includes(m))?'checked':''} ${isGestor?'disabled':''} style="accent-color:var(--blue);width:16px;height:16px;flex-shrink:0"> <span>${MOD_LABELS[m]||m}</span></label>`).join('')}
+      </div></div>`).join('');
+}
+function cfgMarcarModulos(val){document.querySelectorAll('#mu-modulos input[type=checkbox]').forEach(el=>{if(!el.disabled)el.checked=val;});}
+
 /* Abrir modal editar usuário */
 function cfgOpenUser(idx){
   const u=CFG_USERS[idx];if(!u)return;
@@ -13265,10 +13455,7 @@ function cfgOpenUser(idx){
   document.getElementById('mu-email').value=u.email||'';
   
   const isGestor=(u.role==='g');
-  document.querySelectorAll('#mu-modulos input[type=checkbox]').forEach(el=>{
-    const m=el.id.replace('mu-m-','');
-    el.checked=isGestor?true:(u.modulos||[]).includes(m);
-  });
+  cfgRenderModulos(u.modulos||[], isGestor);
   document.getElementById('mu-ok').style.display='none';
   document.getElementById('modal-user').style.display='flex';
 }

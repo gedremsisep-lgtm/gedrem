@@ -450,7 +450,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260707-48';
+const APP_VERSION='20260710-49';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -702,6 +702,9 @@ function lerForm(){
   if(acessoTotal()){
     atual.equipe=$('f-eq').value;
     atual.encarregado=$('f-enc').value||( ENC_MAP[atual.equipe]||[''] )[0]||'';
+  }else{
+    atual.equipe=USER.equipe;
+    atual.encarregado=USER.nome;
   }
   atual.data=$('f-data').value;atual.origem=$('f-orig').value;atual.os=$('f-os').value.trim();
   atual.tipo=$('f-tipo').value;atual.qtd=$('f-qtd').value;atual.und=$('f-und').value;
