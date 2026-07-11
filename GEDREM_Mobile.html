@@ -205,7 +205,7 @@ body.on-login{padding-bottom:0}
     <button class="btn bp" onclick="capturarGPS()" id="btn-gps">📡 Capturar localização (GPS)</button>
     <div class="gpsbox" id="gps-info" style="display:none;margin-top:10px"></div>
     <div class="fg" style="margin-top:10px"><label>Endereço por extenso</label>
-      <input id="f-end" placeholder="Preenchido automaticamente pelo GPS"></div>
+      <input id="f-end" placeholder="Digite a rua/endereço (o GPS só completa se estiver vazio)"></div>
     <div class="fr">
       <div class="fg"><label>Bairro</label><input id="f-bairro" onchange="const r=regiaoDeBairro(this.value.trim());if(r){document.getElementById('f-reg').value=r;}"></div>
       <div class="fg"><label>Região</label>
@@ -346,8 +346,10 @@ function regiaoDeBairro(b){
   return'';
 }
 
-const TIPOS=['Limpeza de Boca de Lobo','Reparo de Boca de Lobo','Reparo de Poço de Visita','Limpeza de PV','Implantação de sarjetão','Implantação de BL','Desobstrução de galeria','Reparo de rede','Solapamento','Execução de calçada','Visita técnica','Reparo de meio-fio'];
-const N_FOTOS=6;
+/* Lista de serviços — mesma do sistema GEDREM (CS_SERVICOS). Pode ser sobrescrita pela nuvem (app_config → chave "servicos"). */
+let TIPOS=['Limpeza de Boca de Lobo','Reparo de Boca de Lobo','Reparo de Poço de Visita','Desobstrução de Rede','Solapamento','Execução de Calçada','Implantação de BL','Limpeza de Barragens','Reparo de Rede','Limpeza de Sarjeta','Reparo de Sarjeta','Execução de Sarjetão','Reparo de Meio-fio','Reparo de Talude','Reparo de Viga Chapéu','Execução de Muro de Arrimo','Limpeza de Canal','Limpeza de Outros Materiais','Concretagem','Preparo de Terreno','Montagem de Forma','Desmontagem de Forma','Demolição','Corte de Asfalto','Desinfecção','Entrega de Material','Visita Técnica','Outros Serviços'];
+const ETAPAS_FOTO=['Antes','Durante','Depois'];
+const N_FOTOS=3; // fotos fixas: Antes, Durante, Depois (o Mapa é gerado à parte)
 
 /* ════════════════ USUÁRIOS E PERFIS (sincronizados com o sistema) ════════════════ */
 const USUARIOS=[
@@ -478,7 +480,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-52';
+const APP_VERSION='20260712-53';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -594,8 +596,8 @@ async function enviarRelatorio(d){
   let cod=d.codSistema;
   if(!cod)cod=String(await maxCod('relatorio_foto','codigo',0)+1)+'-M';
   const imgs=[];
-  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Localização (mapa)'});
-  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||('Foto '+String(i+1).padStart(2,'0'));imgs.push({b64:f,descricao:et+(m.desc?' — '+m.desc:'')});}});
+  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa — '+(d.endereco||'Localização')});
+  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({b64:f,descricao:et+(sv?' — '+sv:'')});}});
   const LET=['A','B','C','D','E','F'],fotos=[];
   for(let i=0;i<imgs.length&&i<LET.length;i++){
     let url;
@@ -678,7 +680,8 @@ async function sincronizar(silencioso){
     }
     let enviadas=0;
     for(const d of visiveis(locais)){
-      if(!d.enviada&&d.endereco&&(d.tocada||d.status==='concluida')){await enviarRelatorio(d);enviadas++;}
+      // Só vai ao sistema quando CONCLUÍDA (via "Concluir e enviar"). Demandas em andamento ficam só no aparelho.
+      if(!d.enviada&&d.endereco&&d.status==='concluida'){await enviarRelatorio(d);enviadas++;}
     }
     if(novos||enviadas){
       toast((novos?novos+' demanda(s) nova(s) da programação. ':'')+(enviadas?enviadas+' relatório(s) enviado(s) ao sistema.':''));
@@ -722,7 +725,7 @@ function novaDemanda(){
   if(!USER){mostrarLogin();return}
   atual={codigo:'',data:hoje(),origem:'Programação diária',os:'',tipo:'',qtd:'',und:'Un.',
     obs:'',endereco:'',bairro:'',regiao:'',lat:null,lon:null,mapa:null,
-    fotos:Array(N_FOTOS).fill(null),fotoMeta:Array(N_FOTOS).fill(null).map(()=>({etapa:'',desc:''})),servicoExecutado:'',status:'pendente',
+    fotos:Array(N_FOTOS).fill(null),fotoMeta:ETAPAS_FOTO.map(et=>({etapa:et,servico:'',desc:''})),servicoExecutado:'',status:'pendente',
     equipe:acessoTotal()?'':USER.equipe,
     encarregado:acessoTotal()?'':USER.nome};
   preencherForm();nav('form');
@@ -735,7 +738,7 @@ function onEqForm(){
 async function abrirDemanda(id){atual=await dbGet(id);
   if(!atual){toast('Demanda não encontrada.');return}
   if(!atual.fotos)atual.fotos=Array(N_FOTOS).fill(null);
-  if(!atual.fotoMeta)atual.fotoMeta=Array(N_FOTOS).fill(null).map(()=>({etapa:'',desc:''}));
+  if(!atual.fotoMeta)atual.fotoMeta=ETAPAS_FOTO.map(et=>({etapa:et,servico:'',desc:''}));
   preencherForm();nav('form');}
 function preencherForm(){
   if(acessoTotal()){
@@ -785,11 +788,24 @@ async function salvarDemanda(imprimir){
   if(!atual.codigo)atual.codigo=proxCodigo(atual.equipe);
   atual.tocada=true;
   const id=await dbPut(atual);atual.id=id;
-  await enviarAgora(atual);
+  // Só envia ao sistema quando a demanda estiver CONCLUÍDA (botão "Concluir e enviar").
+  if(atual.status==='concluida'){
+    await enviarAgora(atual);
+  }else{
+    toast('💾 Salvo no aparelho. Vai ao sistema só quando você tocar em "Concluir e enviar".');
+  }
   if(imprimir===true){imprimirDemandas([atual])}else{nav('list')}
 }
 async function concluirEnviar(){
   if(!atual){toast('Abra uma demanda primeiro.');return}
+  lerForm();
+  // Fotos obrigatórias para concluir: Mapa + Antes + Durante + Depois
+  const faltando=[];
+  if(!atual.mapa)faltando.push('Mapa (capture o GPS no bloco 3)');
+  if(!atual.fotos[0])faltando.push('Foto Antes');
+  if(!atual.fotos[1])faltando.push('Foto Durante');
+  if(!atual.fotos[2])faltando.push('Foto Depois');
+  if(faltando.length){toast('Faltam para concluir: '+faltando.join(' · '));return}
   atual.status='concluida';
   if(typeof renderStChips==='function')renderStChips();
   await salvarDemanda();
@@ -803,37 +819,39 @@ async function excluirDemanda(){
 /* ════════════════ FOTOS ════════════════ */
 let slotAtivo=-1;
 function renderFotos(){
+  // Slot 1: Mapa (gerado pelo GPS). Slots 2-4: Antes, Durante, Depois (fixos, obrigatórios).
   let h=`<div class="fslot mapa ${atual.mapa?'cheia':''}" style="${atual.mapa?`background-image:url(${atual.mapa})`:''}" onclick="slotMapa()">
-    🗺<br>Mapa da localização
+    🗺<br>Mapa
     <button class="fx" onclick="event.stopPropagation();atual.mapa=null;renderFotos()">✕</button>
-    <span class="ftag">Localização</span></div>`;
+    <span class="ftag">Mapa</span></div>`;
   for(let i=0;i<N_FOTOS;i++){
-    const f=atual.fotos[i];
+    const f=atual.fotos[i];const et=ETAPAS_FOTO[i]||('Foto '+(i+1));
     h+=`<div class="fslot ${f?'cheia':''}" style="${f?`background-image:url(${f})`:''}" onclick="slotFoto(${i})">
-      📷<br>Foto ${i+1}
+      📷<br>Foto ${et}
       <button class="fx" onclick="event.stopPropagation();atual.fotos[${i}]=null;renderFotos()">✕</button>
-      <span class="ftag">Foto ${String(i+1).padStart(2,'0')}</span></div>`;
+      <span class="ftag">${et}</span></div>`;
   }
   $('fgrid').innerHTML=h;
   renderFotoMeta();
 }
 function renderFotoMeta(){
   const cont=$('fmeta-list'); if(!cont)return;
-  if(!atual.fotoMeta)atual.fotoMeta=Array(N_FOTOS).fill(null).map(()=>({etapa:'',desc:''}));
+  if(!atual.fotoMeta)atual.fotoMeta=[];
   let linhas='';
   for(let i=0;i<N_FOTOS;i++){
-    if(!atual.fotos[i])continue;
-    const m=atual.fotoMeta[i]||(atual.fotoMeta[i]={etapa:'',desc:''});
-    linhas+=`<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
-      <span style="font-size:11px;font-weight:700;color:var(--az,#0052A2);min-width:52px">Foto ${String(i+1).padStart(2,'0')}</span>
-      <input list="etapas-dl" placeholder="Etapa" value="${esc(m.etapa||'')}" onchange="setFotoEtapa(${i},this.value)" style="flex:0 0 120px;padding:6px;font-size:12px">
-      <input placeholder="Descrição (opcional)" value="${esc(m.desc||'')}" onchange="setFotoDesc(${i},this.value)" style="flex:1;padding:6px;font-size:12px">
+    const m=atual.fotoMeta[i]||(atual.fotoMeta[i]={etapa:ETAPAS_FOTO[i],servico:'',desc:''});
+    m.etapa=ETAPAS_FOTO[i]; // etapa fixa por slot
+    if(m.servico===undefined||m.servico===null||m.servico==='')m.servico=atual.tipo||''; // default = tipo principal
+    const sel=m.servico;
+    const opts='<option value="">Selecione o serviço...</option>'+TIPOS.map(t=>`<option ${sel===t?'selected':''}>${esc(t)}</option>`).join('');
+    linhas+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
+      <span style="font-size:12px;font-weight:700;color:#0052A2;min-width:58px">${ETAPAS_FOTO[i]}</span>
+      <select onchange="setFotoServico(${i},this.value)" style="flex:1;padding:7px;font-size:12px">${opts}</select>
     </div>`;
   }
-  cont.innerHTML=linhas?('<div style="font-size:11px;color:var(--text3,#888);margin-bottom:4px">Etapa e descrição de cada foto:</div>'+linhas):'';
+  cont.innerHTML='<div style="font-size:11px;color:#888;margin-bottom:5px">Serviço executado em cada foto:</div>'+linhas;
 }
-function setFotoEtapa(i,v){if(!atual.fotoMeta)atual.fotoMeta=[];atual.fotoMeta[i]=atual.fotoMeta[i]||{etapa:'',desc:''};atual.fotoMeta[i].etapa=v;}
-function setFotoDesc(i,v){if(!atual.fotoMeta)atual.fotoMeta=[];atual.fotoMeta[i]=atual.fotoMeta[i]||{etapa:'',desc:''};atual.fotoMeta[i].desc=v;}
+function setFotoServico(i,v){if(!atual.fotoMeta)atual.fotoMeta=[];atual.fotoMeta[i]=atual.fotoMeta[i]||{etapa:ETAPAS_FOTO[i],servico:'',desc:''};atual.fotoMeta[i].servico=v;}
 function slotMapa(){
   if(atual.mapa)return;
   if(atual.lat!=null){gerarMapa()}else{toast('Capture o GPS primeiro (bloco 3) — o mapa é gerado automaticamente.')}
@@ -898,9 +916,11 @@ async function buscarEndereco(){
     let end=rua?`${rua}${num}`:(j.display_name||'').split(',').slice(0,2).join(',');
     if(bairro)end+=` – ${bairro}`;
     end+=`, ${cid} – MS`;
-    $('f-end').value=end;atual.endereco=end;
-    if(bairro){$('f-bairro').value=bairro;atual.bairro=bairro}
-    toast('Endereço preenchido automaticamente.');
+    // NÃO sobrescreve a rua/endereço digitada pelo técnico — só preenche se estiver vazia.
+    const jaTemEnd=($('f-end').value||'').trim()||(atual.endereco||'').trim();
+    if(!jaTemEnd){$('f-end').value=end;atual.endereco=end;toast('Endereço preenchido automaticamente pelo GPS.');}
+    else{toast('GPS capturado. Mantido o endereço que você digitou.');}
+    if(bairro&&!(($('f-bairro').value||'').trim()||(atual.bairro||'').trim())){$('f-bairro').value=bairro;atual.bairro=bairro;const rg=regiaoDeBairro(bairro);if(rg){$('f-reg').value=rg;atual.regiao=rg;}}
   }catch(e){toast('Sem internet para converter o endereço — coordenadas salvas; tente de novo quando houver sinal.')}
 }
 function carregarTile(z,x,y){return new Promise(res=>{
@@ -1039,8 +1059,8 @@ function pgDemanda(d){
   </table>`;
   if(d.obs){h+=`<div style="border:1.5px solid ${AZ};border-radius:3px;padding:9px 12px;font-size:9.5pt;line-height:1.6;background:#fafcff;white-space:pre-wrap;margin-bottom:12px"><b style="color:${AZ};font-size:8pt">OBSERVAÇÕES TÉCNICAS:</b><br>${esc(d.obs)}</div>`}
   const imgs=[];
-  if(d.mapa)imgs.push({src:d.mapa,tag:'Localização (mapa)'});
-  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||('Foto '+String(i+1).padStart(2,'0'));imgs.push({src:f,tag:et+(m.desc?' — '+m.desc:'')})}});
+  if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa — '+(d.endereco||'Localização')});
+  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({src:f,tag:et+(sv?' — '+sv:'')})}});
   if(imgs.length){
     h+=`<div style="font-size:8.5pt;font-weight:700;color:${AZ};text-transform:uppercase;margin-bottom:6px">Registro Fotográfico</div>
     <div style="display:grid;grid-template-columns:${imgs.length>1?'1fr 1fr':'1fr'};gap:8px">`+
