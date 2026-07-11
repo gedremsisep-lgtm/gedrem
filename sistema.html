@@ -3959,7 +3959,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-62'; // Em aberto por equipe: bolinha c/ nº de pedidos + render robusto (agrupa "Sem equipe", protege data, nunca fica em branco)
+const SYSTEM_VERSION = '20260712-63'; // Em aberto por equipe: corrige "esc is not defined" (board não renderizava); bolinha c/ nº de pedidos + render robusto
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -9909,6 +9909,7 @@ function progAbertoStart(){
 async function progRenderAberto(){
   const cont=document.getElementById('prog-aberto-board');
   const totalEl=document.getElementById('prog-aberto-total');
+  const esc = v => String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   try{
     const all=await dbGetAll('programacao').catch(()=>[]);
     let eq=[]; try{ eq=await progGetEquipes(); }catch(e){ eq=[...PROG_EQUIPES_DEFAULT]; }
