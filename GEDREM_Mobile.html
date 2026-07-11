@@ -478,7 +478,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-51';
+const APP_VERSION='20260712-52';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -490,6 +490,35 @@ async function checkAppUpdate(){
       setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(j.versao)),900);
     }
   }catch(e){}
+}
+
+/* ══════════ INSTALAR NA TELA INICIAL (PWA) ══════════ */
+let _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); _pwaPrompt=e; pwaMostrarBotao(); });
+window.addEventListener('appinstalled', function(){ _pwaPrompt=null; var b=document.getElementById('pwa-fab'); if(b) b.remove(); });
+function pwaMostrarBotao(){
+  if(document.getElementById('pwa-fab')) return;
+  if(window.matchMedia('(display-mode: standalone)').matches) return; // ja instalado/aberto como app
+  var b=document.createElement('button');
+  b.id='pwa-fab';
+  b.type='button';
+  b.textContent='📲 Instalar app';
+  b.onclick=pwaInstalar;
+  b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:9999;background:#0052A2;color:#fff;border:none;border-radius:24px;padding:11px 18px;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer';
+  document.body.appendChild(b);
+}
+async function pwaInstalar(){
+  if(_pwaPrompt){
+    _pwaPrompt.prompt();
+    try{ await _pwaPrompt.userChoice; }catch(e){}
+    _pwaPrompt=null;
+    var b=document.getElementById('pwa-fab'); if(b) b.remove();
+  } else {
+    alert('Para colocar o atalho na tela inicial:\n\nAndroid (Chrome): menu ⋮ → "Adicionar à tela inicial".\niPhone/iPad (Safari): botão Compartilhar → "Adicionar à Tela de Início".');
+  }
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
 }
 
 /* ════════════════ NUVEM — mesmo banco do sistema (Supabase) ════════════════ */
