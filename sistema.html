@@ -3959,7 +3959,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260710-61'; // RF editar enc/região; validação por técnico; board programação em aberto; cadastro de Equipamentos
+const SYSTEM_VERSION = '20260712-62'; // Em aberto por equipe: bolinha c/ nº de pedidos + render robusto (agrupa "Sem equipe", protege data, nunca fica em branco)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -9907,33 +9907,54 @@ function progAbertoStart(){
   },45000);
 }
 async function progRenderAberto(){
-  const all=await dbGetAll('programacao').catch(()=>[]);
-  const eq=await progGetEquipes();
-  const abertos=all.filter(x=>{const st=x.status||'Programado';return st!=='Executado'&&st!=='Cancelado';});
+  const cont=document.getElementById('prog-aberto-board');
   const totalEl=document.getElementById('prog-aberto-total');
-  if(totalEl)totalEl.textContent=abertos.length;
-  const nomes=[...new Set([...eq.map(e=>e.nome),...abertos.map(x=>x.equipe).filter(Boolean)])];
-  const corMap=Object.fromEntries(eq.map(e=>[e.nome,e.cor||'#64748b']));
-  const encMap=Object.fromEntries(eq.map(e=>[e.nome,e.enc||'']));
-  const cont=document.getElementById('prog-aberto-board'); if(!cont)return;
-  cont.innerHTML=nomes.map(nome=>{
-    const itens=abertos.filter(x=>x.equipe===nome).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
-    const cor=corMap[nome]||'#64748b';
-    return `<div style="flex:0 0 250px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">
-      <div style="background:${cor};color:#fff;padding:8px 10px">
-        <div style="font-weight:700;font-size:13px">${esc(nome)}</div>
-        <div style="font-size:10px;opacity:.9">${encMap[nome]?'👷 '+esc(encMap[nome]):'—'}</div>
-        <div style="font-size:11px;font-weight:700;margin-top:3px;background:rgba(255,255,255,.22);display:inline-block;padding:1px 8px;border-radius:99px">${itens.length} em aberto</div>
-      </div>
-      <div style="padding:8px;display:flex;flex-direction:column;gap:6px;min-height:44px">
-        ${itens.length?itens.map(x=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 8px">
-          <div style="font-size:11px;font-weight:600">${esc(x.servico||x.tipo||'—')}</div>
-          <div style="font-size:10px;color:var(--text2)">${esc(x.endereco||'—')}</div>
-          <div style="font-size:10px;color:var(--text3)">${esc(x.bairro||'')}${x.regiao?' · '+esc(x.regiao):''}${x.data?' · '+x.data.split('-').reverse().join('/'):''}</div>
-        </div>`).join(''):'<div style="font-size:10px;color:var(--text3);text-align:center;padding:12px 4px">Nada em aberto ✓</div>'}
-      </div>
-    </div>`;
-  }).join('');
+  try{
+    const all=await dbGetAll('programacao').catch(()=>[]);
+    let eq=[]; try{ eq=await progGetEquipes(); }catch(e){ eq=[...PROG_EQUIPES_DEFAULT]; }
+    if(!Array.isArray(eq)) eq=[];
+    const abertos=(all||[]).filter(x=>{const st=(x&&x.status)||'Programado';return st!=='Executado'&&st!=='Cancelado';});
+    if(totalEl)totalEl.textContent=abertos.length;
+    if(!cont)return;
+
+    // chave de agrupamento: nome da equipe do item, ou "Sem equipe" quando não houver
+    const grpKey=x=>(x&&x.equipe&&String(x.equipe).trim())||'Sem equipe';
+    // ordem das colunas: equipes conhecidas primeiro, depois equipes que só aparecem nos itens, "Sem equipe" por último
+    const nomes=[];
+    eq.forEach(e=>{ if(e&&e.nome&&!nomes.includes(e.nome)) nomes.push(e.nome); });
+    abertos.forEach(x=>{ const k=grpKey(x); if(k!=='Sem equipe'&&!nomes.includes(k)) nomes.push(k); });
+    if(abertos.some(x=>grpKey(x)==='Sem equipe')) nomes.push('Sem equipe');
+
+    const corMap=Object.fromEntries(eq.filter(e=>e&&e.nome).map(e=>[e.nome,e.cor||'#64748b']));
+    const encMap=Object.fromEntries(eq.filter(e=>e&&e.nome).map(e=>[e.nome,e.enc||'']));
+    const fmtData=d=>{ if(!d||typeof d!=='string'||d.indexOf('-')<0)return ''; const p=d.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d; };
+
+    cont.innerHTML=nomes.map(nome=>{
+      const itens=abertos.filter(x=>grpKey(x)===nome).sort((a,b)=>String((a&&a.data)||'').localeCompare(String((b&&b.data)||'')));
+      const cor=corMap[nome]||'#64748b';
+      return `<div style="flex:0 0 250px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">
+        <div style="background:${cor};color:#fff;padding:8px 10px">
+          <div style="font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px">${esc(nome)}${itens.length?`<span title="${itens.length} pedido(s) em aberto" style="background:#fff;color:${cor};min-width:18px;height:18px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;line-height:1;padding:0 5px;box-shadow:0 1px 2px rgba(0,0,0,.2)">${itens.length}</span>`:''}</div>
+          <div style="font-size:10px;opacity:.9">${encMap[nome]?'👷 '+esc(encMap[nome]):'—'}</div>
+          <div style="font-size:11px;font-weight:700;margin-top:3px;background:rgba(255,255,255,.22);display:inline-block;padding:1px 8px;border-radius:99px">${itens.length} em aberto</div>
+        </div>
+        <div style="padding:8px;display:flex;flex-direction:column;gap:6px;min-height:44px">
+          ${itens.length?itens.map(x=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 8px">
+            <div style="font-size:11px;font-weight:600">${esc((x&&(x.servico||x.tipo))||'—')}</div>
+            <div style="font-size:10px;color:var(--text2)">${esc((x&&x.endereco)||'—')}</div>
+            <div style="font-size:10px;color:var(--text3)">${esc((x&&x.bairro)||'')}${x&&x.regiao?' · '+esc(x.regiao):''}${fmtData(x&&x.data)?' · '+fmtData(x.data):''}</div>
+          </div>`).join(''):'<div style="font-size:10px;color:var(--text3);text-align:center;padding:12px 4px">Nada em aberto ✓</div>'}
+        </div>
+      </div>`;
+    }).join('');
+
+    if(!nomes.length){
+      cont.innerHTML=`<div style="padding:20px;color:var(--text3);font-size:12px">Nenhuma equipe cadastrada e nenhum item em aberto no momento.</div>`;
+    }
+  }catch(err){
+    console.error('progRenderAberto falhou:',err);
+    if(cont)cont.innerHTML=`<div style="padding:16px;color:#b00020;font-size:12px">Não foi possível montar o quadro (${esc(String((err&&err.message)||err))}). Clique em <b>Atualizar</b>.</div>`;
+  }
 }
 
 function progStab(el,tid){
