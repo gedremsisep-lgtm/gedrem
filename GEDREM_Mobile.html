@@ -8,7 +8,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>GEDREM Mobile – Relatório Fotográfico</title>
-<link rel="manifest" href='data:application/json,{"name":"GEDREM Mobile","short_name":"GEDREM","display":"standalone","background_color":"%230052A2","theme_color":"%230052A2","start_url":".","icons":[{"src":"data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><rect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%230052A2%27/><text x=%2750%27 y=%2766%27 font-size=%2748%27 text-anchor=%27middle%27 fill=%27white%27 font-family=%27sans-serif%27 font-weight=%27bold%27>G</text></svg>","sizes":"any","type":"image/svg+xml"}]}'>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="gedrem-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="gedrem-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="gedrem-32.png">
 <style>
 :root{
   --azul:#0052A2; --azul-esc:#1a3a6b; --azul-claro:#eaf2fb;
@@ -475,7 +478,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260710-50';
+const APP_VERSION='20260712-51';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
