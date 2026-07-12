@@ -6,9 +6,11 @@ self.addEventListener('install', (e) => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); });
 
 self.addEventListener('fetch', (e) => {
-  // network-first: sempre tenta a rede (app usa dados ao vivo do Supabase);
-  // se estiver offline, tenta responder do cache.
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+  const req = e.request;
+  let url;
+  try { url = new URL(req.url); } catch (_) { return; }
+  // Só intercepta GET do próprio site (mesma origem).
+  // Supabase (banco/fotos), qualquer POST e uploads passam DIRETO, sem interferência do SW.
+  if (req.method !== 'GET' || url.origin !== self.location.origin) return;
+  e.respondWith(fetch(req).catch(() => caches.match(req)));
 });
