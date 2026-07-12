@@ -182,14 +182,14 @@ body.on-login{padding-bottom:0}
       <div class="fg"><label>Nº OS / Referência</label><input id="f-os" placeholder="Ex: 852500"></div>
     </div>
     <div class="fr" id="f-eqrow">
-      <div class="fg"><label>Equipe</label><select id="f-eq" onchange="onEqForm()"></select></div>
+      <div class="fg"><label>Equipe</label><select id="f-eq" onchange="onEqForm();atualizarBotaoConcluir()"></select></div>
       <div class="fg"><label>Encarregado</label><select id="f-enc"></select></div>
     </div>
   </div>
 
   <div class="card">
     <div class="sh">🔧 2 · Serviço executado</div>
-    <div class="fg"><label>Tipo de serviço</label><select id="f-tipo"></select></div>
+    <div class="fg"><label>Tipo de serviço</label><select id="f-tipo" onchange="atualizarBotaoConcluir()"></select></div>
     <div class="fg"><label>Serviço executado</label><input id="f-servexec" list="servexec-dl" placeholder="Descreva o serviço executado"><datalist id="servexec-dl"></datalist></div>
     <div class="fr">
       <div class="fg"><label>Quantidade</label><input id="f-qtd" type="number" min="0" inputmode="numeric" placeholder="Ex: 3"></div>
@@ -205,7 +205,7 @@ body.on-login{padding-bottom:0}
     <button class="btn bp" onclick="capturarGPS()" id="btn-gps">📡 Capturar localização (GPS)</button>
     <div class="gpsbox" id="gps-info" style="display:none;margin-top:10px"></div>
     <div class="fg" style="margin-top:10px"><label>Endereço por extenso</label>
-      <input id="f-end" placeholder="Digite a rua/endereço (o GPS só completa se estiver vazio)"></div>
+      <input id="f-end" oninput="atualizarBotaoConcluir()" placeholder="Digite a rua/endereço (o GPS só completa se estiver vazio)"></div>
     <div class="fr">
       <div class="fg"><label>Bairro</label><input id="f-bairro" onchange="const r=regiaoDeBairro(this.value.trim());if(r){document.getElementById('f-reg').value=r;}"></div>
       <div class="fg"><label>Região</label>
@@ -224,8 +224,8 @@ body.on-login{padding-bottom:0}
   <div class="card">
     <div class="sh">✅ 5 · Situação</div>
     <div id="st-chips"></div>
-    <button class="btn bp" style="width:100%;background:#16a34a;border-color:#16a34a;margin:6px 0 8px" onclick="concluirEnviar()">✅ Concluir e enviar ao sistema</button>
-    <button id="btn-wpp" class="btn" style="width:100%;background:#25D366;border-color:#25D366;color:#fff;margin:0 0 8px" onclick="whatsappCompartilhar()">📲 Enviar ao WhatsApp (fotos + endereço)</button>
+    <button id="btn-concluir" class="btn bp" style="width:100%;background:#16a34a;border-color:#16a34a;margin:6px 0 4px" onclick="concluirEnviar()" disabled>✅ Concluir · enviar ao sistema · WhatsApp</button>
+    <div id="concluir-dica" style="font-size:11px;color:#A32D2D;text-align:center;margin:0 0 8px"></div>
     <div class="brow">
       <button class="btn bg" onclick="salvarDemanda()">💾 Salvar</button>
       <button class="btn bp" onclick="salvarDemanda(true)">🖨 Salvar e gerar PDF</button>
@@ -361,7 +361,10 @@ const USUARIOS=[
 function slugU(n){return 'enc-'+String(n).toLowerCase().replace(/[^a-z0-9]+/g,'-')}
 function aplicarUsuarios(lista){
   if(!lista||!lista.length)return;
-  localStorage.setItem('gedrem_userlist',JSON.stringify(lista));
+  // Mescla no cache (acumula encarregados vindos do RPC e do cadastro de Funcionários)
+  let cache=[]; try{cache=JSON.parse(localStorage.getItem('gedrem_userlist'))||[]}catch(e){cache=[]}
+  lista.forEach(u=>{ if(u&&u.nome && !cache.some(c=>c.nome===u.nome&&(c.perfil||'')===(u.perfil||''))) cache.push(u); });
+  localStorage.setItem('gedrem_userlist',JSON.stringify(cache));
   lista.forEach(u=>{
     if(u.perfil!=='encarregado'||!u.nome)return;
     if(!USUARIOS.some(x=>x.id===slugU(u.nome)))
@@ -372,6 +375,15 @@ function aplicarUsuarios(lista){
       if(!EQ_PREFIX[u.equipe])EQ_PREFIX[u.equipe]=u.equipe.replace(/[^A-Za-z0-9]/g,'').slice(0,3).toUpperCase()||'EQ';
     }
   });
+}
+/* Todos os encarregados do cadastro de Funcionários do sistema (Área Admin → Funcionários) */
+async function carregarEncarregadosFunc(){
+  try{
+    const fs=await storeGet('funcionarios');
+    const encs=(fs||[]).filter(f=>f&&f.nome&&/encarreg/i.test(f.cargo||'')&&(f.status==='Ativo'||!f.status))
+      .map(f=>({perfil:'encarregado',nome:f.nome,equipe:f.equipe||''}));
+    if(encs.length){ aplicarUsuarios(encs); if(document.body.classList.contains('on-login'))initLogin(); }
+  }catch(e){}
 }
 function usuariosCache(){try{return JSON.parse(localStorage.getItem('gedrem_userlist'))||[]}catch(e){return[]}}
 
@@ -465,6 +477,7 @@ function mostrarLogin(){
   document.querySelectorAll('.scr').forEach(x=>x.classList.remove('on'));
   $('scr-login').classList.add('on');
   supaRpc('gedrem_lista_usuarios').then(l=>{aplicarUsuarios(l);initLogin()}).catch(()=>{});
+  carregarEncarregadosFunc();
 }
 async function alterarPIN(){
   if(acessoTotal()){toast('A senha dos perfis administrativos é a mesma do sistema — altere por lá.');return}
@@ -481,7 +494,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-54';
+const APP_VERSION='20260712-55';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -663,6 +676,7 @@ async function sincronizar(silencioso){
   if(syncBusy||!USER)return;syncBusy=true;
   try{
     try{aplicarEquipes(await storeGet('equipes'))}catch(e){}
+    try{await carregarEncarregadosFunc()}catch(e){}
     const locais=await dbAll();
     const vistos=new Set(locais.map(d=>d.cloudId).filter(Boolean));
     const prog=await storeGet('programacao');
@@ -781,6 +795,27 @@ function renderStChips(){
   $('st-chips').innerHTML=ops.map(([v,l])=>
     `<span class="chip ${atual.status===v?'on':''}" onclick="atual.status='${v}';renderStChips()">${l}</span>`).join('');
 }
+/* Só habilita "Concluir e enviar" quando TODOS os pré-requisitos estiverem prontos */
+function atualizarBotaoConcluir(){
+  const b=$('btn-concluir'); if(!b||!atual)return;
+  const eq = acessoTotal() ? (($('f-eq')&&$('f-eq').value)||'') : ((USER&&USER.equipe)||'');
+  const tipo = ($('f-tipo')&&$('f-tipo').value)||'';
+  const end = (($('f-end')&&$('f-end').value)||'').trim();
+  const falta=[];
+  if(!eq)falta.push('equipe');
+  if(!tipo)falta.push('tipo de serviço');
+  if(!end)falta.push('endereço');
+  if(!atual.mapa)falta.push('Mapa');
+  if(!(atual.fotos&&atual.fotos[0]))falta.push('foto Antes');
+  if(!(atual.fotos&&atual.fotos[1]))falta.push('foto Durante');
+  if(!(atual.fotos&&atual.fotos[2]))falta.push('foto Depois');
+  const ok=falta.length===0;
+  b.disabled=!ok;
+  b.style.opacity=ok?'1':'.5';
+  b.style.cursor=ok?'pointer':'not-allowed';
+  const dica=$('concluir-dica');
+  if(dica){ dica.textContent=ok?'':('Falta: '+falta.join(' · ')); }
+}
 async function salvarDemanda(imprimir){
   lerForm();
   if(!atual.equipe){toast('Selecione a equipe.');return}
@@ -818,8 +853,7 @@ async function concluirEnviar(){
   await enviarAgora(atual);
   // Abre o WhatsApp com as 4 fotos + texto (endereço e descrições). Fica no mesmo gesto do clique.
   try{ await whatsappCompartilhar(atual); }catch(e){}
-  const bw=document.getElementById('btn-wpp'); if(bw)bw.style.display='';
-  toast('✅ Concluído e enviado ao sistema. Se o WhatsApp não abrir sozinho, toque em 📲 Enviar ao WhatsApp.');
+  toast('✅ Concluído e enviado ao sistema. Escolha o grupo no WhatsApp para compartilhar as fotos.');
 }
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
@@ -889,6 +923,7 @@ function renderFotos(){
   }
   $('fgrid').innerHTML=h;
   renderFotoMeta();
+  atualizarBotaoConcluir();
 }
 function renderFotoMeta(){
   const cont=$('fmeta-list'); if(!cont)return;
