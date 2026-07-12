@@ -495,7 +495,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-56';
+const APP_VERSION='20260712-57';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -611,7 +611,7 @@ async function enviarRelatorio(d){
   let cod=d.codSistema;
   if(!cod)cod=String(await maxCod('relatorio_foto','codigo',0)+1)+'-M';
   const imgs=[];
-  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa'});
+  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa: '+(d.endereco||'—')});
   (d.fotos||[]).forEach((f,i)=>{if(f){const et=(d.fotoMeta&&d.fotoMeta[i]&&d.fotoMeta[i].etapa)||ETAPAS_FOTO[i]||('Foto '+(i+1));imgs.push({b64:f,descricao:et});}});
   const LET=['A','B','C','D','E','F'],fotos=[];
   for(let i=0;i<imgs.length&&i<LET.length;i++){
@@ -873,8 +873,7 @@ async function whatsappCompartilhar(d){
   for(let i=0;i<3;i++){ await add((d.fotos||[])[i], ETL[i].toLowerCase()+'.jpg'); }
   // Texto
   const linhasFoto=[];
-  if(d.mapa)linhasFoto.push('🗺 Mapa');
-  for(let i=0;i<3;i++){ if((d.fotos||[])[i]){ linhasFoto.push('📷 '+ETL[i]); } }
+  if(d.mapa)linhasFoto.push('🗺 Mapa: '+(d.endereco||'—'));
   const texto=[
     '*GEDREM — Relatório Fotográfico*',
     'Código: '+(d.codSistema||d.codigo||'—'),
@@ -1151,7 +1150,7 @@ function pgDemanda(d){
   </table>`;
   if(d.obs){h+=`<div style="border:1.5px solid ${AZ};border-radius:3px;padding:9px 12px;font-size:9.5pt;line-height:1.6;background:#fafcff;white-space:pre-wrap;margin-bottom:12px"><b style="color:${AZ};font-size:8pt">OBSERVAÇÕES TÉCNICAS:</b><br>${esc(d.obs)}</div>`}
   const imgs=[];
-  if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa'});
+  if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa: '+(d.endereco||'—')});
   (d.fotos||[]).forEach((f,i)=>{if(f){const et=(d.fotoMeta&&d.fotoMeta[i]&&d.fotoMeta[i].etapa)||ETAPAS_FOTO[i]||('Foto '+(i+1));imgs.push({src:f,tag:et})}});
   if(imgs.length){
     h+=`<div style="font-size:8.5pt;font-weight:700;color:${AZ};text-transform:uppercase;margin-bottom:6px">Registro Fotográfico</div>
