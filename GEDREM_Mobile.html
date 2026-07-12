@@ -302,6 +302,14 @@ body.on-login{padding-bottom:0}
 
 <div class="toast" id="toast"></div>
 
+<!-- ══ MODAL ENVIAR WHATSAPP (uma foto por vez, com a legenda respectiva) ══ -->
+<div id="wpp-modal" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.6);z-index:250;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--card,#fff);border-radius:14px;max-width:420px;width:100%;padding:16px;max-height:90vh;overflow-y:auto">
+    <div style="font-weight:700;font-size:15px;margin-bottom:8px;color:var(--azul,#0052A2)">📲 Enviar ao WhatsApp</div>
+    <div id="wpp-body"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL DE IMPRESSÃO ══ -->
 <div id="print-modal" onclick="if(event.target===this)this.style.display='none'">
   <div id="print-paper">
@@ -495,7 +503,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-57';
+const APP_VERSION='20260712-58';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -854,51 +862,58 @@ async function concluirEnviar(){
   await enviarAgora(atual);
   // Abre o WhatsApp com as 4 fotos + texto (endereço e descrições). Fica no mesmo gesto do clique.
   try{ await whatsappCompartilhar(atual); }catch(e){}
-  toast('✅ Concluído e enviado ao sistema. Escolha o grupo no WhatsApp para compartilhar as fotos.');
+  toast('✅ Concluído e enviado ao sistema. Envie cada foto ao grupo pelos botões do WhatsApp.');
 }
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
 function _dataUrlToFile(dataUrl,nome){
   return fetch(dataUrl).then(r=>r.blob()).then(b=>new File([b],nome,{type:b.type||'image/jpeg'}));
 }
+let _wppItens=[];
 async function whatsappCompartilhar(d){
   d=d||atual;
   if(!d){toast('Abra uma demanda primeiro.');return}
-  lerForm&&d===atual&&lerForm();
+  if(d===atual && typeof lerForm==='function') lerForm();
   const ETL=['Antes','Durante','Depois'];
-  // Arquivos: Mapa + Antes + Durante + Depois
-  const files=[];
-  const add=async(url,nome)=>{ if(!url)return; try{ files.push(await _dataUrlToFile(url,nome)); }catch(e){} };
-  await add(d.mapa,'mapa.jpg');
-  for(let i=0;i<3;i++){ await add((d.fotos||[])[i], ETL[i].toLowerCase()+'.jpg'); }
-  // Texto
-  const linhasFoto=[];
-  if(d.mapa)linhasFoto.push('🗺 Mapa: '+(d.endereco||'—'));
-  const texto=[
+  // Cabeçalho comum, repetido em cada envio
+  const header=[
     '*GEDREM — Relatório Fotográfico*',
     'Código: '+(d.codSistema||d.codigo||'—'),
     'Equipe: '+(d.equipe||'—')+(d.encarregado?' · Enc.: '+d.encarregado:''),
     'Data: '+fmtBR(d.data),
     'Serviço: '+(d.tipo||'—'),
     '📍 Endereço: '+(d.endereco||'—'),
-    (d.bairro?('Bairro: '+d.bairro+(d.regiao?' · '+d.regiao:'')):''),
-    '',
-    linhasFoto.join('\n')
+    (d.bairro?('Bairro: '+d.bairro+(d.regiao?' · '+d.regiao:'')):'')
   ].filter(x=>x!=='').join('\n');
-  try{
-    if(navigator.canShare && files.length && navigator.canShare({files})){
-      await navigator.share({files, text:texto, title:'GEDREM — '+(d.codSistema||d.codigo||'')});
-    } else if(navigator.share){
-      await navigator.share({text:texto, title:'GEDREM'});
-      toast('Este aparelho não compartilha as fotos direto — anexe-as no WhatsApp.');
-    } else {
-      window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
-      toast('Escolha o grupo e anexe as fotos no WhatsApp.');
-    }
-  }catch(e){
-    if(e && e.name==='AbortError')return; // usuário cancelou o compartilhamento
-    try{ window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank'); }catch(_){}
+  // Um item por foto: arquivo + texto (cabeçalho + a linha da própria imagem)
+  const itens=[];
+  const add=async(url,nome,linha)=>{ if(!url)return; try{ const f=await _dataUrlToFile(url,nome); itens.push({file:f,texto:header+'\n'+linha,rot:linha}); }catch(e){} };
+  await add(d.mapa,'mapa.jpg','🗺 Mapa: '+(d.endereco||'—'));
+  for(let i=0;i<3;i++){ if((d.fotos||[])[i]){ const m=(d.fotoMeta&&d.fotoMeta[i])||{}; const sv=m.servico||d.tipo||''; await add(d.fotos[i], ETL[i].toLowerCase()+'.jpg', '📷 '+ETL[i]+(sv?': '+sv:'')); } }
+  _wppItens=itens;
+  const body=$('wpp-body');
+  if(body){
+    body.innerHTML = itens.length
+      ? '<div style="font-size:12.5px;color:var(--txt2);margin-bottom:10px">Toque em cada foto para enviar ao grupo — cada envio já vai com a descrição da própria imagem.</div>'
+        + itens.map((it,i)=>`<button class="btn" id="wpp-b-${i}" style="width:100%;background:#25D366;border-color:#25D366;color:#fff;margin-bottom:8px;text-align:left;font-size:13px" onclick="whatsappEnviarUm(${i})">📲 ${i+1} · ${esc(it.rot)}</button>`).join('')
+        + '<button class="btn" style="width:100%;margin-top:4px" onclick="document.getElementById(\'wpp-modal\').style.display=\'none\'">Fechar</button>'
+      : '<div style="color:var(--txt2)">Nenhuma foto para enviar.</div><button class="btn" style="width:100%;margin-top:8px" onclick="document.getElementById(\'wpp-modal\').style.display=\'none\'">Fechar</button>';
   }
+  const m=$('wpp-modal'); if(m)m.style.display='flex';
+}
+async function whatsappEnviarUm(i){
+  const it=_wppItens[i]; if(!it)return;
+  try{
+    if(navigator.canShare && navigator.canShare({files:[it.file]})){
+      await navigator.share({files:[it.file], text:it.texto});
+    } else if(navigator.share){
+      await navigator.share({text:it.texto});
+      toast('Anexe a foto no WhatsApp.');
+    } else {
+      window.open('https://wa.me/?text='+encodeURIComponent(it.texto),'_blank');
+    }
+    const b=$('wpp-b-'+i); if(b){ b.textContent='✓ Enviado · '+it.rot; b.style.background='#0f9d58'; b.style.borderColor='#0f9d58'; }
+  }catch(e){ if(e&&e.name==='AbortError')return; }
 }
 async function excluirDemanda(){
   if(!atual.id)return;
