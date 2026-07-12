@@ -2621,7 +2621,7 @@ textarea{resize:vertical;min-height:60px}
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="prog-count">0</b> registros</div>
     <div class="card tw">
       <table>
-        <thead><tr><th class="no-print" style="width:30px;text-align:center"><input type="checkbox" id="prog-chk-all" onclick="progToggleAll(this.checked)" title="Selecionar todos" style="accent-color:var(--blue)"></th><th>Data</th><th>Equipe</th><th>Serviço</th><th>Endereço</th><th>Bairro</th><th>Região</th><th>Origem</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+        <thead><tr><th class="no-print" style="width:30px;text-align:center"><input type="checkbox" id="prog-chk-all" onclick="progToggleAll(this.checked)" title="Selecionar todos" style="accent-color:var(--blue)"></th><th>Serviço</th><th>Endereço</th><th>Bairro</th><th>Região</th><th>Origem</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
         <tbody id="prog-tb"></tbody>
       </table>
     </div>
@@ -3963,7 +3963,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-64'; // Req.Almoço PROINC→PRIMT; Frequência: "Equipamentos Próprios" vira grade mensal (igual Funcionários)
+const SYSTEM_VERSION = '20260712-65'; // Programação Lista/Histórico agrupada por equipe+data (linhas normais)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -11163,7 +11163,7 @@ async function progRenderLista(){
     if(fst&&x.status!==fst) return false;
     if(busca&&!JSON.stringify(x).toLowerCase().includes(busca)) return false;
     return true;
-  }).sort((a,b)=>b.data>a.data?1:b.data<a.data?-1:(b._ts||0)-(a._ts||0));
+  }).sort((a,b)=>{const d=(b.data||'').localeCompare(a.data||'');if(d!==0)return d;const e=(a.equipe||'').localeCompare(b.equipe||'');if(e!==0)return e;return (b._ts||0)-(a._ts||0);});
   document.getElementById('prog-count').textContent=fil.length;
   PROG_SEL=new Set([...PROG_SEL].filter(id=>fil.some(x=>x.id===id)));
   const _pn=document.getElementById('prog-sel-n'); if(_pn)_pn.textContent=PROG_SEL.size;
@@ -11171,25 +11171,38 @@ async function progRenderLista(){
   const eq=await progGetEquipes();
   const eqMap=Object.fromEntries(eq.map(e=>[e.nome,e.cor||'#ccc']));
   const stMap={Programado:'s-bl',Executado:'s-ok',Cancelado:'s-rd'};
+  const fmtD=d=>{if(!d)return '—';const p=String(d).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   const tb=document.getElementById('prog-tb'); if(!tb) return;
-  tb.innerHTML=fil.length===0
-    ?`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:20px">Nenhum item encontrado</td></tr>`
-    :fil.map(x=>`<tr>
+  if(fil.length===0){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">Nenhum item encontrado</td></tr>`;return;}
+  // Contagem por grupo (equipe|data)
+  const cntMap={};
+  fil.forEach(x=>{const k=(x.equipe||'')+'|'+(x.data||'');cntMap[k]=(cntMap[k]||0)+1;});
+  let html='',lastKey='';
+  fil.forEach(x=>{
+    const key=(x.equipe||'')+'|'+(x.data||'');
+    if(key!==lastKey){
+      lastKey=key;
+      html+=`<tr><td colspan="8" style="background:var(--bg3);padding:6px 10px;border:1px solid var(--bd)">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700">
+          <span style="width:9px;height:9px;border-radius:50%;background:${eqMap[x.equipe]||'#ccc'};flex-shrink:0"></span>
+          ${x.equipe||'—'}<span style="color:var(--text2);font-weight:400">· ${fmtD(x.data)}</span>
+          <span style="color:var(--text3);font-weight:400;font-size:11px">· ${cntMap[key]} item(ns)</span>
+        </span></td></tr>`;
+    }
+    html+=`<tr>
       <td class="no-print" style="text-align:center"><input type="checkbox" class="prog-row-chk" data-id="${x.id}" ${PROG_SEL.has(x.id)?'checked':''} onchange="progToggleRow(${x.id},this.checked)" style="accent-color:var(--blue)"></td>
-      <td>${x.data||'—'}</td>
-      <td><span style="display:inline-flex;align-items:center;gap:4px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${eqMap[x.equipe]||'#ccc'};flex-shrink:0"></span>
-        <b>${x.equipe||'—'}</b></span></td>
-      <td style="font-size:11px">${x.servico||'—'}</td>
-      <td style="font-size:11px">${x.endereco||'—'}</td>
-      <td>${x.bairro||'—'}</td>
-      <td style="color:var(--blue);font-weight:600">${x.regiao||'—'}</td>
-      <td>${x.origem||'—'}</td>
+      <td style="font-size:12px">${x.servico||'—'}</td>
+      <td style="font-size:12px">${x.endereco||'—'}</td>
+      <td style="white-space:nowrap">${x.bairro||'—'}</td>
+      <td style="color:var(--blue);font-weight:600;white-space:nowrap">${x.regiao||'—'}</td>
+      <td style="white-space:nowrap">${x.origem||'—'}</td>
       <td><span class="st ${stMap[x.status]||'s-pd'}">${x.status||'—'}</span></td>
       <td class="no-print">
         <button class="btn" style="padding:2px 6px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="progDel(${x.id})"><i class="ti ti-trash"></i></button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  });
+  tb.innerHTML=html;
 }
 
 let PROG_SEL=new Set();
