@@ -503,7 +503,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-58';
+const APP_VERSION='20260712-59';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -867,7 +867,8 @@ async function concluirEnviar(){
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
 function _dataUrlToFile(dataUrl,nome){
-  return fetch(dataUrl).then(r=>r.blob()).then(b=>new File([b],nome,{type:b.type||'image/jpeg'}));
+  try{ const b=b64ToBlob(dataUrl); return Promise.resolve(new File([b],nome,{type:b.type||'image/jpeg'})); }
+  catch(e){ return fetch(dataUrl).then(r=>r.blob()).then(x=>new File([x],nome,{type:x.type||'image/jpeg'})); }
 }
 let _wppItens=[];
 async function whatsappCompartilhar(d){
