@@ -3963,7 +3963,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-65'; // Programação Lista/Histórico agrupada por equipe+data (linhas normais)
+const SYSTEM_VERSION = '20260712-66'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10015,8 +10015,8 @@ async function progBuildGrid(){
     const eqItems = dtItems.filter(x => x.equipe === e.nome);
     
     return eqItems.length
-      ? eqItems.map(it => ({end:it.endereco||'',bairro:it.bairro||'',srv:it.servico||'',orig:it.origem||''}))
-      : [{end:'',bairro:'',srv:'',orig:''}];
+      ? eqItems.map(it => ({end:it.endereco||'',bairro:it.bairro||'',srv:it.servico||'',orig:it.origem||'',num:it.os||''}))
+      : [{end:'',bairro:'',srv:'',orig:'',num:''}];
   });
 
   const grid = document.getElementById('prog-grid');
@@ -10046,6 +10046,10 @@ function progRenderColuna(ei, dtItems){
     const selSrv = PROG_SERVS.map(s =>
       '<option'+(it.srv===s?' selected':'')+'>'+s+'</option>'
     ).join('');
+    const PROG_ORIGENS=['Fala Campo Grande','Ofício','SISEP'];
+    const selOrig = PROG_ORIGENS.map(o =>
+      '<option'+(it.orig===o?' selected':'')+'>'+o+'</option>'
+    ).join('');
     return '<div class="prog-item'+(hasData?' has-data':'')+'" id="'+pid+'">'
       + '<div class="prog-num"><span class="num">'+(ri+1)+'</span>'
       + '<span style="display:flex;align-items:center;gap:3px">'
@@ -10062,6 +10066,12 @@ function progRenderColuna(ei, dtItems){
       + '<div class="pi-field"><span class="pi-label">Serviço</span>'
       + '<select class="pi-select" onchange="PROG_DATA['+ei+']['+ri+'].srv=this.value;progMarkItem(\''+pid+'\',true)">'
       + selSrv+'</select></div>'
+      + '<div class="pi-field"><span class="pi-label">Origem do pedido</span>'
+      + '<select class="pi-select" onchange="PROG_DATA['+ei+']['+ri+'].orig=this.value;progMarkItem(\''+pid+'\',true)">'
+      + '<option value="">Selecione...</option>'+selOrig+'</select></div>'
+      + '<div class="pi-field"><span class="pi-label">Nº do pedido</span>'
+      + '<input class="pi-input" value="'+(it.num||'').replace(/"/g,'&quot;')+'" placeholder="Nº (ex: 852500)" inputmode="numeric"'
+      + ' onchange="PROG_DATA['+ei+']['+ri+'].num=this.value;progMarkItem(\''+pid+'\',true)"></div>'
       + '</div>';
   }).join('');
 
@@ -10151,7 +10161,7 @@ async function progSalvarGrid(){
       const regiao = it.regiao || PROG_BR[bairro] || '';
       await dbAdd('programacao', {
         data:dt, equipe:PROG_EQ[ei].nome,
-        servico:it.srv||'', origem:it.orig||'Programação',
+        servico:it.srv||'', origem:it.orig||'Programação', os:it.num||'',
         endereco:it.end||'', bairro, regiao, status:'Programado',
       });
       saved++;
@@ -10336,7 +10346,7 @@ async function progAutoProgramacao(){
       const regiao=it.regiao||PROG_BR[bairro]||'';
       await dbAdd('programacao',{
         data:dt,equipe:PROG_EQ[gi].nome,
-        servico:it.srv||'',origem:it.orig||'Auto-Programação',
+        servico:it.srv||'',origem:it.orig||'Auto-Programação',os:it.num||'',
         endereco:it.end||'',bairro,regiao,status:'Programado',
       });
     }

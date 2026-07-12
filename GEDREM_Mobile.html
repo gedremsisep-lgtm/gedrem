@@ -178,7 +178,7 @@ body.on-login{padding-bottom:0}
     </div>
     <div class="fr">
       <div class="fg"><label>Origem</label>
-        <select id="f-orig"><option>Programação diária</option><option>Fala Campo Grande</option><option>Ofício</option><option>OS interna</option></select></div>
+        <select id="f-orig"><option>Programação diária</option><option>Fala Campo Grande</option><option>Ofício</option><option>SISEP</option><option>OS interna</option></select></div>
       <div class="fg"><label>Nº OS / Referência</label><input id="f-os" placeholder="Ex: 852500"></div>
     </div>
     <div class="fr" id="f-eqrow">
@@ -503,7 +503,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-59';
+const APP_VERSION='20260712-60';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
