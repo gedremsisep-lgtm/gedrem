@@ -503,7 +503,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-61';
+const APP_VERSION='20260712-62';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -859,10 +859,11 @@ async function concluirEnviar(){
   atual.tocada=true;
   const id=await dbPut(atual);atual.id=id;
   if(typeof renderStChips==='function')renderStChips();
-  await enviarAgora(atual);
-  // Abre o WhatsApp com as 4 fotos + texto (endereço e descrições). Fica no mesmo gesto do clique.
+  // Abre o menu "Compartilhar" do celular PRIMEIRO (enquanto o toque ainda vale) — você escolhe o destino
   try{ await whatsappCompartilhar(atual); }catch(e){}
-  toast('✅ Concluído e enviado ao sistema. Escolha o grupo no WhatsApp para compartilhar as fotos.');
+  // Depois envia ao sistema
+  await enviarAgora(atual);
+  toast('✅ Concluído e enviado ao sistema.');
 }
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
