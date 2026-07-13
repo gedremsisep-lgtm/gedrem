@@ -2551,7 +2551,7 @@ textarea{resize:vertical;min-height:60px}
       <span id="prog-grid-info" style="font-size:11px;color:var(--text2)"></span>
       <div style="margin-left:auto;display:flex;gap:6px" class="no-print">
         <button class="btn" onclick="progAbrirAutoModal()" style="color:var(--purple);border-color:var(--purple)"><i class="ti ti-wand"></i>Auto-Programação</button>
-        <button class="btn bp" onclick="progSalvarGrid()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button id="prog-salvar-btn" class="btn bp" onclick="progSalvarGrid()"><i class="ti ti-device-floppy"></i>Salvar</button>
         <button class="btn" onclick="progExportExcel()" style="color:var(--green);border-color:var(--green)"><i class="ti ti-file-spreadsheet"></i>Excel</button>
         <button class="btn bg2" onclick="progAbrirPrint()"><i class="ti ti-printer"></i>Imprimir</button>
       </div>
@@ -3963,7 +3963,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-66'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260712-67'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10012,8 +10012,9 @@ async function progBuildGrid(){
   const isDemo = dt === '2026-05-28' && dtItems.length === 0;
   PROG_DATA = PROG_EQ.map((e, ei) => {
     if(isDemo && PROG_DEMO[ei]) return PROG_DEMO[ei].map(it => ({...it}));
-    const eqItems = dtItems.filter(x => x.equipe === e.nome);
-    
+    const _raw = dtItems.filter(x => x.equipe === e.nome);
+    const _seen = new Set(); const eqItems = [];
+    for(const it of _raw){ const k=String(it.endereco||'').trim().toLowerCase()+'|'+String(it.servico||'').toLowerCase(); if(_seen.has(k)) continue; _seen.add(k); eqItems.push(it); }
     return eqItems.length
       ? eqItems.map(it => ({end:it.endereco||'',bairro:it.bairro||'',srv:it.servico||'',orig:it.origem||'',num:it.os||''}))
       : [{end:'',bairro:'',srv:'',orig:'',num:''}];
@@ -10151,17 +10152,35 @@ function progMarkItem(pid, hasContent){
 
 async function progSalvarGrid(){
   const dt = document.getElementById('prog-data')?.value || new Date().toISOString().slice(0,10);
+  if(progSalvarGrid._busy) return; // evita salvar duas vezes (duplo clique)
+  progSalvarGrid._busy = true;
+  const _btn = document.getElementById('prog-salvar-btn'); if(_btn) _btn.disabled = true;
+  try{
+  // Idempotente: remove os itens ANTERIORES desta data (preserva Executados/Cancelados) antes de regravar
+  const existing = await dbGetAll('programacao').catch(()=>[]);
+  const execKeys = new Set(existing.filter(x=>x.data===dt && (x.status==='Executado'||x.status==='Cancelado'))
+    .map(x=>(x.equipe||'')+'|'+String(x.endereco||'').trim().toLowerCase()));
+  for(const r of existing.filter(x=>x.data===dt && x.status!=='Executado' && x.status!=='Cancelado')){
+    try{ await dbDelete('programacao', r.id); }catch(e){}
+  }
   let saved = 0;
   for(let ei = 0; ei < PROG_EQ.length; ei++){
     const linhas = PROG_DATA[ei] || [];
     for(let ri = 0; ri < linhas.length; ri++){
-      const it = linhas[ri];
-      if(!it || (!it.end && !it.bairro && !it.srv)) continue;
+      const it = linhas[ri] || {};
+      let srv = it.srv || '';
+      let orig = it.orig || '';
+      const _c = document.getElementById('pi-'+ei+'-'+ri);
+      if(_c){ const _sels = _c.querySelectorAll('select'); if(!srv && _sels[1]) srv = _sels[1].value || ''; if(!orig && _sels[2]) orig = _sels[2].value || ''; }
+      if(!srv) srv = progSrvPadrao(PROG_EQ[ei].nome) || '';
+      if(!it.end && !it.bairro && !srv) continue;
+      const key = (PROG_EQ[ei].nome)+'|'+String(it.end||'').trim().toLowerCase();
+      if(execKeys.has(key)) continue;
       const bairro = it.bairro || '';
       const regiao = it.regiao || PROG_BR[bairro] || '';
       await dbAdd('programacao', {
         data:dt, equipe:PROG_EQ[ei].nome,
-        servico:it.srv||'', origem:it.orig||'Programação', os:it.num||'',
+        servico:srv, origem:orig||'Programação', os:it.num||'',
         endereco:it.end||'', bairro, regiao, status:'Programado',
       });
       saved++;
@@ -10169,8 +10188,9 @@ async function progSalvarGrid(){
   }
   await progUpdateKpis();
   const ok = document.getElementById('prog-ok');
-  document.getElementById('prog-ok-txt').textContent = '\u2705 '+saved+' item(s) salvos para '+new Date(dt+'T12:00:00').toLocaleDateString('pt-BR');
-  ok.style.display = 'flex'; setTimeout(() => ok.style.display = 'none', 5000);
+  if(ok){ document.getElementById('prog-ok-txt').textContent = '✅ '+saved+' item(s) salvos para '+new Date(dt+'T12:00:00').toLocaleDateString('pt-BR');
+    ok.style.display = 'flex'; setTimeout(() => ok.style.display = 'none', 5000); }
+  } finally { progSalvarGrid._busy = false; if(_btn) _btn.disabled = false; }
 }
 
 /* ── Auto-Programação com filtros ─────────────────────────────*/
@@ -11239,17 +11259,20 @@ async function progDel(id){
 function progAbrirPrint(){
   const data=document.getElementById('prog-data')?.value||new Date().toISOString().slice(0,10);
   const dtFmt=data?(()=>{const[y,m,d]=data.split('-');return`${d}/${m}/${y}`;})():'';
-  const totalItens=PROG_DATA.flat().filter(it=>it&&(it.end||it.bairro||it.srv)).length;
+  const _idx=PROG_EQ.map((_,i)=>i).filter(i=>PROG_RODOU[i]!==false);
+  const _eq=_idx.map(i=>PROG_EQ[i]);
+  if(!_idx.length){ alert('Nenhuma equipe marcada como "Rodou". Nada para imprimir.'); return; }
+  const totalItens=_idx.reduce((a,ei)=>a+(PROG_DATA[ei]||[]).filter(it=>it&&(it.end||it.bairro||it.srv)).length,0);
 
-  const _colW=`calc((100% - 20px) / ${PROG_EQ.length})`;
-  const thCols=PROG_EQ.map(eq=>`
+  const _colW=`calc((100% - 20px) / ${_eq.length})`;
+  const thCols=_eq.map(eq=>`
     <th style="background:${eq.cor};color:#fff;text-align:center;font-size:8px;font-weight:700;padding:5px 4px;border:1px solid #ccc;line-height:1.3;width:${_colW};max-width:${_colW};overflow:hidden;word-break:break-word">
       ${eq.nome}<span style="font-size:7px;font-weight:400;opacity:.9;display:block;margin-top:1px">${eq.enc||''}</span>
     </th>`).join('');
 
-  const bodyRows=Array.from({length:Math.max(1,...PROG_DATA.map(arr=>(arr||[]).length))},(_,ri)=>{
+  const bodyRows=Array.from({length:Math.max(1,..._idx.map(ei=>(PROG_DATA[ei]||[]).length))},(_,ri)=>{
     const numCell=`<td style="width:24px;text-align:center;font-weight:700;color:#0052A2;font-size:9px;background:#F0F4FF;border:1px solid #ddd;vertical-align:middle">${ri+1}</td>`;
-    const cells=PROG_EQ.map((eq,ei)=>{
+    const cells=_idx.map((ei)=>{
       let it=(PROG_DATA[ei]||[])[ri]||{end:'',bairro:'',srv:'',orig:''};
       // Fallback: ler serviço visível no select se PROG_DATA não capturou onchange
       if(!it.srv){const _c=document.getElementById('pi-'+ei+'-'+ri);const _s=_c&&_c.querySelectorAll('select')[1];if(_s&&_s.value)it={...it,srv:_s.value};}
@@ -11276,7 +11299,7 @@ function progAbrirPrint(){
       <div style="text-align:right;font-size:8px;color:#333;min-width:130px">
         <div><b style="color:#0052A2">Data:</b> ${dtFmt}</div>
         <div><b style="color:#0052A2">Fiscal:</b> Juvenil Ferreira Lopes</div>
-        <div><b style="color:#0052A2">Equipes:</b> ${PROG_EQ.length} · <b style="color:#0052A2">Itens:</b> ${totalItens}</div>
+        <div><b style="color:#0052A2">Equipes:</b> ${_eq.length} · <b style="color:#0052A2">Itens:</b> ${totalItens}</div>
       </div>
     </div>
     <table style="width:100%;border-collapse:collapse;flex:1;table-layout:fixed">
@@ -16219,48 +16242,4 @@ const _TI={
 'users-plus':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="7" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="19" y1="17" x2="19" y2="23"/><line x1="16" y1="20" x2="22" y2="20"/>',
 'wand':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 21l15-15-3-3-15 15z"/><line x1="15" y1="6" x2="18" y2="9"/><path d="M9 3a2 2 0 0 0 2 2 2 2 0 0 0-2 2 2 2 0 0 0-2-2 2 2 0 0 0 2-2"/><path d="M19 13a2 2 0 0 0 2 2 2 2 0 0 0-2 2 2 2 0 0 0-2-2 2 2 0 0 0 2-2"/>',
 'droplet':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.8 11a6 6 0 1 0 10.396 0l-5.197 -8l-5.2 8z"/>',
-'notebook':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M10 4v16"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="14" y1="12" x2="14.01" y2="12"/>',
-'x':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
-};
-
-function _tiReplace(root){
-  (root||document).querySelectorAll('i.ti').forEach(function(el){
-    var cls=Array.from(el.classList).find(function(c){return c.startsWith('ti-')&&c!=='ti';});
-    if(!cls)return;
-    var name=cls.slice(3);
-    if(!_TI[name])return;
-    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('viewBox','0 0 24 24');
-    svg.setAttribute('fill','none');
-    svg.setAttribute('stroke','currentColor');
-    svg.setAttribute('stroke-width','2');
-    svg.setAttribute('stroke-linecap','round');
-    svg.setAttribute('stroke-linejoin','round');
-    svg.style.cssText='width:1em;height:1em;display:inline-block;vertical-align:-0.15em;flex-shrink:0;margin-right:4px';
-    if(el.style.fontSize)svg.style.fontSize=el.style.fontSize;
-    if(el.style.color)svg.style.color=el.style.color;
-    svg.innerHTML=_TI[name];
-    el.parentNode&&el.parentNode.replaceChild(svg,el);
-  });
-}
-
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',function(){_tiReplace(document);});
-}else{_tiReplace(document);}
-
-var _tiObs=new MutationObserver(function(muts){
-  muts.forEach(function(m){
-    m.addedNodes.forEach(function(n){
-      if(n.nodeType!==1)return;
-      if(n.tagName==='I'&&n.classList&&n.classList.contains('ti'))_tiReplace(n.parentNode);
-      else _tiReplace(n);
-    });
-  });
-});
-document.addEventListener('DOMContentLoaded',function(){
-  _tiObs.observe(document.body,{childList:true,subtree:true});
-});
-})();
-</script>
-</body>
-</html>
+'notebook':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M10 4v16"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="14" y1="12" x2="14.0
