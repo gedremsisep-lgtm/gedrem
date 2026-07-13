@@ -3980,7 +3980,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-69'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260712-70'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5236,15 +5236,15 @@ async function rfRenderLista(){
       return `<tr ${semB}>
         <td><input type="checkbox" class="rf-row-chk" data-id="${x.id}" ${chk} onchange="rfToggleRow(this)" style="accent-color:var(--blue)"></td>
         <td><b>${x.codigo}</b>${rfBadgeMob(x)}</td><td>${x.data?x.data.split('-').reverse().join('/'):'—'}</td><td>${x.equipe||'—'}</td>
-        <td>${x.endereco||'—'}</td>
+        <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(x.endereco||'').replace(/"/g,'&quot;')}">${x.endereco||'—'}</td>
         <td>${x.bairro||'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
         <td>${x.regiao||'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
-        <td>${x.tipo||'—'}</td>
+        <td style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(x.tipo||'').replace(/"/g,'&quot;')}">${x.tipo||'—'}</td>
         <td>${x.fotos?x.fotos.length:0}</td>
         <td><span class="st ${stMap[x.status]||'s-pd'}">${x.status||'—'}</span></td>
         <td class="no-print" style="white-space:nowrap">
           ${(x.viaMobile||String(x.codigo).endsWith('-M'))&&!(x.validacoes&&x.validacoes.a&&x.validacoes.b)?`<button class="btn" style="padding:3px 7px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A;margin-right:3px" onclick="rfValidar(${x.id})" title="Validar relatório do app (exige técnicos A e B)"><i class="ti ti-check"></i>Validar</button>`:''}<button class="btn" style="padding:3px 7px;font-size:11px;margin-right:3px" onclick="rfEditAbrir(${x.id})" title="Editar"><i class="ti ti-edit"></i></button>
-          <button class="btn" style="padding:3px 7px;font-size:11px;margin-right:3px" onclick="rfPrintFromId(${x.id})" title="Imprimir"><i class="ti ti-printer"></i>Imprimir</button>
+          <button class="btn" style="padding:3px 6px;font-size:11px;margin-right:3px" onclick="rfPrintFromId(${x.id})" title="Imprimir"><i class="ti ti-printer"></i></button>
           <button class="btn" style="padding:3px 7px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="rfExcluir(${x.id},'${x.codigo}')" title="Excluir"><i class="ti ti-trash"></i></button>
         </td>
       </tr>`;
@@ -16314,5 +16314,4 @@ const _TI={
 'users':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/>',
 'users-plus':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="7" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="19" y1="17" x2="19" y2="23"/><line x1="16" y1="20" x2="22" y2="20"/>',
 'wand':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 21l15-15-3-3-15 15z"/><line x1="15" y1="6" x2="18" y2="9"/><path d="M9 3a2 2 0 0 0 2 2 2 2 0 0 0-2 2 2 2 0 0 0-2-2 2 2 0 0 0 2-2"/><path d="M19 13a2 2 0 0 0 2 2 2 2 0 0 0-2 2 2 2 0 0 0-2-2 2 2 0 0 0 2-2"/>',
-'droplet':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.8 11a6 6 0 1 0 10.396 0l-5.197 -8l-5.2 8z"/>',
-'notebook':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M10 4v16"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="14" y1="12" x2="14.0
+'droplet':'<path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d
