@@ -2550,8 +2550,8 @@ textarea{resize:vertical;min-height:60px}
       <span style="font-size:11px;color:var(--text2)">Fiscal: <b style="color:var(--text)">Juvenil Ferreira Lopes</b></span>
       <span id="prog-grid-info" style="font-size:11px;color:var(--text2)"></span>
       <div style="margin-left:auto;display:flex;gap:6px" class="no-print">
-        <button class="btn" onclick="demFlutuanteToggle()" style="color:#185FA5;border-color:#185FA5"><i class="ti ti-clipboard-list"></i>Demandas (FCG · Ofícios)</button>
         <button class="btn" onclick="progAbrirAutoModal()" style="color:var(--purple);border-color:var(--purple)"><i class="ti ti-wand"></i>Auto-Programação</button>
+        <button class="btn" onclick="demFlutuanteToggle()" style="color:#185FA5;border-color:#185FA5"><i class="ti ti-clipboard-list"></i>Demandas (FCG · Ofícios)</button>
         <button id="prog-salvar-btn" class="btn bp" onclick="progSalvarGrid()"><i class="ti ti-device-floppy"></i>Salvar</button>
         <button class="btn" onclick="progExportExcel()" style="color:var(--green);border-color:var(--green)"><i class="ti ti-file-spreadsheet"></i>Excel</button>
         <button class="btn bg2" onclick="progAbrirPrint()"><i class="ti ti-printer"></i>Imprimir</button>
@@ -3980,7 +3980,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-68'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260712-69'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
