@@ -503,7 +503,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-60';
+const APP_VERSION='20260712-61';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -620,7 +620,7 @@ async function enviarRelatorio(d){
   if(!cod)cod=String(await maxCod('relatorio_foto','codigo',0)+1)+'-M';
   const imgs=[];
   if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa: '+(d.endereco||'—')});
-  (d.fotos||[]).forEach((f,i)=>{if(f){const et=(d.fotoMeta&&d.fotoMeta[i]&&d.fotoMeta[i].etapa)||ETAPAS_FOTO[i]||('Foto '+(i+1));imgs.push({b64:f,descricao:et});}});
+  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({b64:f,descricao:et+(sv?': '+sv:'')});}});
   const LET=['A','B','C','D','E','F'],fotos=[];
   for(let i=0;i<imgs.length&&i<LET.length;i++){
     let url;
@@ -862,7 +862,7 @@ async function concluirEnviar(){
   await enviarAgora(atual);
   // Abre o WhatsApp com as 4 fotos + texto (endereço e descrições). Fica no mesmo gesto do clique.
   try{ await whatsappCompartilhar(atual); }catch(e){}
-  toast('✅ Concluído e enviado ao sistema. Envie cada foto ao grupo pelos botões do WhatsApp.');
+  toast('✅ Concluído e enviado ao sistema. Escolha o grupo no WhatsApp para compartilhar as fotos.');
 }
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
@@ -870,52 +870,47 @@ function _dataUrlToFile(dataUrl,nome){
   try{ const b=b64ToBlob(dataUrl); return Promise.resolve(new File([b],nome,{type:b.type||'image/jpeg'})); }
   catch(e){ return fetch(dataUrl).then(r=>r.blob()).then(x=>new File([x],nome,{type:x.type||'image/jpeg'})); }
 }
-let _wppItens=[];
 async function whatsappCompartilhar(d){
   d=d||atual;
   if(!d){toast('Abra uma demanda primeiro.');return}
   if(d===atual && typeof lerForm==='function') lerForm();
   const ETL=['Antes','Durante','Depois'];
-  // Cabeçalho comum, repetido em cada envio
-  const header=[
+  // Todas as fotos num único envio (Mapa + Antes + Durante + Depois)
+  const files=[];
+  const add=async(url,nome)=>{ if(!url)return; try{ files.push(await _dataUrlToFile(url,nome)); }catch(e){} };
+  await add(d.mapa,'mapa.jpg');
+  for(let i=0;i<3;i++){ await add((d.fotos||[])[i], ETL[i].toLowerCase()+'.jpg'); }
+  // Texto com a descrição de cada foto
+  const linhasFoto=[];
+  if(d.mapa)linhasFoto.push('🗺 Mapa: '+(d.endereco||'—'));
+  for(let i=0;i<3;i++){ if((d.fotos||[])[i]){ const m=(d.fotoMeta&&d.fotoMeta[i])||{}; const sv=m.servico||d.tipo||''; linhasFoto.push('📷 '+ETL[i]+(sv?': '+sv:'')); } }
+  const texto=[
     '*GEDREM — Relatório Fotográfico*',
     'Código: '+(d.codSistema||d.codigo||'—'),
     'Equipe: '+(d.equipe||'—')+(d.encarregado?' · Enc.: '+d.encarregado:''),
     'Data: '+fmtBR(d.data),
     'Serviço: '+(d.tipo||'—'),
     '📍 Endereço: '+(d.endereco||'—'),
-    (d.bairro?('Bairro: '+d.bairro+(d.regiao?' · '+d.regiao:'')):'')
+    (d.bairro?('Bairro: '+d.bairro+(d.regiao?' · '+d.regiao:'')):''),
+    '',
+    linhasFoto.join('\n')
   ].filter(x=>x!=='').join('\n');
-  // Um item por foto: arquivo + texto (cabeçalho + a linha da própria imagem)
-  const itens=[];
-  const add=async(url,nome,linha)=>{ if(!url)return; try{ const f=await _dataUrlToFile(url,nome); itens.push({file:f,texto:header+'\n'+linha,rot:linha}); }catch(e){} };
-  await add(d.mapa,'mapa.jpg','🗺 Mapa: '+(d.endereco||'—'));
-  for(let i=0;i<3;i++){ if((d.fotos||[])[i]){ const m=(d.fotoMeta&&d.fotoMeta[i])||{}; const sv=m.servico||d.tipo||''; await add(d.fotos[i], ETL[i].toLowerCase()+'.jpg', '📷 '+ETL[i]+(sv?': '+sv:'')); } }
-  _wppItens=itens;
-  const body=$('wpp-body');
-  if(body){
-    body.innerHTML = itens.length
-      ? '<div style="font-size:12.5px;color:var(--txt2);margin-bottom:10px">Toque em cada foto para enviar ao grupo — cada envio já vai com a descrição da própria imagem.</div>'
-        + itens.map((it,i)=>`<button class="btn" id="wpp-b-${i}" style="width:100%;background:#25D366;border-color:#25D366;color:#fff;margin-bottom:8px;text-align:left;font-size:13px" onclick="whatsappEnviarUm(${i})">📲 ${i+1} · ${esc(it.rot)}</button>`).join('')
-        + '<button class="btn" style="width:100%;margin-top:4px" onclick="document.getElementById(\'wpp-modal\').style.display=\'none\'">Fechar</button>'
-      : '<div style="color:var(--txt2)">Nenhuma foto para enviar.</div><button class="btn" style="width:100%;margin-top:8px" onclick="document.getElementById(\'wpp-modal\').style.display=\'none\'">Fechar</button>';
-  }
-  const m=$('wpp-modal'); if(m)m.style.display='flex';
-}
-async function whatsappEnviarUm(i){
-  const it=_wppItens[i]; if(!it)return;
   try{
-    if(navigator.canShare && navigator.canShare({files:[it.file]})){
-      await navigator.share({files:[it.file], text:it.texto});
+    if(navigator.canShare && files.length && navigator.canShare({files})){
+      await navigator.share({files, text:texto, title:'GEDREM — '+(d.codSistema||d.codigo||'')});
     } else if(navigator.share){
-      await navigator.share({text:it.texto});
-      toast('Anexe a foto no WhatsApp.');
+      await navigator.share({text:texto, title:'GEDREM'});
+      toast('Anexe as fotos no WhatsApp.');
     } else {
-      window.open('https://wa.me/?text='+encodeURIComponent(it.texto),'_blank');
+      window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank');
+      toast('Escolha o grupo e anexe as fotos no WhatsApp.');
     }
-    const b=$('wpp-b-'+i); if(b){ b.textContent='✓ Enviado · '+it.rot; b.style.background='#0f9d58'; b.style.borderColor='#0f9d58'; }
-  }catch(e){ if(e&&e.name==='AbortError')return; }
+  }catch(e){
+    if(e && e.name==='AbortError')return;
+    try{ window.open('https://wa.me/?text='+encodeURIComponent(texto),'_blank'); }catch(_){}
+  }
 }
+
 async function excluirDemanda(){
   if(!atual.id)return;
   if(!confirm('Excluir a demanda '+atual.codigo+'? Esta ação não pode ser desfeita.'))return;
@@ -1167,7 +1162,7 @@ function pgDemanda(d){
   if(d.obs){h+=`<div style="border:1.5px solid ${AZ};border-radius:3px;padding:9px 12px;font-size:9.5pt;line-height:1.6;background:#fafcff;white-space:pre-wrap;margin-bottom:12px"><b style="color:${AZ};font-size:8pt">OBSERVAÇÕES TÉCNICAS:</b><br>${esc(d.obs)}</div>`}
   const imgs=[];
   if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa: '+(d.endereco||'—')});
-  (d.fotos||[]).forEach((f,i)=>{if(f){const et=(d.fotoMeta&&d.fotoMeta[i]&&d.fotoMeta[i].etapa)||ETAPAS_FOTO[i]||('Foto '+(i+1));imgs.push({src:f,tag:et})}});
+  (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({src:f,tag:et+(sv?': '+sv:'')})}});
   if(imgs.length){
     h+=`<div style="font-size:8.5pt;font-weight:700;color:${AZ};text-transform:uppercase;margin-bottom:6px">Registro Fotográfico</div>
     <div style="display:grid;grid-template-columns:${imgs.length>1?'1fr 1fr':'1fr'};gap:8px">`+
