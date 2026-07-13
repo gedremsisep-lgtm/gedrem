@@ -2550,11 +2550,28 @@ textarea{resize:vertical;min-height:60px}
       <span style="font-size:11px;color:var(--text2)">Fiscal: <b style="color:var(--text)">Juvenil Ferreira Lopes</b></span>
       <span id="prog-grid-info" style="font-size:11px;color:var(--text2)"></span>
       <div style="margin-left:auto;display:flex;gap:6px" class="no-print">
+        <button class="btn" onclick="demFlutuanteToggle()" style="color:#185FA5;border-color:#185FA5"><i class="ti ti-clipboard-list"></i>Demandas (FCG · Ofícios)</button>
         <button class="btn" onclick="progAbrirAutoModal()" style="color:var(--purple);border-color:var(--purple)"><i class="ti ti-wand"></i>Auto-Programação</button>
         <button id="prog-salvar-btn" class="btn bp" onclick="progSalvarGrid()"><i class="ti ti-device-floppy"></i>Salvar</button>
         <button class="btn" onclick="progExportExcel()" style="color:var(--green);border-color:var(--green)"><i class="ti ti-file-spreadsheet"></i>Excel</button>
         <button class="btn bg2" onclick="progAbrirPrint()"><i class="ti ti-printer"></i>Imprimir</button>
       </div>
+<div id="dem-flut" style="display:none;position:fixed;top:96px;right:24px;width:430px;max-width:94vw;max-height:78vh;background:var(--bg);border:1px solid var(--bd);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.28);z-index:400;flex-direction:column;overflow:hidden" class="no-print">
+  <div id="dem-flut-head" style="background:#185FA5;color:#fff;padding:9px 12px;display:flex;align-items:center;gap:8px;cursor:move;user-select:none">
+    <i class="ti ti-clipboard-list"></i>
+    <b style="font-size:13px;flex:1">Demandas em aberto — Fala CG · Ofícios</b>
+    <span id="dem-flut-count" style="font-size:11px;background:rgba(255,255,255,.22);padding:1px 8px;border-radius:99px">0</span>
+    <button onclick="document.getElementById('dem-flut').style.display='none'" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;line-height:1">✕</button>
+  </div>
+  <div style="padding:8px 10px;border-bottom:1px solid var(--bd);display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <select id="dem-f-srv" onchange="demFlutRender()" style="font-size:11px"><option value="">Todos serviços</option></select>
+    <select id="dem-f-bairro" onchange="demFlutRender()" style="font-size:11px"><option value="">Todos bairros</option></select>
+    <select id="dem-f-reg" onchange="demFlutRender()" style="font-size:11px"><option value="">Todas regiões</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select>
+    <input type="date" id="dem-f-dt" onchange="demFlutRender()" style="font-size:11px" title="Data do pedido">
+    <select id="dem-f-ori" onchange="demFlutRender()" style="font-size:11px;grid-column:1/3"><option value="">Fala CG + Ofícios</option><option value="fcg">Só Fala CG</option><option value="ofc">Só Ofícios</option></select>
+  </div>
+  <div id="dem-flut-list" style="overflow-y:auto;padding:8px 10px;flex:1"></div>
+</div>
     </div>
     <div style="overflow-x:auto">
       <div id="prog-grid" style="display:grid;gap:8px;min-width:900px"></div>
@@ -3963,7 +3980,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260712-67'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260712-68'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -11254,6 +11271,62 @@ async function progDel(id){
   await progRenderLista();
   await progUpdateKpis();
 }
+
+/* ── Janela flutuante: demandas Fala CG (Pendente) + Ofícios (Pendente/Em análise) ── */
+async function demFlutuanteToggle(){
+  const p=document.getElementById('dem-flut'); if(!p)return;
+  if(p.style.display==='flex'){ p.style.display='none'; return; }
+  const sSel=document.getElementById('dem-f-srv');
+  if(sSel && sSel.options.length<=1){ const L=(typeof FCG_SERVICOS!=='undefined'?FCG_SERVICOS:(typeof PROG_SERVS!=='undefined'?PROG_SERVS:[])); sSel.innerHTML='<option value="">Todos serviços</option>'+L.map(s=>'<option>'+s+'</option>').join(''); }
+  const bSel=document.getElementById('dem-f-bairro');
+  if(bSel && bSel.options.length<=1 && typeof PROG_TODOS_BAIRROS!=='undefined'){ bSel.innerHTML='<option value="">Todos bairros</option>'+PROG_TODOS_BAIRROS.map(b=>'<option>'+b+'</option>').join(''); }
+  p.style.display='flex';
+  await demFlutRender();
+}
+async function demFlutRender(){
+  const g=id=>document.getElementById(id);
+  const fsrv=(g('dem-f-srv')||{}).value||'', fbairro=(g('dem-f-bairro')||{}).value||'', freg=(g('dem-f-reg')||{}).value||'', fdt=(g('dem-f-dt')||{}).value||'', fori=(g('dem-f-ori')||{}).value||'';
+  const norm=s=>String(s||'').trim().toLowerCase();
+  const esc2=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmtD=d=>{ if(!d)return '—'; const q=String(d).split('-'); return q.length===3?q[2]+'/'+q[1]+'/'+q[0]:d; };
+  let itens=[];
+  if(fori!=='ofc'){
+    const fcg=await dbGetAll('falacg').catch(()=>[]);
+    fcg.filter(x=>x.status==='Pendente').forEach(x=>itens.push({ori:'Fala CG',cor:'#185FA5',num:x.os||'',data:x.data||'',end:(x.rua||'')+(x.numero?', '+x.numero:''),bairro:x.bairro||'',regiao:x.regiao||'',srv:x.servico||''}));
+  }
+  if(fori!=='fcg'){
+    const ofc=await dbGetAll('oficios').catch(()=>[]);
+    ofc.filter(x=>x.status==='Pendente'||x.status==='Em análise').forEach(x=>itens.push({ori:'Ofício',cor:'#7A4A0A',num:x.numero||x.codigo||'',data:x.data||'',end:x.endereco||'',bairro:x.bairro||'',regiao:x.regiao||'',srv:x.descricao||''}));
+  }
+  itens=itens.filter(it=>{
+    if(fsrv && norm(it.srv)!==norm(fsrv) && !norm(it.srv).includes(norm(fsrv))) return false;
+    if(fbairro && norm(it.bairro)!==norm(fbairro)) return false;
+    if(freg && norm(it.regiao)!==norm(freg)) return false;
+    if(fdt && it.data!==fdt) return false;
+    return true;
+  }).sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
+  const cnt=g('dem-flut-count'); if(cnt)cnt.textContent=itens.length;
+  const list=g('dem-flut-list'); if(!list)return;
+  list.innerHTML=itens.length? itens.map(it=>`
+    <div style="border:1px solid var(--bd);border-left:3px solid ${it.cor};border-radius:8px;padding:7px 9px;margin-bottom:7px;background:var(--bg2)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+        <span style="font-size:9px;font-weight:700;color:#fff;background:${it.cor};padding:1px 6px;border-radius:99px">${it.ori}</span>
+        ${it.num?`<span style="font-size:10px;color:var(--text2)">nº ${esc2(it.num)}</span>`:''}
+        <span style="margin-left:auto;font-size:10px;color:var(--text3)">${fmtD(it.data)}</span>
+      </div>
+      <div style="font-size:12px;font-weight:600">${esc2(it.srv||'—')}</div>
+      <div style="font-size:11px;color:var(--text2)">${esc2(it.end||'—')}</div>
+      <div style="font-size:10px;color:var(--text3)">${esc2(it.bairro||'')}${it.regiao?' · '+esc2(it.regiao):''}</div>
+    </div>`).join('') : '<div style="text-align:center;color:var(--text3);padding:22px;font-size:12px">Nenhuma demanda com esses filtros.</div>';
+}
+document.addEventListener('mousedown',function(e){
+  const h=e.target&&e.target.closest&&e.target.closest('#dem-flut-head'); if(!h||(e.target.tagName==='BUTTON'))return;
+  const p=document.getElementById('dem-flut'); if(!p)return;
+  const r=p.getBoundingClientRect(); const ox=e.clientX-r.left, oy=e.clientY-r.top; p.style.right='auto';
+  function mv(ev){ p.style.left=Math.max(0,Math.min(window.innerWidth-90,ev.clientX-ox))+'px'; p.style.top=Math.max(0,Math.min(window.innerHeight-40,ev.clientY-oy))+'px'; }
+  function up(){ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); }
+  document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+});
 
 /* ── Impressão A4 Paisagem ───────────────────────────────────*/
 function progAbrirPrint(){
