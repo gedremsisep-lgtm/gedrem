@@ -2321,7 +2321,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="said-print-modal" class="modal-overlay" style="display:none;padding:0;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);margin:16px auto">
     <div class="no-print" id="said-close-btn" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printDocIframe('said-print-content','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('said-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666">A4 Paisagem · 2 vias</span>
     </div>
@@ -2421,7 +2421,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="reqab-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printDocIframe('reqab-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('reqab-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666">A4 Retrato · 2 vias</span>
     </div>
@@ -3980,7 +3980,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-71'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-72'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -14426,6 +14426,36 @@ async function saidDel(id){
   await saidAtualizarKpis();
 }
 
+/* Impressão robusta (compatível com macOS Safari/Chrome): imprime num iframe isolado,
+   aguardando o logo/imagens carregarem. Evita o problema do window.print()+@media print
+   (visibility:hidden/position:fixed) que sai em branco ou cortado no Mac. */
+function _printDocIframe(contentElId,pageRule){
+  var src=document.getElementById(contentElId);
+  if(!src){return;}
+  var html=src.innerHTML.replace(/<style[\s\S]*?<\/style>/gi,''); // remove hacks @media print da pré-visualização
+  var old=document.getElementById('_gdPrintFrame'); if(old){old.remove();}
+  var ifr=document.createElement('iframe');
+  ifr.id='_gdPrintFrame';
+  ifr.setAttribute('aria-hidden','true');
+  ifr.style.cssText='position:fixed;left:-9999px;top:0;width:0;height:0;border:0';
+  document.body.appendChild(ifr);
+  var d=ifr.contentWindow.document;
+  d.open();
+  d.write('<!DOCTYPE html><html><head><meta charset="utf-8"><style>'
+    +'@page{'+(pageRule||'size:A4;margin:8mm')+'}'
+    +'html,body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:Arial,sans-serif}'
+    +'</style></head><body>'+html+'</body></html>');
+  d.close();
+  var win=ifr.contentWindow;
+  var fired=false;
+  var fire=function(){ if(fired)return; fired=true; try{win.focus();win.print();}catch(e){} };
+  var imgs=d.images, n=imgs?imgs.length:0, c=0;
+  if(!n){ setTimeout(fire,200); return; }
+  var done=function(){ if(++c>=n){ setTimeout(fire,200); } };
+  for(var i=0;i<n;i++){ var im=imgs[i]; if(im.complete){ done(); } else { im.onload=done; im.onerror=done; } }
+  setTimeout(fire,2000); // fallback caso alguma imagem trave
+}
+
 async function saidPrintRec(id){
   const rec=await dbGet('saideiras',id);if(!rec)return;
   saidMostrarImpressao(rec);
@@ -14836,15 +14866,19 @@ function reqabMostrarImpressao(r){
       <span style="display:inline-block;width:10px;height:10px;border:1.5px solid #000;text-align:center;line-height:10px;font-size:8pt;margin-right:2px">${r.combustivel===cb?'X':''}</span>
       ${cb}
     </td>`).join('');
+  const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
   const bloco=(via)=>`
 <div style="border:2px solid #000;padding:4mm;font-family:Arial,sans-serif;font-size:8pt;page-break-inside:avoid">
   <!-- Cabeçalho -->
   <div style="border-bottom:1px solid #000;padding-bottom:2mm;margin-bottom:2mm">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-      <div>
-        <div style="font-weight:bold;font-size:8.5pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE</div>
-        <div style="font-size:7.5pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
-        <div style="font-size:7.5pt">SUPERINTENDÊNCIA DE SERVIÇOS PÚBLICOS - SUSEP</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:3mm">
+        ${logo?`<img src="${logo}" style="width:15mm;height:15mm;object-fit:contain;display:block">`:''}
+        <div>
+          <div style="font-weight:bold;font-size:8.5pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE</div>
+          <div style="font-size:7.5pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
+          <div style="font-size:7.5pt">SUPERINTENDÊNCIA DE SERVIÇOS PÚBLICOS - SUSEP</div>
+        </div>
       </div>
       <div style="text-align:right;font-size:8pt;font-weight:bold;border:1px solid #000;padding:2mm 4mm">${via}</div>
     </div>
@@ -16316,15 +16350,4 @@ _TI['copy']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"
 _TI['device-mobile']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z\"/><path d=\"M11 4h2\"/><path d=\"M12 17v.01\"/>';
 _TI['notebook']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1\"/><path d=\"M13 8l2 0\"/><path d=\"M13 12l2 0\"/><path d=\"M8 4v18\"/>';
 _TI['square-off']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M8 4h10a2 2 0 0 1 2 2v10m-.586 3.414a2 2 0 0 1 -1.414 .586h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 .586 -1.414\"/><path d=\"M3 3l18 18\"/>';
-_TI['tools-kitchen-2']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M19 3v12h-5c-.023 -3.681 .184 -7.406 5 -12z\"/><path d=\"M19 15v6h-1v-3\"/><path d=\"M8 3v17\"/><path d=\"M11 3v3a3 3 0 0 1 -6 0v-3\"/>';
-_TI['user-star']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0\"/><path d=\"M6 21v-2a4 4 0 0 1 4 -4h1\"/><path d=\"M17.8 20.817l-2.172 1.138a.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a.39 .39 0 0 1 -.567 .411l-2.173 -1.138z\"/>';
-_TI['users-group']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"/><path d=\"M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1\"/><path d=\"M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"/><path d=\"M17 10h2a2 2 0 0 1 2 2v1\"/><path d=\"M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0\"/><path d=\"M3 13v-1a2 2 0 0 1 2 -2h2\"/>';
-var _NS='http://www.w3.org/2000/svg';
-function _drawTI(el){var c=null;el.classList.forEach(function(x){if(x.indexOf('ti-')===0)c=x.slice(3);});if(!c||el.getAttribute('data-ti')==='1')return;var p=_TI[c];if(!p)return;el.setAttribute('data-ti','1');el.innerHTML='<svg xmlns="'+_NS+'" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.125em">'+p+'</svg>';}
-function _scanTI(r){(r||document).querySelectorAll('i.ti').forEach(_drawTI);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){_scanTI();});else _scanTI();
-try{new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes&&m.addedNodes.forEach(function(n){if(n.nodeType===1){if(n.matches&&n.matches('i.ti'))_drawTI(n);if(n.querySelectorAll)n.querySelectorAll('i.ti').forEach(_drawTI);}});});}).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
-})();
-</script>
-</body>
-</html>
+_TI['tools-kitchen-2']='<path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"n

@@ -206,6 +206,8 @@ body.on-login{padding-bottom:0}
     <div class="gpsbox" id="gps-info" style="display:none;margin-top:10px"></div>
     <div class="fg" style="margin-top:10px"><label>Endereço por extenso</label>
       <input id="f-end" oninput="atualizarBotaoConcluir()" placeholder="Digite a rua/endereço (o GPS só completa se estiver vazio)"></div>
+    <div class="fg" style="margin-top:8px"><label>Número ou cruzamento</label>
+      <input id="f-numcruz" placeholder="Ex.: nº 859 — ou — esquina com a Rua Fulano"></div>
     <div class="fr">
       <div class="fg"><label>Bairro</label><input id="f-bairro" onchange="const r=regiaoDeBairro(this.value.trim());if(r){document.getElementById('f-reg').value=r;}"></div>
       <div class="fg"><label>Região</label>
@@ -281,6 +283,7 @@ body.on-login{padding-bottom:0}
   </div>
   <div class="card">
     <div class="sh">ℹ Como instalar / usar</div>
+    <button class="btn bp" style="width:100%;margin-bottom:8px" onclick="pwaInstalar()">📲 Instalar app na tela inicial</button>
     <div class="ajuda">
       <b>Instalar como aplicativo:</b> abra este arquivo no Chrome do celular → menu ⋮ → <b>"Adicionar à tela inicial"</b>. O ícone GEDREM aparece como um app normal.<br><br>
       <b>Usuários e acesso:</b> Admin, Técnico A e Técnico B veem todas as demandas de todas as equipes; cada encarregado vê apenas as da própria equipe. PIN inicial de todos: <b>1234</b> — cada um deve alterar o seu em Config.<br><br>
@@ -503,7 +506,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260712-63';
+const APP_VERSION='20260713-64';
 async function checkAppUpdate(){
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
@@ -521,6 +524,7 @@ async function checkAppUpdate(){
 let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); _pwaPrompt=e; pwaMostrarBotao(); });
 window.addEventListener('appinstalled', function(){ _pwaPrompt=null; var b=document.getElementById('pwa-fab'); if(b) b.remove(); });
+window.addEventListener('load',function(){ setTimeout(function(){ try{pwaMostrarBotao();}catch(e){} },1500); });
 function pwaMostrarBotao(){
   if(document.getElementById('pwa-fab')) return;
   if(window.matchMedia('(display-mode: standalone)').matches) return; // ja instalado/aberto como app
@@ -539,7 +543,7 @@ async function pwaInstalar(){
     _pwaPrompt=null;
     var b=document.getElementById('pwa-fab'); if(b) b.remove();
   } else {
-    alert('Para colocar o atalho na tela inicial:\n\nAndroid (Chrome): menu ⋮ → "Adicionar à tela inicial".\niPhone/iPad (Safari): botão Compartilhar → "Adicionar à Tela de Início".');
+    alert('Para instalar o app na tela inicial:\n\n• Motorola / Android — abra este link no app CHROME (não no navegador do próprio celular). Toque no menu ⋮ (canto superior direito) e escolha "Instalar aplicativo" ou "Adicionar à tela inicial".\n\n• Se não aparecer: atualize o Chrome, ou use ⋮ → Adicionar à tela inicial.\n\n• iPhone/iPad (Safari) — botão Compartilhar ⬆ → "Adicionar à Tela de Início".');
   }
 }
 if('serviceWorker' in navigator){
@@ -612,6 +616,7 @@ async function maxCod(store,campo,base){
   let max=base||0;rows.forEach(r=>{const n=parseInt(r.cod,10);if(n>max)max=n});
   return max;
 }
+function endComp(d){return (d&&d.endereco?d.endereco:'')+(d&&d.numCruz?(' · '+d.numCruz):'');}
 async function enviarRelatorio(d){
   const concl=d.status==='concluida';
   const marca={_ts:Date.now(),_user:'app:'+(USER?USER.id:'?')};
@@ -620,7 +625,7 @@ async function enviarRelatorio(d){
   let cod = d.codigo || d.codSistema;
   if(!cod) cod=String(await maxCod('relatorio_foto','codigo',0)+1)+'-M';
   const imgs=[];
-  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa: '+(d.localMapa||d.endereco||'—')});
+  if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa: '+(d.localMapa||endComp(d)||'—')});
   (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({b64:f,descricao:et+(sv?': '+sv:'')});}});
   // Pasta unica das fotos (evita que relatorios com mesmo codigo sobrescrevam as imagens)
   if(!d.pastaFotos) d.pastaFotos = String(cod).replace(/[^A-Za-z0-9_-]/g,'') + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
@@ -633,7 +638,7 @@ async function enviarRelatorio(d){
     fotos.push({letra:LET[i],url:url,nome:cod+'_'+LET[i]+'.jpg',descricao:imgs[i].descricao});
   }
   const rfData={codigo:cod,data:d.data,equipe:d.equipe,encarregado:d.encarregado||'',
-    endereco:d.endereco,bairro:d.bairro||'',regiao:d.regiao||'',tipo:d.tipo||'',servicoExecutado:d.servicoExecutado||'',obs:d.obs||'',
+    endereco:endComp(d),bairro:d.bairro||'',regiao:d.regiao||'',tipo:d.tipo||'',servicoExecutado:d.servicoExecutado||'',obs:d.obs||'',
     os:d.os||'',origem:d.origem||'',lat:d.lat,lon:d.lon,viaMobile:true,
     fotos:fotos,status:concl?(fotos.length?'Concluído':'Sem fotos'):'Em andamento'};
   if(d.relId){
@@ -648,7 +653,7 @@ async function enviarRelatorio(d){
     let os=d.osSistema;
     if(!os)os=String(await maxCod('ctrl_servicos','os',852499)+1)+'-M';
     const csData={os:os,data:d.data,equipe:d.equipe,encarregado:d.encarregado||'',
-      tipo:d.tipo||'',quantidade:parseFloat(d.qtd)||1,endereco:d.endereco,
+      tipo:d.tipo||'',quantidade:parseFloat(d.qtd)||1,endereco:endComp(d),
       bairro:d.bairro||'',regiao:d.regiao||'',
       obs:(concl?'[VIA MOBILE — aguardando validação do técnico] ':'[VIA MOBILE — em execução] ')+'Rel. Fotográfico nº '+cod+'. '+(d.obs||''),
       houveMateriais:false,servicoExecutado:d.servicoExecutado||'',composicaoUsada:'',materiais:[],
@@ -783,7 +788,7 @@ function preencherForm(){
   }
   $('f-tipo').value=atual.tipo||'';$('f-qtd').value=atual.qtd||'';$('f-und').value=atual.und||'Un.';
   if($('f-servexec'))$('f-servexec').value=atual.servicoExecutado||'';
-  $('f-obs').value=atual.obs||'';$('f-end').value=atual.endereco||'';
+  $('f-obs').value=atual.obs||'';$('f-end').value=atual.endereco||'';if($('f-numcruz'))$('f-numcruz').value=atual.numCruz||'';
   $('f-bairro').value=atual.bairro||'';$('f-reg').value=atual.regiao||'';
   $('btn-del').style.display=atual.id?'flex':'none';
   renderGpsInfo();renderFotos();renderStChips();
@@ -798,7 +803,7 @@ function lerForm(){
   }
   atual.data=$('f-data').value;atual.origem=$('f-orig').value;atual.os=$('f-os').value.trim();
   atual.tipo=$('f-tipo').value;atual.qtd=$('f-qtd').value;atual.und=$('f-und').value;
-  atual.obs=$('f-obs').value.trim();atual.endereco=$('f-end').value.trim();
+  atual.obs=$('f-obs').value.trim();atual.endereco=$('f-end').value.trim();if($('f-numcruz'))atual.numCruz=$('f-numcruz').value.trim();
   atual.bairro=$('f-bairro').value.trim();atual.regiao=$('f-reg').value;
   if(!atual.regiao&&atual.bairro){atual.regiao=regiaoDeBairro(atual.bairro)||'';if(atual.regiao)$('f-reg').value=atual.regiao;}
   if($('f-servexec'))atual.servicoExecutado=$('f-servexec').value.trim();
@@ -887,7 +892,7 @@ async function whatsappCompartilhar(d){
   for(let i=0;i<3;i++){ await add((d.fotos||[])[i], ETL[i].toLowerCase()+'.jpg'); }
   // Texto com a descrição de cada foto
   const linhasFoto=[];
-  if(d.mapa)linhasFoto.push('🗺 Mapa: '+(d.localMapa||d.endereco||'—'));
+  if(d.mapa)linhasFoto.push('🗺 Mapa: '+(d.localMapa||endComp(d)||'—'));
   for(let i=0;i<3;i++){ if((d.fotos||[])[i]){ const m=(d.fotoMeta&&d.fotoMeta[i])||{}; const sv=m.servico||d.tipo||''; linhasFoto.push('📷 '+ETL[i]+(sv?': '+sv:'')); } }
   const texto=[
     '*GEDREM — Relatório Fotográfico*',
@@ -895,7 +900,7 @@ async function whatsappCompartilhar(d){
     'Equipe: '+(d.equipe||'—')+(d.encarregado?' · Enc.: '+d.encarregado:''),
     'Data: '+fmtBR(d.data),
     'Serviço: '+(d.tipo||'—'),
-    '📍 Endereço: '+(d.endereco||'—'),
+    '📍 Endereço: '+(endComp(d)||'—'),
     (d.bairro?('Bairro: '+d.bairro+(d.regiao?' · '+d.regiao:'')):''),
     '',
     linhasFoto.join('\n')
@@ -1162,12 +1167,12 @@ function pgDemanda(d){
     <tr>${cel('ORIGEM:',esc(d.origem))}${cel('Nº OS / REF.:',esc(d.os))}</tr>
     <tr>${cel('SERVIÇO:',esc(d.tipo))}${cel('QUANTIDADE:',d.qtd?esc(d.qtd)+' '+esc(d.und||''):'—')}</tr>
     ${d.servicoExecutado?`<tr><td style="width:110px;font-weight:700;padding:6px 9px;border:1px solid #ccc;background:#f0f5ff;color:${AZ};font-size:8.5pt">SERV. EXECUTADO:</td><td colspan="3" style="padding:6px 9px;border:1px solid #ccc;font-size:9.5pt">${esc(d.servicoExecutado)}</td></tr>`:''}
-    <tr>${cel('ENDEREÇO:',esc(d.endereco))}${cel('BAIRRO / REGIÃO:',[esc(d.bairro),esc(d.regiao)].filter(Boolean).join(' / ')||'—')}</tr>
+    <tr>${cel('ENDEREÇO:',esc(endComp(d)))}${cel('BAIRRO / REGIÃO:',[esc(d.bairro),esc(d.regiao)].filter(Boolean).join(' / ')||'—')}</tr>
     ${d.lat!=null?`<tr>${cel('COORDENADAS:',d.lat.toFixed(6)+', '+d.lon.toFixed(6))}${cel('SITUAÇÃO:',{pendente:'Pendente',andamento:'Em andamento',concluida:'Concluída'}[d.status]||'—')}</tr>`:''}
   </table>`;
   if(d.obs){h+=`<div style="border:1.5px solid ${AZ};border-radius:3px;padding:9px 12px;font-size:9.5pt;line-height:1.6;background:#fafcff;white-space:pre-wrap;margin-bottom:12px"><b style="color:${AZ};font-size:8pt">OBSERVAÇÕES TÉCNICAS:</b><br>${esc(d.obs)}</div>`}
   const imgs=[];
-  if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa: '+(d.localMapa||d.endereco||'—')});
+  if(d.mapa)imgs.push({src:d.mapa,tag:'Mapa: '+(d.localMapa||endComp(d)||'—')});
   (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({src:f,tag:et+(sv?': '+sv:'')})}});
   if(imgs.length){
     h+=`<div style="font-size:8.5pt;font-weight:700;color:${AZ};text-transform:uppercase;margin-bottom:6px">Registro Fotográfico</div>
