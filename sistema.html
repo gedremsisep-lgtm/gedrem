@@ -1647,7 +1647,7 @@ textarea{resize:vertical;min-height:60px}
   <!-- LISTA -->
   <div id="ofc-lst">
     <div class="search-bar">
-      <input id="ofc-busca" placeholder="Buscar código, ofício, bairro, descrição..." oninput="ofcRenderLista()" style="flex:2;min-width:160px">
+      <input id="ofc-busca" placeholder="Buscar código, ofício, bairro, descrição..." oninput="ofcBuscaDebounce()" style="flex:2;min-width:160px">
       <select id="ofc-fil-st" onchange="ofcRenderLista()">
         <option value="">Todos status</option><option>Pendente</option><option>Em análise</option>
         <option>Atendido</option><option>Respondido</option><option>Arquivado</option>
@@ -1755,7 +1755,7 @@ textarea{resize:vertical;min-height:60px}
         </div>
         <div class="fg">
           <label>Nº do Ofício *</label>
-          <input id="resp-num" placeholder="Ex: OF.515/CMCG">
+          <input id="resp-num" placeholder="Ex: OF.515/CMCG" oninput="ofcRespSyncFromForm()">
         </div>
         <div class="fg">
           <label>Solicitante</label>
@@ -1766,8 +1766,12 @@ textarea{resize:vertical;min-height:60px}
           </select>
         </div>
         <div class="fg">
-          <label>Data do Ofício</label>
+          <label>Data de chegada ao depto.</label>
           <input type="date" id="resp-dt-ofc">
+        </div>
+        <div class="fg">
+          <label>Data de elaboração do ofício</label>
+          <input type="date" id="resp-dt-elab">
         </div>
         <div class="fg">
           <label>Bairro</label>
@@ -1871,7 +1875,8 @@ textarea{resize:vertical;min-height:60px}
             <option>Comunicação Interna</option><option>Manifestação</option><option>Outros</option>
           </select>
         </div>
-        <div class="fg"><label>Data de entrada</label><input type="date" id="ofc-dt"></div>
+        <div class="fg"><label>Data de chegada ao depto.</label><input type="date" id="ofc-dt"></div>
+        <div class="fg"><label>Data de elaboração do ofício</label><input type="date" id="ofc-dt-elab"></div>
         <div class="fg fl"><label>Endereço / Arruamento</label><input id="ofc-end" placeholder="Rua, Avenida, Córrego..."></div>
         <div class="fg"><label>Bairro</label><input id="ofc-bairro" list="bairros-list" placeholder="Bairro" oninput="onBairro(this,'ofc-reg')"></div>
         <div class="fg"><label>Região</label><input id="ofc-reg" readonly style="background:var(--bg);color:var(--blue);font-weight:600"></div>
@@ -3980,7 +3985,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-72'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-73'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5324,22 +5329,9 @@ async function rfExcluir(id, codigo){
   const all=await dbGetAll('relatorio_foto');
   const rec=all.find(x=>x.id===id);
   const isMobile=rec&&(rec.viaMobile||String(codigo).endsWith('-M'));
-  if(!confirm(`Excluir o relatório ${codigo}${isMobile?' (originado do app Mobile)':''}? Esta ação não pode ser desfeita.`)) return;
+  if(!confirm(`Excluir o relatório ${codigo}${isMobile?' (originado do app Mobile)':''}?\n\nIsto exclui SOMENTE o Relatório Fotográfico. A Ordem de Serviço no Ctrl. de Serviços NÃO será afetada.\n\nEsta ação não pode ser desfeita.`)) return;
   await dbDelete('relatorio_foto', id);
   cacheInvalidate('relatorio_foto');
-  // Se for do Mobile, oferecer remover também a O.S. vinculada no Ctrl. de Serviços
-  if(isMobile){
-    try{
-      const cs=await dbGetAll('ctrl_servicos');
-      const vinc=cs.filter(c=>c.rf_codigo===codigo);
-      if(vinc.length){
-        if(confirm(`Remover também a Ordem de Serviço vinculada (OS ${vinc.map(v=>v.os).join(', ')}) no Ctrl. de Serviços?`)){
-          for(const v of vinc){ await dbDelete('ctrl_servicos', v.id); }
-          cacheInvalidate('ctrl_servicos');
-        }
-      }
-    }catch(e){}
-  }
   await rfRenderLista();
   rfUpdateKpis();
 }
@@ -9032,6 +9024,7 @@ async function ofcRespIrAoOfc(id){
     document.getElementById('resp-num').value=rec.numero||'';
     document.getElementById('resp-sol').value=rec.solicitante||'Câmara Municipal';
     document.getElementById('resp-dt-ofc').value=rec.data||'';
+    {const _e=document.getElementById('resp-dt-elab'); if(_e) _e.value=rec.dataElaboracao||'';}
     document.getElementById('resp-local').value=rec.endereco||'';
     document.getElementById('resp-bairro').value=rec.bairro||'';
     document.getElementById('resp-reg').value=rec.regiao||'';
@@ -9044,8 +9037,21 @@ async function ofcRespIrAoOfc(id){
 }
 
 async function ofcRespSyncFromForm(){
-  
   document.getElementById('resp-cod').dataset.ofcId='';
+  const cod=(document.getElementById('resp-cod').value||'').trim().toLowerCase();
+  const num=(document.getElementById('resp-num').value||'').trim().toLowerCase();
+  if(!cod&&!num) return;
+  let all=[]; try{ all=await dbGetAll('oficios'); }catch(e){ return; }
+  const rec=all.find(x=>(cod&&String(x.codigo||'').trim().toLowerCase()===cod)||(num&&String(x.numero||'').trim().toLowerCase()===num));
+  if(!rec) return;
+  const setIfEmpty=(id,v)=>{const el=document.getElementById(id); if(el&&!(''+el.value).trim()) el.value=v||'';};
+  setIfEmpty('resp-num',rec.numero); setIfEmpty('resp-cod',rec.codigo);
+  const sol=document.getElementById('resp-sol'); if(sol&&rec.solicitante) sol.value=rec.solicitante;
+  setIfEmpty('resp-dt-ofc',rec.data); setIfEmpty('resp-dt-elab',rec.dataElaboracao);
+  setIfEmpty('resp-local',rec.endereco); setIfEmpty('resp-bairro',rec.bairro); setIfEmpty('resp-reg',rec.regiao);
+  setIfEmpty('resp-gedrem',rec.refGedrem);
+  document.getElementById('resp-cod').dataset.ofcId=rec.id;
+  if(rec.refGedrem){ try{ ofcRespCheckGedrem(); }catch(e){} }
 }
 
 async function ofcLoadRespDropdown(){
@@ -9121,6 +9127,8 @@ async function ofcRespSave(){
   if(rec){
     rec.status='Respondido';
     rec.refGedrem=gedrem;
+    rec.data=document.getElementById('resp-dt-ofc').value||rec.data;
+    rec.dataElaboracao=(document.getElementById('resp-dt-elab')||{}).value||rec.dataElaboracao||'';
     rec.resposta=resposta;
     await dbPut('oficios',rec);
     document.getElementById('resp-ok-txt').textContent=`Resposta salva. Ofício ${cod} → Respondido.`;
@@ -9130,6 +9138,7 @@ async function ofcRespSave(){
       codigo:cod, numero:num,
       solicitante:document.getElementById('resp-sol').value,
       data:document.getElementById('resp-dt-ofc').value,
+      dataElaboracao:(document.getElementById('resp-dt-elab')||{}).value||'',
       bairro:document.getElementById('resp-bairro').value,
       regiao:document.getElementById('resp-reg').value,
       endereco:document.getElementById('resp-local').value,
@@ -9249,6 +9258,7 @@ async function ofcRespPrintPreview(){
   const num    = document.getElementById('resp-num')?.value||'—';
   const sol    = document.getElementById('resp-sol')?.value||'—';
   const dtOfc  = document.getElementById('resp-dt-ofc')?.value||'';
+  const dtElab = document.getElementById('resp-dt-elab')?.value||'';
   const bairro = document.getElementById('resp-bairro')?.value||'—';
   const reg    = document.getElementById('resp-reg')?.value||'—';
   const srv    = document.getElementById('resp-srv')?.value||'—';
@@ -9327,8 +9337,8 @@ async function ofcRespPrintPreview(){
           <td style="padding:2mm 3mm;border-left:1px solid #dde;width:22%">${num}</td>
           <td style="padding:2mm 3mm;font-weight:700;color:#1a4a8a;background:#f0f5ff;width:14%">Solicitante</td>
           <td style="padding:2mm 3mm;border-left:1px solid #dde;width:13%">${sol}</td>
-          <td style="padding:2mm 3mm;font-weight:700;color:#1a4a8a;background:#f0f5ff;width:13%">Data Ofício</td>
-          <td style="padding:2mm 3mm;border-left:1px solid #dde">${dtFmt(dtOfc)}</td>
+          <td style="padding:2mm 3mm;font-weight:700;color:#1a4a8a;background:#f0f5ff;width:13%">Datas Ofício</td>
+          <td style="padding:2mm 3mm;border-left:1px solid #dde"><div>Chegada: ${dtFmt(dtOfc)}</div><div>Elaborado: ${dtFmt(dtElab)}</div></td>
         </tr>
         <tr style="background:#fafcff">
           <td style="padding:2mm 3mm;font-weight:700;color:#1a4a8a;background:#f0f5ff">Bairro</td>
@@ -9369,9 +9379,12 @@ async function ofcRespPrintPreview(){
   document.getElementById('ofc-resp-print-modal').style.display='flex';
 }
 
+let _ofcBuscaTimer=null;
+function ofcBuscaDebounce(){ clearTimeout(_ofcBuscaTimer); _ofcBuscaTimer=setTimeout(function(){ ofcRenderLista(); },220); }
 async function ofcRenderLista(){
   const all=await dbGetAll('oficios');
   const scans=await dbGetAll('ofc_scans');
+  const _scanIds=new Set(scans.map(s=>s.ofcId));
   const busca=(document.getElementById('ofc-busca')?.value||'').toLowerCase();
   const fst =document.getElementById('ofc-fil-st')?.value||'';
   const fsol=document.getElementById('ofc-fil-sol')?.value||'';
@@ -9381,7 +9394,7 @@ async function ofcRenderLista(){
     if(fst&&x.status!==fst) return false;
     if(fsol&&x.solicitante!==fsol) return false;
     if(freg&&x.regiao!==freg) return false;
-    if(busca&&!JSON.stringify(x).toLowerCase().includes(busca)) return false;
+    if(busca){ const _b=((x.codigo||'')+' '+(x.numero||'')+' '+(x.solicitante||'')+' '+(x.endereco||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.descricao||'')).toLowerCase(); if(!_b.includes(busca)) return false; }
     if(furg){
       const d=ofcDiasRestantes(x);
       if(furg==='vencido'&&!(d!==null&&d<=0)) return false;
@@ -9401,7 +9414,7 @@ async function ofcRenderLista(){
       const dias=ofcDiasRestantes(x);
       const fin=ofcFinalizado(x.status);
       const rowBg=(!fin&&dias!==null)?(dias<=0?'background:#FFEBEE':dias<=6?'background:#FFF0F0':dias<=10?'background:#FFFBE6':''):'';
-      const hasScan=scans.some(s=>s.ofcId===x.id);
+      const hasScan=_scanIds.has(x.id);
       let diasHtml='—';
       if(dias!==null&&!fin){
         diasHtml=dias<=0?`<span style="color:var(--red);font-weight:700;font-size:10px">VENCIDO</span>`:
@@ -9457,6 +9470,7 @@ async function ofcSave(){
     codigo:cod, numero:num,
     solicitante:sol,
     data:document.getElementById('ofc-dt').value,
+    dataElaboracao:(document.getElementById('ofc-dt-elab')||{}).value||'',
     endereco:document.getElementById('ofc-end').value,
     bairro:document.getElementById('ofc-bairro').value,
     regiao:document.getElementById('ofc-reg').value,
