@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SISEP GEDREM – Sistema com Banco de Dados</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<link rel="manifest" href="manifest_sistema.webmanifest">
+<meta name="theme-color" content="#0052A2">
+<link rel="apple-touch-icon" href="gedrem-180.png">
 <script>
 (function(){
   var done=false;
@@ -3985,7 +3988,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-73'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-74'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -9379,12 +9382,20 @@ async function ofcRespPrintPreview(){
   document.getElementById('ofc-resp-print-modal').style.display='flex';
 }
 
+async function ofcScanIdsLeves(){
+  try{
+    const res=await cloudRequest("records?store=eq.ofc_scans&select=ofcId:data->>ofcId&limit=10000",{});
+    const rows=await res.json();
+    return new Set(rows.map(r=>parseInt(r.ofcId,10)).filter(n=>!isNaN(n)));
+  }catch(e){
+    try{ const sc=await dbGetAll('ofc_scans'); return new Set(sc.map(x=>x.ofcId)); }catch(_){ return new Set(); }
+  }
+}
 let _ofcBuscaTimer=null;
 function ofcBuscaDebounce(){ clearTimeout(_ofcBuscaTimer); _ofcBuscaTimer=setTimeout(function(){ ofcRenderLista(); },220); }
 async function ofcRenderLista(){
   const all=await dbGetAll('oficios');
-  const scans=await dbGetAll('ofc_scans');
-  const _scanIds=new Set(scans.map(s=>s.ofcId));
+  const _scanIds=await ofcScanIdsLeves();
   const busca=(document.getElementById('ofc-busca')?.value||'').toLowerCase();
   const fst =document.getElementById('ofc-fil-st')?.value||'';
   const fsol=document.getElementById('ofc-fil-sol')?.value||'';
@@ -16373,6 +16384,25 @@ function _scanTI(r){(r||document).querySelectorAll('i.ti').forEach(_drawTI);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){_scanTI();});else _scanTI();
 try{new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes&&m.addedNodes.forEach(function(n){if(n.nodeType===1){if(n.matches&&n.matches('i.ti'))_drawTI(n);if(n.querySelectorAll)n.querySelectorAll('i.ti').forEach(_drawTI);}});});}).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
 })();
+</script>
+<script>
+/* PWA — GEDREM Sistema instalável no macOS/desktop (Chrome/Edge) com o logo GEDREM */
+if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+var _sysPwaPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); _sysPwaPrompt=e; _sysShowInstall(); });
+window.addEventListener('appinstalled',function(){ _sysPwaPrompt=null; var b=document.getElementById('sys-pwa-fab'); if(b)b.remove(); });
+window.addEventListener('load',function(){ setTimeout(_sysShowInstall,1800); });
+function _sysShowInstall(){
+  if(document.getElementById('sys-pwa-fab'))return;
+  if(window.matchMedia('(display-mode: standalone)').matches)return;
+  var b=document.createElement('button'); b.id='sys-pwa-fab'; b.type='button'; b.textContent='\u2B07 Instalar GEDREM';
+  b.style.cssText='position:fixed;right:16px;bottom:16px;z-index:99999;background:#0052A2;color:#fff;border:none;border-radius:22px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer';
+  b.onclick=_sysInstall; document.body.appendChild(b);
+}
+async function _sysInstall(){
+  if(_sysPwaPrompt){ _sysPwaPrompt.prompt(); try{ await _sysPwaPrompt.userChoice; }catch(e){} _sysPwaPrompt=null; var b=document.getElementById('sys-pwa-fab'); if(b)b.remove(); }
+  else { alert('Para instalar o GEDREM Sistema no seu Mac:\n\n\u2022 Google Chrome / Edge: clique no icone de instalar na barra de endereco, ou menu tres pontos > \'Instalar GEDREM Sistema...\'.\n\n\u2022 Safari: menu Arquivo > \'Adicionar ao Dock\'.\n\nO app abre em janela propria, com o logo da GEDREM.'); }
+}
 </script>
 </body>
 </html>
