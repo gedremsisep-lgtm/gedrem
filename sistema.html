@@ -463,12 +463,15 @@ textarea{resize:vertical;min-height:60px}
     <div class="tab" onclick="stab(this,'dash-resumo');resumoRender()">Resumo Geral</div>
   </div>
   <div id="dash-painel">
+    <div id="dash-live" style="font-size:12px;color:#16a34a;font-weight:700;margin:0 0 8px">🟢 Ao vivo · conectando...</div>
     <div class="kg" id="dash-kpis">
       <div class="kc bl"><div class="kl">Fala CG total</div><div class="kv" id="d-fcg-tot">—</div><div class="ks" id="d-fcg-pend">—</div></div>
       <div class="kc gn"><div class="kl">Demandas GEDREM</div><div class="kv" id="d-rf-tot">—</div><div class="ks">relatórios fotográficos</div></div>
       <div class="kc am"><div class="kl">ATA 038 saldo</div><div class="kv">R$ 1,3M</div><div class="ks">5 itens zerados</div></div>
       <div class="kc rd"><div class="kl">Ofícios pendentes</div><div class="kv" id="d-ofc-pend">—</div><div class="ks">com prazo</div></div>
       <div class="kc pu"><div class="kl">Execuções hoje</div><div class="kv" id="d-cs-hoje">—</div><div class="ks">registros de campo</div></div>
+      <div class="kc am"><div class="kl">Aguardando validação</div><div class="kv" id="d-aval">—</div><div class="ks" id="d-aval-sub">RF (Téc B) · CS (Téc A)</div></div>
+      <div class="kc bl"><div class="kl">Relatórios hoje</div><div class="kv" id="d-rf-hoje">—</div><div class="ks">enviados via app</div></div>
     </div>
     <div class="mgrid">
       <div class="mcard" onclick="go('rf');rfInitCod()"><div class="micon" style="background:#E6F1FB"><i class="ti ti-camera" style="color:#185FA5"></i></div><div class="mtitle">Rel. Fotográfico</div><div class="mdesc">Demandas GEDREM com fotos</div><div class="mstat" style="color:#185FA5" id="d-rf-stat">—</div></div>
@@ -491,6 +494,10 @@ textarea{resize:vertical;min-height:60px}
           <i class="ti ti-cloud-download"></i>Atualizar Sistema
         </button>
       </div>
+    </div>
+    <div class="card">
+      <div class="sh"><i class="ti ti-users"></i>Produção de hoje por equipe</div>
+      <div id="dash-prod-eq" style="font-size:12.5px"></div>
     </div>
     <div class="card">
       <div class="sh"><i class="ti ti-database"></i>Banco de Dados – Atividade recente</div>
@@ -3988,7 +3995,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-74'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-75'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4779,6 +4786,7 @@ async function loginStep2(){
 
 function go(pg){
   if(!PERMS[CU].includes(pg)) return;
+  try{clearTimeout(window._dashTimer);}catch(e){}
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
   const p=document.getElementById('pg-'+pg), n=document.getElementById('n-'+pg);
@@ -4816,46 +4824,69 @@ function stab(el,tid){
   if(t) t.style.display='';
 }
 
+async function _dashCount(q){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${q}`,{method:'HEAD',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Prefer':'count=exact','Range':'0-0',...(GEDREM_TOKEN?{'x-gedrem-token':GEDREM_TOKEN}:{})}});
+    const cr=res.headers.get('content-range')||'';
+    const n=parseInt((cr.split('/')[1]||'0'),10);
+    return isNaN(n)?0:n;
+  }catch(e){ return 0; }
+}
 async function refreshDash(){
-  const [fcg, rf, ofc, cs, prog] = await Promise.all([
-    dbGetAll('falacg'), dbGetAll('relatorio_foto'),
-    dbGetAll('oficios'), dbGetAll('ctrl_servicos'), dbGetAll('programacao')
-  ]);
-  const fcgPend=fcg.filter(x=>x.status==='Pendente').length;
-  document.getElementById('d-fcg-tot').textContent=fcg.length.toLocaleString();
-  document.getElementById('d-fcg-pend').textContent=fcgPend+' pendentes';
-  document.getElementById('d-rf-tot').textContent=rf.length.toLocaleString();
-  document.getElementById('d-rf-stat').textContent=rf.length+' demandas registradas';
-  document.getElementById('d-fcg-stat').textContent=fcgPend+' pendentes de '+fcg.length+' total';
-  const ofcPend=ofc.filter(x=>x.status==='Pendente'||x.status==='Em análise').length;
-  document.getElementById('d-ofc-pend').textContent=ofcPend;
-  document.getElementById('d-ofc-stat').textContent=ofcPend+' pendentes de '+ofc.length+' total';
   const hoje=new Date().toISOString().slice(0,10);
-  const csHoje=cs.filter(x=>x.data===hoje).length;
-  document.getElementById('d-cs-hoje').textContent=csHoje;
-  document.getElementById('d-cs-stat').textContent=cs.length+' execuções registradas';
-  const progPend=prog.filter(x=>x.status==='Programado').length;
-  document.getElementById('d-prog-stat').textContent=progPend+' programados · '+prog.length+' total';
-
-  
-  const all=[...fcg.map(x=>({...x,_store:'Fala CG'})),...rf.map(x=>({...x,_store:'Rel. Fotográfico'})),...ofc.map(x=>({...x,_store:'Ofício'})),...cs.map(x=>({...x,_store:'Ctrl. Serviços'})),...prog.map(x=>({...x,_store:'Programação'}))];
-  all.sort((a,b)=>(b._ts||0)-(a._ts||0));
-  const tl=document.getElementById('dash-tl');
-  if(all.length===0){ tl.innerHTML='<div style="color:var(--text3);font-size:12px;padding:8px 0">Nenhum registro ainda. Use os módulos para começar a preencher o banco de dados.</div>'; return; }
-  tl.innerHTML=all.slice(0,10).map(x=>{
-    const dt=x._ts?new Date(x._ts).toLocaleString('pt-BR'):'—';
-    const colors={'Fala CG':'#C55A11','Rel. Fotográfico':'#185FA5','Ofício':'#4A42A0','Ctrl. Serviços':'#2D7A3A','Programação':'#0F6E56'};
-    return `<div class="tl-item">
-      <div class="tl-dot" style="background:${colors[x._store]||'#ccc'}"></div>
-      <div class="tl-line"></div>
-      <div><div class="tl-t">${x._store} – ${x.os||x.codigo||x.cod||x.equipe||'#'+x.id}</div>
-      <div class="tl-m">${dt} · ${x._user==='g'?'Juvenil':x._user==='a'?'Técnico A':'Técnico B'}</div></div>
-    </div>`;
-  }).join('');
-
-  
-  document.getElementById('badge-fcg').textContent=fcgPend||'0';
-  { const _bo=document.getElementById('badge-ofc'); if(_bo) _bo.textContent=ofcPend||'0'; }
+  const E=encodeURIComponent;
+  const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=v;};
+  try{
+    const [fcgTot,fcgPend,rfTot,rfHoje,ofcTot,ofcP1,ofcP2,csTot,csHoje,csAg,rfAg,progPend,progTot]=await Promise.all([
+      _dashCount('records?store=eq.falacg'),
+      _dashCount('records?store=eq.falacg&data->>status=eq.Pendente'),
+      _dashCount('records?store=eq.relatorio_foto'),
+      _dashCount('records?store=eq.relatorio_foto&data->>data=eq.'+hoje),
+      _dashCount('records?store=eq.oficios'),
+      _dashCount('records?store=eq.oficios&data->>status=eq.Pendente'),
+      _dashCount('records?store=eq.oficios&data->>status=eq.'+E('Em análise')),
+      _dashCount('records?store=eq.ctrl_servicos'),
+      _dashCount('records?store=eq.ctrl_servicos&data->>data=eq.'+hoje),
+      _dashCount('records?store=eq.ctrl_servicos&data->>status=eq.'+E('Aguardando validação')),
+      _dashCount('records?store=eq.relatorio_foto&data->>status=eq.'+E('Concluído')+'&data->>viaMobile=eq.true&data->validacoes->>b=is.null'),
+      _dashCount('records?store=eq.programacao&data->>status=eq.Programado'),
+      _dashCount('records?store=eq.programacao')
+    ]);
+    const ofcPend=ofcP1+ofcP2;
+    set('d-fcg-tot',fcgTot.toLocaleString()); set('d-fcg-pend',fcgPend+' pendentes');
+    set('d-rf-tot',rfTot.toLocaleString()); set('d-rf-stat',rfTot+' demandas registradas');
+    set('d-fcg-stat',fcgPend+' pendentes de '+fcgTot+' total');
+    set('d-ofc-pend',ofcPend); set('d-ofc-stat',ofcPend+' pendentes de '+ofcTot+' total');
+    set('d-cs-hoje',csHoje); set('d-cs-stat',csTot+' execuções registradas');
+    set('d-prog-stat',progPend+' programados · '+progTot+' total');
+    set('d-aval',(rfAg+csAg)); set('d-aval-sub','RF: '+rfAg+' · CS: '+csAg);
+    set('d-rf-hoje',rfHoje);
+    const bf=document.getElementById('badge-fcg'); if(bf)bf.textContent=fcgPend||'0';
+    const bo=document.getElementById('badge-ofc'); if(bo)bo.textContent=ofcPend||'0';
+  }catch(e){}
+  try{
+    const rows=await cloudRequest('records?store=eq.relatorio_foto&data->>data=eq.'+hoje+'&select=eq:data->>equipe&order=id.desc&limit=800',{}).then(r=>r.json());
+    const m={}; (rows||[]).forEach(r=>{const e=r.eq||'—'; m[e]=(m[e]||0)+1;});
+    const pe=document.getElementById('dash-prod-eq');
+    if(pe){ const en=Object.entries(m).sort((a,b)=>b[1]-a[1]); pe.innerHTML=en.length?en.map(([e,n])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>👷 ${e}</span><b style="color:#185FA5">${n}</b></div>`).join(''):'<div style="color:var(--text3);padding:4px 0">Nenhum relatório enviado hoje ainda.</div>'; }
+  }catch(e){}
+  try{
+    const q=(store,sel)=>cloudRequest('records?store=eq.'+store+'&select='+sel+'&order=id.desc&limit=6',{}).then(r=>r.json()).then(rows=>(rows||[]).map(x=>({c:x.c,e:x.e,t:x.t?Number(x.t):0,s:store})));
+    const parts=await Promise.all([
+      q('relatorio_foto','c:data->>codigo,e:data->>equipe,t:data->>_ts'),
+      q('ctrl_servicos','c:data->>os,e:data->>equipe,t:data->>_ts'),
+      q('oficios','c:data->>codigo,e:data->>solicitante,t:data->>_ts'),
+      q('falacg','c:data->>os,e:data->>servico,t:data->>_ts')
+    ]);
+    const L={relatorio_foto:['Rel. Fotográfico','#185FA5'],ctrl_servicos:['Ctrl. Serviços','#2D7A3A'],oficios:['Ofício','#4A42A0'],falacg:['Fala CG','#C55A11']};
+    const all=[].concat(...parts).sort((a,b)=>b.t-a.t).slice(0,10);
+    const tl=document.getElementById('dash-tl');
+    if(tl) tl.innerHTML=all.length?all.map(x=>{const dt=x.t?new Date(x.t).toLocaleString('pt-BR'):'—';return `<div class="tl-item"><div class="tl-dot" style="background:${L[x.s][1]}"></div><div class="tl-line"></div><div><div class="tl-t">${L[x.s][0]} – ${x.c||x.e||'#'}</div><div class="tl-m">${dt}</div></div></div>`;}).join(''):'<div style="color:var(--text3);font-size:12px;padding:8px 0">Sem atividade recente.</div>';
+  }catch(e){}
+  const liveEl=document.getElementById('dash-live'); if(liveEl) liveEl.textContent='🟢 Ao vivo · atualizado às '+new Date().toLocaleTimeString('pt-BR');
+  clearTimeout(window._dashTimer);
+  const pgd=document.getElementById('pg-dash');
+  if(pgd&&pgd.classList.contains('on')) window._dashTimer=setTimeout(function(){ try{refreshDash();}catch(e){} },30000);
 }
 
 const ENC_MAP={};
