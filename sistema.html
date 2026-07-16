@@ -4071,7 +4071,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-76'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-77'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5106,6 +5106,7 @@ async function orcExcluir(id){
 }
 function orcBuildPrint(o){
   const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
+  const gedrem=typeof GEDREM_LOGO!=='undefined'?GEDREM_LOGO:'';
   const fd=d=>d?d.split('-').reverse().join('/'):'—';
   const B='border:1px solid #999;padding:2mm;';
   const matRows=(o.materiais||[]).map(r=>`<tr><td style="${B}">${r.n}</td><td style="${B}">${r.m}</td><td style="${B}text-align:center">${r.u}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('')||`<tr><td colspan="6" style="${B}text-align:center;color:#777">—</td></tr>`;
@@ -5118,7 +5119,8 @@ function orcBuildPrint(o){
     <div><div style="font-weight:bold;font-size:13pt;color:#1a4a8a">ORÇAMENTO</div>
     <div style="font-size:8pt">Gerência de Drenagem Urbana – GEDREM · SISEP</div>
     <div style="font-size:7.5pt;color:#555">Prefeitura Municipal de Campo Grande – MS</div></div>
-    <div style="margin-left:auto;text-align:right;font-size:8.5pt"><b>Nº ${o.numero||'—'}</b><br>${fd(o.data)}</div>
+    ${gedrem?`<img src="${gedrem}" style="height:17mm;width:auto;object-fit:contain;margin-left:auto">`:''}
+    <div style="text-align:right;font-size:8.5pt${gedrem?'':';margin-left:auto'}"><b>Nº ${o.numero||'—'}</b><br>${fd(o.data)}</div>
   </div>
   <table style="width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:4mm">
     <tr><td style="${B}background:#f0f5ff;font-weight:bold;width:22%">Objeto / Serviço</td><td style="${B}" colspan="3">${o.objeto||'—'}</td></tr>
