@@ -255,6 +255,7 @@ body.on-login{padding-bottom:0}
   <div class="card">
     <div class="sh">👤 Usuário conectado</div>
     <div class="gpsbox" id="cfg-eq-info"></div>
+    <div style="font-size:11px;color:var(--txt2);margin-top:6px;text-align:center">Versão do app: <b id="app-ver-lbl">—</b></div>
     <div class="brow">
       <button class="btn sm" onclick="alterarPIN()">🔑 Alterar meu PIN</button>
       <button class="btn bd sm" onclick="sair()">Sair / trocar usuário</button>
@@ -506,18 +507,33 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-64';
+const APP_VERSION='20260713-65';
 async function checkAppUpdate(){
+  const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
     if(!r.ok)return;
     const j=await r.json();
-    if(j&&j.versao&&j.versao!==APP_VERSION&&sessionStorage.getItem('gedrem_app_upd')!==j.versao){
-      sessionStorage.setItem('gedrem_app_upd',j.versao);
-      const b=$('up-banner');if(b)b.style.display='block';
-      setTimeout(()=>location.replace(location.pathname+'?v='+encodeURIComponent(j.versao)),900);
-    }
+    if(j&&j.versao&&j.versao!==APP_VERSION){ mostrarUpdateObrigatorio(j.versao); }
   }catch(e){}
+}
+function mostrarUpdateObrigatorio(nova){
+  if(document.getElementById('up-modal'))return;
+  var d=document.createElement('div'); d.id='up-modal';
+  d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,32,64,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;color:#fff';
+  d.innerHTML='<div style=\'font-size:46px;margin-bottom:10px\'>🔄</div>'
+    +'<div style=\'font-size:20px;font-weight:800;margin-bottom:10px\'>Atualização obrigatória</div>'
+    +'<div style=\'font-size:14px;opacity:.9;margin-bottom:4px\'>Versão instalada: <b>'+APP_VERSION+'</b></div>'
+    +'<div style=\'font-size:14px;opacity:.9;margin-bottom:18px\'>Nova versão: <b>'+nova+'</b></div>'
+    +'<div style=\'font-size:13px;opacity:.85;margin-bottom:22px;max-width:320px;line-height:1.5\'>Para receber as últimas correções é necessário reiniciar o aplicativo agora.</div>'
+    +'<button id=\'up-go\' style=\'background:#16a34a;color:#fff;border:none;border-radius:26px;padding:15px 30px;font-size:16px;font-weight:800;box-shadow:0 4px 16px rgba(0,0,0,.45)\'>↻ Atualizar e reiniciar agora</button>';
+  document.body.appendChild(d);
+  document.getElementById('up-go').onclick=async function(){
+    this.textContent='Atualizando…'; this.disabled=true;
+    try{ if('serviceWorker' in navigator){ var rs=await navigator.serviceWorker.getRegistrations(); for(var i=0;i<rs.length;i++){ try{ await rs[i].update(); }catch(e){} } } }catch(e){}
+    try{ if(window.caches){ var ks=await caches.keys(); await Promise.all(ks.map(function(k){return caches.delete(k);})); } }catch(e){}
+    location.replace(location.pathname+'?v='+encodeURIComponent(nova)+'&t='+Date.now());
+  };
 }
 
 /* ══════════ INSTALAR NA TELA INICIAL (PWA) ══════════ */
@@ -627,10 +643,11 @@ async function enviarRelatorio(d){
   const imgs=[];
   if(d.mapa)imgs.push({b64:d.mapa,descricao:'Mapa: '+(d.localMapa||endComp(d)||'—')});
   (d.fotos||[]).forEach((f,i)=>{if(f){const m=(d.fotoMeta&&d.fotoMeta[i])||{};const et=m.etapa||ETAPAS_FOTO[i]||('Foto '+(i+1));const sv=m.servico||d.tipo||'';imgs.push({b64:f,descricao:et+(sv?': '+sv:'')});}});
+  (d.fotosExtra||[]).forEach((e,k)=>{if(e&&e.b64){imgs.push({b64:e.b64,descricao:(e.desc&&e.desc.trim())?e.desc.trim():('Foto adicional '+(k+1))});}});
   // Pasta unica das fotos (evita que relatorios com mesmo codigo sobrescrevam as imagens)
   if(!d.pastaFotos) d.pastaFotos = String(cod).replace(/[^A-Za-z0-9_-]/g,'') + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
   const pasta = d.pastaFotos;
-  const LET=['A','B','C','D','E','F'],fotos=[];
+  const LET='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),fotos=[];
   for(let i=0;i<imgs.length&&i<LET.length;i++){
     let url;
     try{url=await fotoUpload(pasta,LET[i],imgs[i].b64)}
@@ -758,7 +775,7 @@ function novaDemanda(){
   if(!USER){mostrarLogin();return}
   atual={codigo:'',data:hoje(),origem:'Programação diária',os:'',tipo:'',qtd:'',und:'Un.',
     obs:'',endereco:'',bairro:'',regiao:'',lat:null,lon:null,mapa:null,
-    fotos:Array(N_FOTOS).fill(null),fotoMeta:ETAPAS_FOTO.map(et=>({etapa:et,servico:'',desc:''})),servicoExecutado:'',status:'pendente',
+    fotos:Array(N_FOTOS).fill(null),fotosExtra:[],fotoMeta:ETAPAS_FOTO.map(et=>({etapa:et,servico:'',desc:''})),servicoExecutado:'',status:'pendente',
     equipe:acessoTotal()?'':USER.equipe,
     encarregado:acessoTotal()?'':USER.nome};
   preencherForm();nav('form');
@@ -771,6 +788,7 @@ function onEqForm(){
 async function abrirDemanda(id){atual=await dbGet(id);
   if(!atual){toast('Demanda não encontrada.');return}
   if(!atual.fotos)atual.fotos=Array(N_FOTOS).fill(null);
+  if(!atual.fotosExtra)atual.fotosExtra=[];
   if(!atual.fotoMeta)atual.fotoMeta=ETAPAS_FOTO.map(et=>({etapa:et,servico:'',desc:''}));
   preencherForm();nav('form');}
 function preencherForm(){
@@ -942,6 +960,15 @@ function renderFotos(){
       <button class="fx" onclick="event.stopPropagation();atual.fotos[${i}]=null;renderFotos()">✕</button>
       <span class="ftag">${et}</span></div>`;
   }
+  (atual.fotosExtra||[]).forEach((e,k)=>{
+    h+=`<div class="fslot ${e&&e.b64?'cheia':''}" style="${e&&e.b64?`background-image:url(${e.b64})`:''}" onclick="slotExtra(${k})">
+      📷<br>Extra ${k+1}
+      <button class="fx" onclick="event.stopPropagation();removeExtra(${k})">✕</button>
+      <span class="ftag">Extra ${k+1}</span></div>`;
+  });
+  h+=`<div class="fslot" onclick="addFotoExtra()" style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #0052A2;color:#0052A2;background:#eef5ff">
+    <div style="font-size:30px;font-weight:800;line-height:1">+</div>
+    <div style="font-size:10px;font-weight:700">Mais fotos</div></div>`;
   $('fgrid').innerHTML=h;
   renderFotoMeta();
   atualizarBotaoConcluir();
@@ -961,9 +988,19 @@ function renderFotoMeta(){
       <select onchange="setFotoServico(${i},this.value)" style="flex:1;padding:7px;font-size:12px">${opts}</select>
     </div>`;
   }
-  cont.innerHTML='<div style="font-size:11px;color:#888;margin-bottom:5px">Serviço executado em cada foto:</div>'+linhas;
+  (atual.fotosExtra||[]).forEach((e,k)=>{
+    linhas+=`<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px">
+      <span style="font-size:12px;font-weight:700;color:#0052A2;min-width:58px">Extra ${k+1}</span>
+      <input value="${esc((e&&e.desc)||'')}" oninput="setExtraDesc(${k},this.value)" placeholder="Descrição desta foto..." style="flex:1;padding:7px;font-size:12px">
+    </div>`;
+  });
+  cont.innerHTML='<div style="font-size:11px;color:#888;margin-bottom:5px">Serviço/descrição de cada foto:</div>'+linhas;
 }
 function setFotoServico(i,v){if(!atual.fotoMeta)atual.fotoMeta=[];atual.fotoMeta[i]=atual.fotoMeta[i]||{etapa:ETAPAS_FOTO[i],servico:'',desc:''};atual.fotoMeta[i].servico=v;}
+function addFotoExtra(){slotAtivo=-2;$('foto-input').click();}
+function slotExtra(k){slotAtivo=1000+k;$('foto-input').click();}
+function removeExtra(k){if(atual.fotosExtra){atual.fotosExtra.splice(k,1);renderFotos();}}
+function setExtraDesc(k,v){if(atual.fotosExtra&&atual.fotosExtra[k])atual.fotosExtra[k].desc=v;}
 function slotMapa(){
   if(atual.mapa)return;
   if(atual.lat!=null){gerarMapa()}else{toast('Capture o GPS primeiro (bloco 3) — o mapa é gerado automaticamente.')}
@@ -972,10 +1009,15 @@ function slotFoto(i){slotAtivo=i;$('foto-input').click()}
 document.addEventListener('DOMContentLoaded',()=>{
   $('foto-input').addEventListener('change',async e=>{
     const f=e.target.files[0];e.target.value='';
-    if(!f||slotAtivo<0)return;
+    if(!f)return;
     const data=await comprimirFoto(f);
-    atual.fotos[slotAtivo]=data;renderFotos();
+    if(slotAtivo===-2){ if(!atual.fotosExtra)atual.fotosExtra=[]; atual.fotosExtra.push({b64:data,desc:''}); }
+    else if(slotAtivo>=1000){ const k=slotAtivo-1000; if(!atual.fotosExtra)atual.fotosExtra=[]; if(!atual.fotosExtra[k])atual.fotosExtra[k]={b64:null,desc:''}; atual.fotosExtra[k].b64=data; }
+    else if(slotAtivo>=0){ atual.fotos[slotAtivo]=data; }
+    else return;
+    renderFotos();
   });
+  const _vl=document.getElementById('app-ver-lbl'); if(_vl) _vl.textContent=APP_VERSION;
   $('imp-input').addEventListener('change',importarProgramacao);
 });
 function comprimirFoto(file){return new Promise(res=>{
