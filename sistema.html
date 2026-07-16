@@ -1484,10 +1484,10 @@ textarea{resize:vertical;min-height:60px}
   <!-- Lista principal -->
   <div id="fcg-lst">
     <div class="search-bar">
-      <input id="fcg-busca" placeholder="Buscar OS, rua, bairro..." oninput="fcgRenderLista()" style="flex:2;min-width:160px">
-      <select id="fcg-fil-reg" onchange="fcgRenderLista()"><option value="">Todas regiões</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select>
-      <select id="fcg-fil-srv" onchange="fcgRenderLista()"><option value="">Todos serviços</option><option>Limpeza de BL</option><option>Reparo de BL</option><option>Reparo de PV</option><option>Limpeza de PV</option><option>Visita Técnica</option><option>Solapamento</option><option>Desobstrução</option><option>Alagamento</option><option>Reparo de Meio-fio</option><option>Execução de Calçadas</option><option>Implantação de Sarjetão</option><option>Implantação de BL</option><option>Reparo de Sarjeta</option><option>Limpeza de Sarjetão</option></select>
-      <select id="fcg-fil-st" onchange="fcgRenderLista()"><option value="">Todos status</option><option>Pendente</option><option>Em andamento</option><option>Executado</option><option>SOLURB</option></select>
+      <input id="fcg-busca" placeholder="Buscar OS, rua, bairro..." oninput="fcgBuscaDebounce()" style="flex:2;min-width:160px">
+      <select id="fcg-fil-reg" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todas regiões</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select>
+      <select id="fcg-fil-srv" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todos serviços</option><option>Limpeza de BL</option><option>Reparo de BL</option><option>Reparo de PV</option><option>Limpeza de PV</option><option>Visita Técnica</option><option>Solapamento</option><option>Desobstrução</option><option>Alagamento</option><option>Reparo de Meio-fio</option><option>Execução de Calçadas</option><option>Implantação de Sarjetão</option><option>Implantação de BL</option><option>Reparo de Sarjeta</option><option>Limpeza de Sarjetão</option></select>
+      <select id="fcg-fil-st" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todos status</option><option>Pendente</option><option>Em andamento</option><option>Executado</option><option>SOLURB</option></select>
     </div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="fcg-count">0</b> registros</div>
     <div class="card tw">
@@ -1496,6 +1496,7 @@ textarea{resize:vertical;min-height:60px}
         <tbody id="fcg-tb"></tbody>
       </table>
     </div>
+    <div id="fcg-pager" class="no-print" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:8px;font-size:12px;color:var(--text2)"></div>
   </div>
 
   <!-- ABA RESUMO (filtros + tabelas + gráficos) -->
@@ -3071,10 +3072,22 @@ textarea{resize:vertical;min-height:60px}
       <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal equipamentos: <span id="orc-eq-sub">R$ 0,00</span></div>
     </div>
     <div class="fcard">
+      <div class="sh"><i class="ti ti-list-details"></i>Composições SINAPI — serviços de drenagem</div>
+      <div style="font-size:11px;color:var(--text3);margin:-2px 0 6px">Valores de referência — ajuste o código e o valor conforme a SINAPI vigente do seu estado/mês.</div>
+      <div class="fr2" style="align-items:end">
+        <div class="fg fl"><label>Composição de drenagem</label><select id="orc-comp-sel"></select></div>
+        <div class="fg"><button class="btn bp" style="width:100%" onclick="orcAddComp()"><i class="ti ti-plus"></i>Adicionar</button></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Cód SINAPI</th><th>Descrição</th><th>Un.</th><th>Vlr unit.</th><th>Qtd</th><th>Subtotal</th><th class="no-print"></th></tr></thead><tbody id="orc-comp-tb"></tbody></table></div>
+      <button class="btn" style="margin-top:6px" onclick="orcAddCompCustom()"><i class="ti ti-plus"></i>Composição personalizada</button>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal composições: <span id="orc-comp-sub">R$ 0,00</span></div>
+    </div>
+    <div class="fcard">
       <div class="kg">
         <div class="kc bl"><div class="kl">Material</div><div class="kv" id="orc-t-mat" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc gn"><div class="kl">Mão de obra</div><div class="kv" id="orc-t-mo" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc am"><div class="kl">Equipamentos</div><div class="kv" id="orc-t-eq" style="font-size:18px">R$ 0,00</div></div>
+        <div class="kc rd"><div class="kl">Composições</div><div class="kv" id="orc-t-comp" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc pu"><div class="kl">TOTAL GERAL</div><div class="kv" id="orc-t-tot" style="font-size:20px">R$ 0,00</div></div>
       </div>
       <div class="fg fl" style="margin-top:8px"><label>Observações</label><textarea id="orc-obs" placeholder="Condições, prazos, observações..."></textarea></div>
@@ -3088,7 +3101,7 @@ textarea{resize:vertical;min-height:60px}
   </div>
   <div id="orc-hist" style="display:none">
     <div class="search-bar"><input id="orc-busca" placeholder="Buscar nº, objeto, local..." oninput="orcRenderHist()" style="flex:2"></div>
-    <div class="tw"><table><thead><tr><th>Nº</th><th>Data</th><th>Objeto</th><th>Local</th><th>Material</th><th>M.O.</th><th>Equip.</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="orc-hist-tb"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>Nº</th><th>Data</th><th>Objeto</th><th>Local</th><th>Material</th><th>M.O.</th><th>Equip.</th><th>Comp.</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="orc-hist-tb"></tbody></table></div>
   </div>
 </div>
 
@@ -4071,7 +4084,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-77'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-78'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4968,8 +4981,34 @@ async function refreshDash(){
 
 
 /* ═══════════ ORÇAMENTOS — material (ATA 038) + mão de obra (função×hora) + equipamentos ═══════════ */
-let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_EDIT_ID=null;
+let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_EDIT_ID=null;
 const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
+const SINAPI_DREN=[
+ {cod:'92210',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 400 mm',un:'m',v:95},
+ {cod:'92212',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 600 mm',un:'m',v:150},
+ {cod:'92214',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 800 mm',un:'m',v:220},
+ {cod:'92216',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 1000 mm',un:'m',v:330},
+ {cod:'',desc:'Tubo de concreto armado (PA-1), DN 400 mm — fornecimento',un:'m',v:75},
+ {cod:'',desc:'Tubo de concreto armado (PA-1), DN 600 mm — fornecimento',un:'m',v:160},
+ {cod:'',desc:'Tubo de concreto armado (PA-2), DN 800 mm — fornecimento',un:'m',v:280},
+ {cod:'',desc:'Escavação mecânica de vala em solo (prof. até 1,5 m)',un:'m³',v:16},
+ {cod:'',desc:'Escavação mecânica de vala em solo (prof. 1,5 a 3,0 m)',un:'m³',v:20},
+ {cod:'',desc:'Escavação manual de vala em solo de 1ª categoria',un:'m³',v:75},
+ {cod:'',desc:'Reaterro e compactação mecânica de vala',un:'m³',v:35},
+ {cod:'',desc:'Reaterro manual de vala com compactação',un:'m³',v:55},
+ {cod:'',desc:'Lastro/berço de brita para assentamento de tubo',un:'m³',v:210},
+ {cod:'',desc:'Berço/base de concreto para tubulação',un:'m',v:60},
+ {cod:'',desc:'Boca de lobo simples em alvenaria (1,00 x 0,50 m)',un:'un',v:1300},
+ {cod:'',desc:'Boca de lobo dupla em alvenaria',un:'un',v:2100},
+ {cod:'',desc:'Poço de visita (PV) em alvenaria, prof. até 1,5 m',un:'un',v:2600},
+ {cod:'',desc:'Caixa de ligação/inspeção em alvenaria',un:'un',v:950},
+ {cod:'',desc:'Meio-fio de concreto pré-moldado, assentado',un:'m',v:55},
+ {cod:'',desc:'Sarjeta de concreto moldada in loco',un:'m',v:65},
+ {cod:'',desc:'Recomposição de pavimento asfáltico (CBUQ) sobre vala',un:'m²',v:95},
+ {cod:'',desc:'Recomposição de base em brita graduada simples',un:'m³',v:180},
+ {cod:'',desc:'Concreto estrutural fck 20 MPa, lançado e adensado',un:'m³',v:780},
+ {cod:'',desc:'Desobstrução/limpeza de galeria de águas pluviais',un:'m',v:28}
+];
 function _om(m){ if(typeof toast==='function')toast(m); else alert(m); }
 function orcMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function orcAtaItens(){ return D.filter(it=>it.ata==='060').slice().sort((a,b)=>(a.m||'').localeCompare(b.m||'')); }
@@ -4979,8 +5018,12 @@ function orcInit(){
   if(sel && sel.options.length<=1){
     sel.innerHTML='<option value="">Selecione o material...</option>'+orcAtaItens().map(it=>`<option value="${it.n}">${(it.m||'').slice(0,72)} — ${it.u} — ${orcMoney(it.v)}</option>`).join('');
   }
+  const cs=document.getElementById('orc-comp-sel');
+  if(cs && cs.options.length<=1){
+    cs.innerHTML='<option value="">Selecione a composição (drenagem)...</option>'+SINAPI_DREN.map((it,i)=>`<option value="${i}">${it.cod?it.cod+' · ':''}${it.desc} — ${it.un} — ${orcMoney(it.v)}</option>`).join('');
+  }
   if(ORC_MO.length===0) ORC_MO=ORC_MO_PADRAO.map(x=>({...x}));
-  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcCalc();
 }
 async function orcNovoCod(){
   if(ORC_EDIT_ID) return;
@@ -5029,25 +5072,47 @@ function orcRenderEq(){
 }
 function orcAddMO(){ ORC_MO.push({funcao:'',vh:0,h:0}); orcRenderMO(); }
 function orcAddEquip(){ ORC_EQ.push({desc:'',vh:0,h:0}); orcRenderEq(); }
+function orcRenderComp(){
+  const tb=document.getElementById('orc-comp-tb'); if(!tb)return;
+  tb.innerHTML=ORC_COMP.length?ORC_COMP.map((r,i)=>`<tr>
+    <td><input value="${(r.cod||'').replace(/"/g,'&quot;')}" placeholder="cód" style="width:74px" oninput="ORC_COMP[${i}].cod=this.value"></td>
+    <td><input value="${(r.desc||'').replace(/"/g,'&quot;')}" style="width:100%" oninput="ORC_COMP[${i}].desc=this.value"></td>
+    <td><input value="${(r.un||'').replace(/"/g,'&quot;')}" style="width:48px;text-align:center" oninput="ORC_COMP[${i}].un=this.value"></td>
+    <td><input type="number" step="any" min="0" value="${r.v}" style="width:92px;text-align:right" oninput="ORC_COMP[${i}].v=parseFloat(this.value)||0;orcCalc()"></td>
+    <td><input type="number" step="any" min="0" value="${r.qtd}" style="width:72px;text-align:right" oninput="ORC_COMP[${i}].qtd=parseFloat(this.value)||0;orcCalc()"></td>
+    <td style="text-align:right;font-weight:600" id="orc-comp-st-${i}">${orcMoney(r.v*r.qtd)}</td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="ORC_COMP.splice(${i},1);orcRenderComp();orcCalc()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:12px">Nenhuma composição adicionada</td></tr>';
+}
+function orcAddComp(){
+  const sel=document.getElementById('orc-comp-sel'); const i=sel.value;
+  if(i===''){_om('Selecione uma composição.');return;}
+  const it=SINAPI_DREN[parseInt(i,10)]; if(!it)return;
+  ORC_COMP.push({cod:it.cod||'',desc:it.desc,un:it.un,v:it.v||0,qtd:1});
+  sel.value=''; orcRenderComp(); orcCalc();
+}
+function orcAddCompCustom(){ ORC_COMP.push({cod:'',desc:'',un:'un',v:0,qtd:1}); orcRenderComp(); }
 function orcCalc(){
   const tm=ORC_MAT.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
   const to=ORC_MO.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
   const te=ORC_EQ.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
+  const tc=ORC_COMP.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
   ORC_MAT.forEach((r,i)=>{const e=document.getElementById('orc-mat-st-'+i); if(e)e.textContent=orcMoney(r.v*r.qtd);});
   ORC_MO.forEach((r,i)=>{const e=document.getElementById('orc-mo-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
   ORC_EQ.forEach((r,i)=>{const e=document.getElementById('orc-eq-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
+  ORC_COMP.forEach((r,i)=>{const e=document.getElementById('orc-comp-st-'+i); if(e)e.textContent=orcMoney(r.v*r.qtd);});
   const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=orcMoney(v);};
-  set('orc-mat-sub',tm); set('orc-mo-sub',to); set('orc-eq-sub',te);
-  set('orc-t-mat',tm); set('orc-t-mo',to); set('orc-t-eq',te); set('orc-t-tot',tm+to+te);
-  return {tm,to,te,total:tm+to+te};
+  set('orc-mat-sub',tm); set('orc-mo-sub',to); set('orc-eq-sub',te); set('orc-comp-sub',tc);
+  set('orc-t-mat',tm); set('orc-t-mo',to); set('orc-t-eq',te); set('orc-t-comp',tc); set('orc-t-tot',tm+to+te+tc);
+  return {tm,to,te,tc,total:tm+to+te+tc};
 }
 function orcColeta(){
   const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
   const t=orcCalc();
   return { numero:(g('orc-num')||'').trim(), data:g('orc-data'), objeto:(g('orc-obj')||'').trim(), local:(g('orc-local')||'').trim(),
     bairro:(g('orc-bairro')||'').trim(), regiao:(g('orc-reg')||'').trim(), solicitante:(g('orc-sol')||'').trim(), obs:(g('orc-obs')||'').trim(),
-    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})),
-    totMat:t.tm, totMO:t.to, totEq:t.te, total:t.total };
+    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})), composicoes:ORC_COMP.map(x=>({...x})),
+    totMat:t.tm, totMO:t.to, totEq:t.te, totComp:t.tc, total:t.total };
 }
 async function orcSave(){
   const o=orcColeta();
@@ -5065,10 +5130,10 @@ async function orcSave(){
   }catch(e){ _om('Erro ao salvar: '+e.message); }
 }
 function orcReset(){
-  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_EDIT_ID=null;
+  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_COMP=[]; ORC_EDIT_ID=null;
   ['orc-num','orc-obj','orc-local','orc-bairro','orc-reg','orc-sol','orc-obs'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
   const dt=document.getElementById('orc-data'); if(dt)dt.value=new Date().toISOString().slice(0,10);
-  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcCalc();
 }
 async function orcRenderHist(){
   const tb=document.getElementById('orc-hist-tb'); if(!tb)return;
@@ -5083,20 +5148,21 @@ async function orcRenderHist(){
     <td style="text-align:right;font-size:10px">${orcMoney(o.totMat)}</td>
     <td style="text-align:right;font-size:10px">${orcMoney(o.totMO)}</td>
     <td style="text-align:right;font-size:10px">${orcMoney(o.totEq)}</td>
+    <td style="text-align:right;font-size:10px">${orcMoney(o.totComp)}</td>
     <td style="text-align:right;font-weight:700">${orcMoney(o.total)}</td>
     <td class="no-print" style="white-space:nowrap;text-align:right">
       <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcEditar(${o.id})" title="Editar">✏️</button>
       <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcPrintId(${o.id})" title="Imprimir">🖨️</button>
       <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcExcluir(${o.id})" title="Excluir">🗑️</button>
-    </td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:16px">Nenhum orçamento salvo ainda</td></tr>';
+    </td></tr>`).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:16px">Nenhum orçamento salvo ainda</td></tr>';
 }
 async function orcEditar(id){
   const all=await dbGetAll('orcamentos'); const o=all.find(x=>x.id===id); if(!o)return;
   ORC_EDIT_ID=id;
   const s2=(k,v)=>{const e=document.getElementById(k); if(e)e.value=v||'';};
   s2('orc-num',o.numero); s2('orc-data',o.data); s2('orc-obj',o.objeto); s2('orc-local',o.local); s2('orc-bairro',o.bairro); s2('orc-reg',o.regiao); s2('orc-sol',o.solicitante); s2('orc-obs',o.obs);
-  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x}));
-  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x})); ORC_COMP=(o.composicoes||[]).map(x=>({...x}));
+  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcCalc();
   const tabs=document.querySelectorAll('#pg-orc .tab'); if(tabs[0]) stab(tabs[0],'orc-novo');
   window.scrollTo(0,0);
 }
@@ -5112,6 +5178,7 @@ function orcBuildPrint(o){
   const matRows=(o.materiais||[]).map(r=>`<tr><td style="${B}">${r.n}</td><td style="${B}">${r.m}</td><td style="${B}text-align:center">${r.u}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('')||`<tr><td colspan="6" style="${B}text-align:center;color:#777">—</td></tr>`;
   const moRows=(o.maoObra||[]).filter(r=>r.funcao||r.h).map(r=>`<tr><td style="${B}">${r.funcao||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
   const eqRows=(o.equipamentos||[]).filter(r=>r.desc||r.h).map(r=>`<tr><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
+  const compRows=(o.composicoes||[]).filter(r=>r.desc||r.qtd).map(r=>`<tr><td style="${B}">${r.cod||'—'}</td><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:center">${r.un||''}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('');
   const TH='background:#1a4a8a;color:#fff;'+B;
   return `
   <div style="display:flex;align-items:center;gap:4mm;border-bottom:2px solid #1a4a8a;padding-bottom:3mm;margin-bottom:4mm">
@@ -5133,6 +5200,8 @@ function orcBuildPrint(o){
   <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Função</th><th style="${TH}">Valor/hora</th><th style="${TH}">Horas</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${moRows}</tbody><tfoot><tr><td colspan="3" style="${B}text-align:right;font-weight:bold">Subtotal mão de obra</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totMO)}</td></tr></tfoot></table>
   <div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">3. EQUIPAMENTOS / VEÍCULOS (hora-máquina)</div>
   <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Equipamento</th><th style="${TH}">Valor/hora</th><th style="${TH}">Horas</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${eqRows}</tbody><tfoot><tr><td colspan="3" style="${B}text-align:right;font-weight:bold">Subtotal equipamentos</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totEq)}</td></tr></tfoot></table>
+  ${compRows?`<div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">4. COMPOSIÇÕES SINAPI (drenagem)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}">Cód</th><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Un.</th><th style="${TH}">Vlr unit.</th><th style="${TH}">Qtd</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${compRows}</tbody><tfoot><tr><td colspan="5" style="${B}text-align:right;font-weight:bold">Subtotal composições</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totComp)}</td></tr></tfoot></table>`:''}
   <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-top:4mm"><tr><td style="padding:3mm;background:#1a4a8a;color:#fff;font-weight:bold">TOTAL GERAL DO ORÇAMENTO</td><td style="padding:3mm;background:#1a4a8a;color:#fff;text-align:right;font-weight:bold">${orcMoney(o.total)}</td></tr></table>
   ${o.obs?`<div style="margin-top:3mm;font-size:8.5pt"><b>Observações:</b> ${o.obs}</div>`:''}
   <div style="margin-top:16mm;text-align:center"><div style="border-top:1.5px solid #333;width:210px;margin:0 auto 4px"></div><div style="font-size:10pt;font-weight:700">Juvenil Ferreira Lopes</div><div style="font-size:8.5pt;color:#444">Gerente de Drenagem Urbana – GEDREM</div><div style="font-size:8.5pt;color:#444">Prefeitura Municipal de Campo Grande – MS</div></div>`;
@@ -8755,6 +8824,9 @@ function fcgNormalizarServico(raw){
 }
 const FCG_SERVICOS=['Limpeza de BL','Reparo de BL','Reparo de PV','Limpeza de PV','Visita Técnica','Solapamento','Desobstrução','Alagamento','Reparo de Meio-fio','Execução de Calçadas','Implantação de Sarjetão','Implantação de BL','Reparo de Sarjeta','Limpeza de Sarjetão','Reparo em Rede de Drenagem','Reparo de Canal','Limpeza de Barragens','Desobstrução de Galeria','Inspeção de Galeria'];
 
+let FCG_PAGE=1; const FCG_PP=100; let _fcgBuscaTimer=null;
+function fcgBuscaDebounce(){ clearTimeout(_fcgBuscaTimer); FCG_PAGE=1; _fcgBuscaTimer=setTimeout(function(){ fcgRenderLista(); },220); }
+function fcgPag(d){ FCG_PAGE+=d; fcgRenderLista(); const el=document.getElementById('fcg-lst'); if(el)el.scrollIntoView({block:'start'}); }
 async function fcgRenderLista(){
   const all=await dbGetAll('falacg');
   const busca=(document.getElementById('fcg-busca')?.value||'').toLowerCase();
@@ -8765,15 +8837,20 @@ async function fcgRenderLista(){
     if(freg&&x.regiao!==freg) return false;
     if(fsrv&&fcgNormalizarServico(x.servico)!==fsrv) return false;
     if(fst&&x.status!==fst) return false;
-    if(busca&&!JSON.stringify(x).toLowerCase().includes(busca)) return false;
+    if(busca){ const _b=((x.os||'')+' '+(x.rua||'')+' '+(x.numero||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.servico||'')+' '+(x.refGedrem||'')).toLowerCase(); if(!_b.includes(busca)) return false; }
     return true;
   }).sort((a,b)=>(b._ts||0)-(a._ts||0));
   const cnt=document.getElementById('fcg-count');
-  if(cnt) cnt.textContent=fil.length;
+  if(cnt) cnt.textContent=fil.length.toLocaleString('pt-BR');
+  const totPag=Math.max(1,Math.ceil(fil.length/FCG_PP));
+  if(FCG_PAGE>totPag)FCG_PAGE=totPag; if(FCG_PAGE<1)FCG_PAGE=1;
+  const pageRows=fil.slice((FCG_PAGE-1)*FCG_PP, FCG_PAGE*FCG_PP);
+  const _pg=document.getElementById('fcg-pager');
+  if(_pg) _pg.innerHTML=(fil.length<=FCG_PP)?'':`<button class="btn" style="padding:3px 12px" ${FCG_PAGE<=1?'disabled':''} onclick="fcgPag(-1)">‹ Anterior</button><span>Página <b>${FCG_PAGE}</b> de ${totPag} · ${fil.length.toLocaleString('pt-BR')} registros</span><button class="btn" style="padding:3px 12px" ${FCG_PAGE>=totPag?'disabled':''} onclick="fcgPag(1)">Próxima ›</button>`;
   const tb=document.getElementById('fcg-tb');
   tb.innerHTML=fil.length===0
     ?`<tr><td colspan="10" style="text-align:center;color:var(--text3);padding:24px">Nenhuma ocorrência encontrada</td></tr>`
-    :fil.map(x=>{
+    :pageRows.map(x=>{
       const si=FCG_ST_MAP[x.status]||{cls:'s-pd',emoji:'—'};
       const stOpts=['Pendente','Em andamento','Executado','SOLURB'].map(s=>
         `<option value="${s}"${s===x.status?' selected':''}>${(FCG_ST_MAP[s]?.emoji||'')} ${s}</option>`
