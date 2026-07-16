@@ -4084,7 +4084,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-78'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-79'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4984,13 +4984,12 @@ async function refreshDash(){
 let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_EDIT_ID=null;
 const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
 const SINAPI_DREN=[
- {cod:'92210',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 400 mm',un:'m',v:95},
- {cod:'92212',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 600 mm',un:'m',v:150},
- {cod:'92214',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 800 mm',un:'m',v:220},
- {cod:'92216',desc:'Assentamento de tubo de concreto p/ águas pluviais, DN 1000 mm',un:'m',v:330},
- {cod:'',desc:'Tubo de concreto armado (PA-1), DN 400 mm — fornecimento',un:'m',v:75},
- {cod:'',desc:'Tubo de concreto armado (PA-1), DN 600 mm — fornecimento',un:'m',v:160},
- {cod:'',desc:'Tubo de concreto armado (PA-2), DN 800 mm — fornecimento',un:'m',v:280},
+ {cod:'92210',desc:'Tubo concreto DN 400 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:95},
+ {cod:'92212',desc:'Tubo concreto DN 600 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:175},
+ {cod:'92214',desc:'Tubo concreto DN 800 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:265},
+ {cod:'92216',desc:'Tubo concreto DN 1000 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:390},
+ {cod:'92221',desc:'Tubo concreto DN 600 mm p/ águas pluviais, junta rígida, ALTO interf. — fornec. e assentamento',un:'m',v:210},
+ {cod:'92811',desc:'Assentamento de tubo concreto DN 600 mm, junta rígida, baixo interf. (não inclui fornecimento)',un:'m',v:70},
  {cod:'',desc:'Escavação mecânica de vala em solo (prof. até 1,5 m)',un:'m³',v:16},
  {cod:'',desc:'Escavação mecânica de vala em solo (prof. 1,5 a 3,0 m)',un:'m³',v:20},
  {cod:'',desc:'Escavação manual de vala em solo de 1ª categoria',un:'m³',v:75},
