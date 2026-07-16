@@ -445,6 +445,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="ni" id="n-solalm" onclick="go('solalm')"><i class="ti ti-package"></i>Sol. Almoxarifado</div>
   <div class="ni" id="n-marmitex" onclick="go('marmitex');marmitexRender()"><i class="ti ti-tools-kitchen-2"></i>Req. Almoço</div>
   <div class="ni" id="n-dboard" onclick="go('dboard')"><i class="ti ti-notebook"></i>Diário de Bordo</div>
+  <div class="ni" id="n-orc" onclick="go('orc')"><i class="ti ti-calculator"></i>Orçamentos</div>
   <div class="ns" style="margin-top:auto">Administrador</div>
   <div class="ni" id="n-adm" onclick="go('adm')"><i class="ti ti-shield-lock"></i>Área do Admin.</div>
   <div class="ns">Sistema</div>
@@ -3027,6 +3028,81 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
+<div class="pg" id="pg-orc">
+  <div class="pt">Orçamentos</div>
+  <div class="ps">Execução de orçamentos · material (base ATA 038) + mão de obra + equipamentos</div>
+  <div class="tabs">
+    <div class="tab on" onclick="stab(this,'orc-novo')">Novo orçamento</div>
+    <div class="tab" onclick="stab(this,'orc-hist');orcRenderHist()">Histórico</div>
+  </div>
+  <div id="orc-novo">
+    <div class="fcard">
+      <div class="fhead"><i class="ti ti-calculator"></i>Dados do orçamento</div>
+      <div class="fr2">
+        <div class="fg"><label>Nº do orçamento</label><input id="orc-num" placeholder="Auto"></div>
+        <div class="fg"><label>Data</label><input type="date" id="orc-data"></div>
+        <div class="fg fl"><label>Objeto / Serviço</label><input id="orc-obj" placeholder="Ex.: Reparo de boca de lobo na Rua X"></div>
+        <div class="fg fl"><label>Local / Endereço</label><input id="orc-local" placeholder="Rua, nº, trecho..."></div>
+        <div class="fg"><label>Bairro</label><input id="orc-bairro" list="bairros-list" oninput="onBairro(this,'orc-reg')"></div>
+        <div class="fg"><label>Região</label><input id="orc-reg" readonly style="background:var(--bg);color:var(--blue);font-weight:600"></div>
+        <div class="fg"><label>Solicitante / Equipe</label><input id="orc-sol" placeholder="Equipe ou solicitante"></div>
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-package"></i>Material — base de preços da ATA 038</div>
+      <div class="fr2" style="align-items:end">
+        <div class="fg fl"><label>Item da ATA 038</label><select id="orc-mat-sel"></select></div>
+        <div class="fg"><label>Quantidade</label><input id="orc-mat-qtd" type="number" step="any" min="0" placeholder="0"></div>
+        <div class="fg"><button class="btn bp" style="width:100%" onclick="orcAddMat()"><i class="ti ti-plus"></i>Adicionar</button></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Cód</th><th>Material</th><th>Un.</th><th>Vlr unit.</th><th>Qtd</th><th>Subtotal</th><th class="no-print"></th></tr></thead><tbody id="orc-mat-tb"></tbody></table></div>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal material: <span id="orc-mat-sub">R$ 0,00</span></div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-users"></i>Mão de obra — por função × hora</div>
+      <div class="tw"><table><thead><tr><th>Função</th><th>Valor/hora</th><th>Horas</th><th>Subtotal</th><th class="no-print"></th></tr></thead><tbody id="orc-mo-tb"></tbody></table></div>
+      <button class="btn" style="margin-top:6px" onclick="orcAddMO()"><i class="ti ti-plus"></i>Adicionar função</button>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal mão de obra: <span id="orc-mo-sub">R$ 0,00</span></div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-truck"></i>Equipamentos / veículos — hora-máquina</div>
+      <div class="tw"><table><thead><tr><th>Equipamento</th><th>Valor/hora</th><th>Horas</th><th>Subtotal</th><th class="no-print"></th></tr></thead><tbody id="orc-eq-tb"></tbody></table></div>
+      <button class="btn" style="margin-top:6px" onclick="orcAddEquip()"><i class="ti ti-plus"></i>Adicionar equipamento</button>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal equipamentos: <span id="orc-eq-sub">R$ 0,00</span></div>
+    </div>
+    <div class="fcard">
+      <div class="kg">
+        <div class="kc bl"><div class="kl">Material</div><div class="kv" id="orc-t-mat" style="font-size:18px">R$ 0,00</div></div>
+        <div class="kc gn"><div class="kl">Mão de obra</div><div class="kv" id="orc-t-mo" style="font-size:18px">R$ 0,00</div></div>
+        <div class="kc am"><div class="kl">Equipamentos</div><div class="kv" id="orc-t-eq" style="font-size:18px">R$ 0,00</div></div>
+        <div class="kc pu"><div class="kl">TOTAL GERAL</div><div class="kv" id="orc-t-tot" style="font-size:20px">R$ 0,00</div></div>
+      </div>
+      <div class="fg fl" style="margin-top:8px"><label>Observações</label><textarea id="orc-obs" placeholder="Condições, prazos, observações..."></textarea></div>
+      <div id="orc-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="orc-ok-txt"></b></div>
+      <div class="brow no-print" style="margin-top:8px">
+        <button class="btn bp" onclick="orcSave()"><i class="ti ti-device-floppy"></i>Salvar orçamento</button>
+        <button class="btn" onclick="orcPrint()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+        <button class="btn" onclick="orcReset()"><i class="ti ti-x"></i>Limpar</button>
+      </div>
+    </div>
+  </div>
+  <div id="orc-hist" style="display:none">
+    <div class="search-bar"><input id="orc-busca" placeholder="Buscar nº, objeto, local..." oninput="orcRenderHist()" style="flex:2"></div>
+    <div class="tw"><table><thead><tr><th>Nº</th><th>Data</th><th>Objeto</th><th>Local</th><th>Material</th><th>M.O.</th><th>Equip.</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="orc-hist-tb"></tbody></table></div>
+  </div>
+</div>
+
+<div id="orc-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('orc-print-content','size:A4 portrait;margin:12mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('orc-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Retrato</span>
+    </div>
+    <div id="orc-print-content" style="padding:8mm 10mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
+  </div>
+</div>
+
 <div class="pg" id="pg-adm">
   <div class="pt">Área do Administrador</div>
   <div class="ps">Funcionários · Equipes · Materiais e Custos · Composições · Despesas · Frequência · Mobile · Configurações</div>
@@ -3990,12 +4066,12 @@ textarea{resize:vertical;min-height:60px}
 window._GEDREM_JS_OK = true; // flag: script principal carregou
 const DB_NAME = 'GEDREM_DB';
 const DB_VERSION = 4;
-const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado'];
+const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos'];
 
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-75'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-76'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4725,9 +4801,9 @@ function onBairro(input, regId){
 }
 
 const PERMS={
-  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa','adm','cfg'],
-  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa'],
-  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa'],
+  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa','adm','cfg'],
+  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa'],
+  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa'],
 };
 const HOMES={g:'dash',a:'cs',b:'a60'};
 let CU='g';
@@ -4804,6 +4880,7 @@ function go(pg){
   if(pg==='solalm'){ solalmInit(); solalmRenderLista(); }
   if(pg==='dboard') dboardInit();
   if(pg==='marmitex') marmitexRender();
+  if(pg==='orc') orcInit();
 }
 
 function stab(el,tid){
@@ -4889,7 +4966,189 @@ async function refreshDash(){
   if(pgd&&pgd.classList.contains('on')) window._dashTimer=setTimeout(function(){ try{refreshDash();}catch(e){} },30000);
 }
 
+
+/* ═══════════ ORÇAMENTOS — material (ATA 038) + mão de obra (função×hora) + equipamentos ═══════════ */
+let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_EDIT_ID=null;
+const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
+function _om(m){ if(typeof toast==='function')toast(m); else alert(m); }
+function orcMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function orcAtaItens(){ return D.filter(it=>it.ata==='060').slice().sort((a,b)=>(a.m||'').localeCompare(b.m||'')); }
+function orcInit(){
+  const dt=document.getElementById('orc-data'); if(dt&&!dt.value) dt.value=new Date().toISOString().slice(0,10);
+  const sel=document.getElementById('orc-mat-sel');
+  if(sel && sel.options.length<=1){
+    sel.innerHTML='<option value="">Selecione o material...</option>'+orcAtaItens().map(it=>`<option value="${it.n}">${(it.m||'').slice(0,72)} — ${it.u} — ${orcMoney(it.v)}</option>`).join('');
+  }
+  if(ORC_MO.length===0) ORC_MO=ORC_MO_PADRAO.map(x=>({...x}));
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+}
+async function orcNovoCod(){
+  if(ORC_EDIT_ID) return;
+  const el=document.getElementById('orc-num'); if(!el||el.value) return;
+  try{ const all=await dbGetAll('orcamentos'); let mx=0; all.forEach(o=>{const n=parseInt(String(o.numero||'').replace(/\D/g,''),10); if(!isNaN(n)&&n>mx)mx=n;}); el.value=String(mx+1).padStart(4,'0')+'/'+String(new Date().getFullYear()).slice(2); }catch(e){}
+}
+function orcAddMat(){
+  const sel=document.getElementById('orc-mat-sel'); const n=sel.value; const qtd=parseFloat(document.getElementById('orc-mat-qtd').value)||0;
+  if(!n){_om('Selecione um material da ATA 038.');return;}
+  const it=orcAtaItens().find(x=>String(x.n)===String(n)); if(!it)return;
+  ORC_MAT.push({n:it.n,m:it.m,u:it.u,v:it.v||0,qtd:qtd||1});
+  document.getElementById('orc-mat-qtd').value=''; sel.value='';
+  orcRenderMat(); orcCalc();
+}
+function orcRenderMat(){
+  const tb=document.getElementById('orc-mat-tb'); if(!tb)return;
+  tb.innerHTML=ORC_MAT.length?ORC_MAT.map((r,i)=>`<tr>
+    <td style="font-size:10px">${r.n}</td>
+    <td style="font-size:11px;max-width:280px">${r.m}</td>
+    <td style="text-align:center;font-size:10px">${r.u}</td>
+    <td style="text-align:right;font-size:10px">${orcMoney(r.v)}</td>
+    <td><input type="number" step="any" min="0" value="${r.qtd}" style="width:72px;text-align:right" oninput="ORC_MAT[${i}].qtd=parseFloat(this.value)||0;orcCalc()"></td>
+    <td style="text-align:right;font-weight:600" id="orc-mat-st-${i}">${orcMoney(r.v*r.qtd)}</td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="ORC_MAT.splice(${i},1);orcRenderMat();orcCalc()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:12px">Nenhum material adicionado</td></tr>';
+}
+function orcRenderMO(){
+  const tb=document.getElementById('orc-mo-tb'); if(!tb)return;
+  tb.innerHTML=ORC_MO.length?ORC_MO.map((r,i)=>`<tr>
+    <td><input value="${(r.funcao||'').replace(/"/g,'&quot;')}" style="width:100%" oninput="ORC_MO[${i}].funcao=this.value"></td>
+    <td><input type="number" step="any" min="0" value="${r.vh}" style="width:92px;text-align:right" oninput="ORC_MO[${i}].vh=parseFloat(this.value)||0;orcCalc()"></td>
+    <td><input type="number" step="any" min="0" value="${r.h}" style="width:72px;text-align:right" oninput="ORC_MO[${i}].h=parseFloat(this.value)||0;orcCalc()"></td>
+    <td style="text-align:right;font-weight:600" id="orc-mo-st-${i}">${orcMoney(r.vh*r.h)}</td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="ORC_MO.splice(${i},1);orcRenderMO();orcCalc()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:12px">Nenhuma função</td></tr>';
+}
+function orcRenderEq(){
+  const tb=document.getElementById('orc-eq-tb'); if(!tb)return;
+  tb.innerHTML=ORC_EQ.length?ORC_EQ.map((r,i)=>`<tr>
+    <td><input value="${(r.desc||'').replace(/"/g,'&quot;')}" placeholder="Ex.: Retroescavadeira" style="width:100%" oninput="ORC_EQ[${i}].desc=this.value"></td>
+    <td><input type="number" step="any" min="0" value="${r.vh}" style="width:92px;text-align:right" oninput="ORC_EQ[${i}].vh=parseFloat(this.value)||0;orcCalc()"></td>
+    <td><input type="number" step="any" min="0" value="${r.h}" style="width:72px;text-align:right" oninput="ORC_EQ[${i}].h=parseFloat(this.value)||0;orcCalc()"></td>
+    <td style="text-align:right;font-weight:600" id="orc-eq-st-${i}">${orcMoney(r.vh*r.h)}</td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="ORC_EQ.splice(${i},1);orcRenderEq();orcCalc()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:12px">Nenhum equipamento</td></tr>';
+}
+function orcAddMO(){ ORC_MO.push({funcao:'',vh:0,h:0}); orcRenderMO(); }
+function orcAddEquip(){ ORC_EQ.push({desc:'',vh:0,h:0}); orcRenderEq(); }
+function orcCalc(){
+  const tm=ORC_MAT.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
+  const to=ORC_MO.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
+  const te=ORC_EQ.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
+  ORC_MAT.forEach((r,i)=>{const e=document.getElementById('orc-mat-st-'+i); if(e)e.textContent=orcMoney(r.v*r.qtd);});
+  ORC_MO.forEach((r,i)=>{const e=document.getElementById('orc-mo-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
+  ORC_EQ.forEach((r,i)=>{const e=document.getElementById('orc-eq-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
+  const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=orcMoney(v);};
+  set('orc-mat-sub',tm); set('orc-mo-sub',to); set('orc-eq-sub',te);
+  set('orc-t-mat',tm); set('orc-t-mo',to); set('orc-t-eq',te); set('orc-t-tot',tm+to+te);
+  return {tm,to,te,total:tm+to+te};
+}
+function orcColeta(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const t=orcCalc();
+  return { numero:(g('orc-num')||'').trim(), data:g('orc-data'), objeto:(g('orc-obj')||'').trim(), local:(g('orc-local')||'').trim(),
+    bairro:(g('orc-bairro')||'').trim(), regiao:(g('orc-reg')||'').trim(), solicitante:(g('orc-sol')||'').trim(), obs:(g('orc-obs')||'').trim(),
+    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})),
+    totMat:t.tm, totMO:t.to, totEq:t.te, total:t.total };
+}
+async function orcSave(){
+  const o=orcColeta();
+  if(!o.objeto){_om('Informe o objeto/serviço.');return;}
+  if(o.total<=0){_om('Adicione ao menos material, mão de obra ou equipamento.');return;}
+  o._ts=Date.now();
+  try{
+    if(ORC_EDIT_ID){ o.id=ORC_EDIT_ID; await dbPut('orcamentos',o); } else { await dbAdd('orcamentos',o); }
+    cacheInvalidate('orcamentos');
+    const ok=document.getElementById('orc-ok'), okt=document.getElementById('orc-ok-txt');
+    if(okt)okt.textContent='Orçamento '+(o.numero||'')+' salvo · Total '+orcMoney(o.total);
+    if(ok){ok.style.display='flex'; setTimeout(()=>ok.style.display='none',4000);}
+    ORC_EDIT_ID=null;
+    await orcRenderHist();
+  }catch(e){ _om('Erro ao salvar: '+e.message); }
+}
+function orcReset(){
+  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_EDIT_ID=null;
+  ['orc-num','orc-obj','orc-local','orc-bairro','orc-reg','orc-sol','orc-obs'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
+  const dt=document.getElementById('orc-data'); if(dt)dt.value=new Date().toISOString().slice(0,10);
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+}
+async function orcRenderHist(){
+  const tb=document.getElementById('orc-hist-tb'); if(!tb)return;
+  const q=(document.getElementById('orc-busca')?.value||'').toLowerCase();
+  let all=[]; try{ all=await dbGetAll('orcamentos'); }catch(e){}
+  all=all.filter(o=>!q||(((o.numero||'')+' '+(o.objeto||'')+' '+(o.local||'')).toLowerCase().includes(q))).sort((a,b)=>(b._ts||0)-(a._ts||0));
+  tb.innerHTML=all.length?all.map(o=>`<tr>
+    <td><b>${o.numero||'—'}</b></td>
+    <td>${o.data?o.data.split('-').reverse().join('/'):'—'}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(o.objeto||'').replace(/"/g,'&quot;')}">${o.objeto||'—'}</td>
+    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.local||'—'}</td>
+    <td style="text-align:right;font-size:10px">${orcMoney(o.totMat)}</td>
+    <td style="text-align:right;font-size:10px">${orcMoney(o.totMO)}</td>
+    <td style="text-align:right;font-size:10px">${orcMoney(o.totEq)}</td>
+    <td style="text-align:right;font-weight:700">${orcMoney(o.total)}</td>
+    <td class="no-print" style="white-space:nowrap;text-align:right">
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcEditar(${o.id})" title="Editar">✏️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcPrintId(${o.id})" title="Imprimir">🖨️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="orcExcluir(${o.id})" title="Excluir">🗑️</button>
+    </td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:16px">Nenhum orçamento salvo ainda</td></tr>';
+}
+async function orcEditar(id){
+  const all=await dbGetAll('orcamentos'); const o=all.find(x=>x.id===id); if(!o)return;
+  ORC_EDIT_ID=id;
+  const s2=(k,v)=>{const e=document.getElementById(k); if(e)e.value=v||'';};
+  s2('orc-num',o.numero); s2('orc-data',o.data); s2('orc-obj',o.objeto); s2('orc-local',o.local); s2('orc-bairro',o.bairro); s2('orc-reg',o.regiao); s2('orc-sol',o.solicitante); s2('orc-obs',o.obs);
+  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x}));
+  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+  const tabs=document.querySelectorAll('#pg-orc .tab'); if(tabs[0]) stab(tabs[0],'orc-novo');
+  window.scrollTo(0,0);
+}
+async function orcExcluir(id){
+  if(!confirm('Excluir este orçamento? Esta ação não pode ser desfeita.'))return;
+  await dbDelete('orcamentos',id); cacheInvalidate('orcamentos'); await orcRenderHist();
+}
+function orcBuildPrint(o){
+  const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
+  const fd=d=>d?d.split('-').reverse().join('/'):'—';
+  const B='border:1px solid #999;padding:2mm;';
+  const matRows=(o.materiais||[]).map(r=>`<tr><td style="${B}">${r.n}</td><td style="${B}">${r.m}</td><td style="${B}text-align:center">${r.u}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('')||`<tr><td colspan="6" style="${B}text-align:center;color:#777">—</td></tr>`;
+  const moRows=(o.maoObra||[]).filter(r=>r.funcao||r.h).map(r=>`<tr><td style="${B}">${r.funcao||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
+  const eqRows=(o.equipamentos||[]).filter(r=>r.desc||r.h).map(r=>`<tr><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
+  const TH='background:#1a4a8a;color:#fff;'+B;
+  return `
+  <div style="display:flex;align-items:center;gap:4mm;border-bottom:2px solid #1a4a8a;padding-bottom:3mm;margin-bottom:4mm">
+    ${logo?`<img src="${logo}" style="height:18mm;width:auto;object-fit:contain">`:''}
+    <div><div style="font-weight:bold;font-size:13pt;color:#1a4a8a">ORÇAMENTO</div>
+    <div style="font-size:8pt">Gerência de Drenagem Urbana – GEDREM · SISEP</div>
+    <div style="font-size:7.5pt;color:#555">Prefeitura Municipal de Campo Grande – MS</div></div>
+    <div style="margin-left:auto;text-align:right;font-size:8.5pt"><b>Nº ${o.numero||'—'}</b><br>${fd(o.data)}</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:4mm">
+    <tr><td style="${B}background:#f0f5ff;font-weight:bold;width:22%">Objeto / Serviço</td><td style="${B}" colspan="3">${o.objeto||'—'}</td></tr>
+    <tr><td style="${B}background:#f0f5ff;font-weight:bold">Local</td><td style="${B}">${o.local||'—'}</td><td style="${B}background:#f0f5ff;font-weight:bold">Bairro/Região</td><td style="${B}">${(o.bairro||'—')+(o.regiao?' / '+o.regiao:'')}</td></tr>
+    <tr><td style="${B}background:#f0f5ff;font-weight:bold">Solicitante</td><td style="${B}" colspan="3">${o.solicitante||'—'}</td></tr>
+  </table>
+  <div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">1. MATERIAL (base de preços ATA 038)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}">Cód</th><th style="${TH}text-align:left">Material</th><th style="${TH}">Un.</th><th style="${TH}">Vlr unit.</th><th style="${TH}">Qtd</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${matRows}</tbody><tfoot><tr><td colspan="5" style="${B}text-align:right;font-weight:bold">Subtotal material</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totMat)}</td></tr></tfoot></table>
+  <div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">2. MÃO DE OBRA (função × hora)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Função</th><th style="${TH}">Valor/hora</th><th style="${TH}">Horas</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${moRows}</tbody><tfoot><tr><td colspan="3" style="${B}text-align:right;font-weight:bold">Subtotal mão de obra</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totMO)}</td></tr></tfoot></table>
+  <div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">3. EQUIPAMENTOS / VEÍCULOS (hora-máquina)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Equipamento</th><th style="${TH}">Valor/hora</th><th style="${TH}">Horas</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${eqRows}</tbody><tfoot><tr><td colspan="3" style="${B}text-align:right;font-weight:bold">Subtotal equipamentos</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totEq)}</td></tr></tfoot></table>
+  <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-top:4mm"><tr><td style="padding:3mm;background:#1a4a8a;color:#fff;font-weight:bold">TOTAL GERAL DO ORÇAMENTO</td><td style="padding:3mm;background:#1a4a8a;color:#fff;text-align:right;font-weight:bold">${orcMoney(o.total)}</td></tr></table>
+  ${o.obs?`<div style="margin-top:3mm;font-size:8.5pt"><b>Observações:</b> ${o.obs}</div>`:''}
+  <div style="margin-top:16mm;text-align:center"><div style="border-top:1.5px solid #333;width:210px;margin:0 auto 4px"></div><div style="font-size:10pt;font-weight:700">Juvenil Ferreira Lopes</div><div style="font-size:8.5pt;color:#444">Gerente de Drenagem Urbana – GEDREM</div><div style="font-size:8.5pt;color:#444">Prefeitura Municipal de Campo Grande – MS</div></div>`;
+}
+function orcPrint(){
+  const o=orcColeta();
+  if(o.total<=0){_om('Nada para imprimir — adicione itens ao orçamento.');return;}
+  document.getElementById('orc-print-content').innerHTML=orcBuildPrint(o);
+  document.getElementById('orc-print-modal').style.display='flex';
+}
+async function orcPrintId(id){
+  const all=await dbGetAll('orcamentos'); const o=all.find(x=>x.id===id); if(!o)return;
+  document.getElementById('orc-print-content').innerHTML=orcBuildPrint(o);
+  document.getElementById('orc-print-modal').style.display='flex';
+}
+
 const ENC_MAP={};
+
 
 async function buildEncMap(){
   try{
@@ -13795,8 +14054,8 @@ let CFG_USERS=[
   {idx:2,nome:'Técnico B',cargo:'Adm. Técnico',role:'b',email:'',
    modulos:['dash','a60','a059','a100','a107','a109','oficios','prog','mapa']},
 ];
-const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','marmitex','resumo','prog','mapa','adm','cfg'];
-const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
+const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa','adm','cfg'];
+const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
 
 async function cfgAdmRender(){
   aplicarDisplayNames();
