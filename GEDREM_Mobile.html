@@ -507,7 +507,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-65';
+const APP_VERSION='20260713-66';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -667,8 +667,8 @@ async function enviarRelatorio(d){
   }else{d.relId=await storeAdd('relatorio_foto',rfData)}
   // ── Ctrl. Serviços: idem — cria com OS -M, atualiza depois ──
   try{
-    let os=d.osSistema;
-    if(!os)os=String(await maxCod('ctrl_servicos','os',852499)+1)+'-M';
+    // OS do Ctrl. de Serviços = MESMO código do Rel. Fotográfico (único por demanda; evita 852500-M duplicado)
+    let os=d.osSistema||cod;
     const csData={os:os,data:d.data,equipe:d.equipe,encarregado:d.encarregado||'',
       tipo:d.tipo||'',quantidade:parseFloat(d.qtd)||1,endereco:endComp(d),
       bairro:d.bairro||'',regiao:d.regiao||'',
