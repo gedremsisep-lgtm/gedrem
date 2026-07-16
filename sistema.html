@@ -3073,7 +3073,7 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="fcard">
       <div class="sh"><i class="ti ti-list-details"></i>Composições SINAPI — serviços de drenagem</div>
-      <div style="font-size:11px;color:var(--text3);margin:-2px 0 6px">Tubos: valores reais SINAPI 05/2026 (não desonerado, média nacional). Demais itens: referência. Todos editáveis — ajuste para MS Desonerado conforme sua fonte.</div>
+      <div style="font-size:11px;color:var(--text3);margin:-2px 0 6px">Códigos e valores reais SINAPI 05/2026 (não desonerado, média nacional) + versões com TUBO da ATA 038. Itens \"referência\" ainda sem código. Tudo editável — ajuste para MS Desonerado.</div>
       <div class="fr2" style="align-items:end">
         <div class="fg fl"><label>Composição de drenagem</label><select id="orc-comp-sel"></select></div>
         <div class="fg"><button class="btn bp" style="width:100%" onclick="orcAddComp()"><i class="ti ti-plus"></i>Adicionar</button></div>
@@ -4084,7 +4084,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-80'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-81'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4984,29 +4984,27 @@ async function refreshDash(){
 let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_EDIT_ID=null;
 const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
 const SINAPI_DREN=[
- {cod:'92210',desc:'Tubo concreto DN 400 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:186.12},
- {cod:'92212',desc:'Tubo concreto DN 600 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:344.97},
- {cod:'92214',desc:'Tubo concreto DN 800 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:554.91},
- {cod:'92216',desc:'Tubo concreto DN 1000 mm p/ águas pluviais, junta rígida, baixo interf. — fornec. e assentamento',un:'m',v:661.14},
- {cod:'92221',desc:'Tubo concreto DN 600 mm p/ águas pluviais, junta rígida, ALTO interf. — fornec. e assentamento',un:'m',v:352.02},
- {cod:'92811',desc:'Assentamento de tubo concreto DN 600 mm, junta rígida, baixo interf. (não inclui fornecimento)',un:'m',v:67.90},
- {cod:'',desc:'Escavação mecânica de vala em solo (prof. até 1,5 m)',un:'m³',v:16},
- {cod:'',desc:'Escavação mecânica de vala em solo (prof. 1,5 a 3,0 m)',un:'m³',v:20},
- {cod:'',desc:'Escavação manual de vala em solo de 1ª categoria',un:'m³',v:75},
- {cod:'',desc:'Reaterro e compactação mecânica de vala',un:'m³',v:35},
- {cod:'',desc:'Reaterro manual de vala com compactação',un:'m³',v:55},
- {cod:'',desc:'Lastro/berço de brita para assentamento de tubo',un:'m³',v:210},
- {cod:'',desc:'Berço/base de concreto para tubulação',un:'m',v:60},
- {cod:'',desc:'Boca de lobo simples em alvenaria (1,00 x 0,50 m)',un:'un',v:1300},
- {cod:'',desc:'Boca de lobo dupla em alvenaria',un:'un',v:2100},
- {cod:'',desc:'Poço de visita (PV) em alvenaria, prof. até 1,5 m',un:'un',v:2600},
- {cod:'',desc:'Caixa de ligação/inspeção em alvenaria',un:'un',v:950},
- {cod:'',desc:'Meio-fio de concreto pré-moldado, assentado',un:'m',v:55},
- {cod:'',desc:'Sarjeta de concreto moldada in loco',un:'m',v:65},
- {cod:'',desc:'Recomposição de pavimento asfáltico (CBUQ) sobre vala',un:'m²',v:95},
- {cod:'',desc:'Recomposição de base em brita graduada simples',un:'m³',v:180},
- {cod:'',desc:'Concreto estrutural fck 20 MPa, lançado e adensado',un:'m³',v:780},
- {cod:'',desc:'Desobstrução/limpeza de galeria de águas pluviais',un:'m',v:28}
+ {cod:'92210',desc:'Tubo concreto DN 400 – junta rígida, baixo interf. – fornec.+assent. (SINAPI)',un:'m',v:186.12},
+ {cod:'92212',desc:'Tubo concreto DN 600 – junta rígida, baixo interf. – fornec.+assent. (SINAPI)',un:'m',v:344.97},
+ {cod:'92214',desc:'Tubo concreto DN 800 – junta rígida, baixo interf. – fornec.+assent. (SINAPI)',un:'m',v:554.91},
+ {cod:'92216',desc:'Tubo concreto DN 1000 – junta rígida, baixo interf. – fornec.+assent. (SINAPI)',un:'m',v:661.14},
+ {cod:'92221',desc:'Tubo concreto DN 600 – junta rígida, ALTO interf. – fornec.+assent. (SINAPI)',un:'m',v:352.02},
+ {cod:'92811',desc:'Assentamento de tubo DN 600 – junta rígida, baixo interf. (sem fornecimento) (SINAPI)',un:'m',v:67.90},
+ {cod:'',desc:'Tubo DN 400 – assentamento SINAPI + TUBO da ATA 038 (R$127,85/m)',un:'m',v:174.62},
+ {cod:'92811',desc:'Tubo DN 600 – assentamento SINAPI (92811) + TUBO da ATA 038 (R$247,90/m)',un:'m',v:323.24},
+ {cod:'',desc:'Tubo DN 800 – assentamento SINAPI + TUBO da ATA 038 (R$412,60/m)',un:'m',v:518.90},
+ {cod:'',desc:'Tubo DN 1000 – assentamento SINAPI + TUBO da ATA 038 (R$483,40/m)',un:'m',v:618.88},
+ {cod:'90086',desc:'Escavação mecânica de vala (prof. 3–4,5 m, larg. <1,5 m, alto interf.) (SINAPI)',un:'m³',v:10.28},
+ {cod:'93378',desc:'Reaterro mecanizado de vala (retroescavadeira, larg ≤0,8 m, prof ≤1,5 m) (SINAPI)',un:'m³',v:29.04},
+ {cod:'93382',desc:'Reaterro manual de valas, com compactador de percussão (SINAPI)',un:'m³',v:35.79},
+ {cod:'97935',desc:'Caixa boca de lobo simples retangular, concreto pré-moldado 0,6x1,0x1,2 m (SINAPI)',un:'un',v:1023.63},
+ {cod:'99256',desc:'Base p/ poço de visita retangular, alvenaria bloco concreto 1,5x2,5 m, prof 1,40 m (SINAPI)',un:'un',v:6475.77},
+ {cod:'',desc:'Boca de lobo dupla em alvenaria (referência — informe o código SINAPI)',un:'un',v:2100},
+ {cod:'',desc:'Meio-fio de concreto pré-moldado, assentado (referência)',un:'m',v:55},
+ {cod:'',desc:'Sarjeta de concreto moldada in loco (referência)',un:'m',v:65},
+ {cod:'',desc:'Recomposição de pavimento asfáltico (CBUQ) sobre vala (referência)',un:'m²',v:95},
+ {cod:'',desc:'Concreto estrutural fck 20 MPa, lançado e adensado (referência)',un:'m³',v:780},
+ {cod:'',desc:'Desobstrução/limpeza de galeria de águas pluviais (referência)',un:'m',v:28}
 ];
 function _om(m){ if(typeof toast==='function')toast(m); else alert(m); }
 function orcMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
