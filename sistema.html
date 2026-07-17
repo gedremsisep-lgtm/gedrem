@@ -4171,7 +4171,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-87'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-88'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16925,7 +16925,8 @@ async function checkSistemaUpdate(){
     const res = await fetch(url);
     if(!res.ok){ statusEl.textContent='Sem informações de versão disponíveis.'; return; }
     _updMeta = await res.json();
-    if(_updMeta.versao !== SYSTEM_VERSION){
+    const _vn=v=>{const m=String(v||'').match(/(\d{6,8})\D+(\d+)/);return m?(parseInt(m[1],10)*100000+parseInt(m[2],10)):0;};
+    if(_vn(_updMeta.versao) > _vn(SYSTEM_VERSION)){
       // AUTO-ATUALIZAÇÃO: recarrega buscando a versão nova (com cache-bust), sem re-download
       if(location.protocol.startsWith('http') && sessionStorage.getItem('gedrem_sys_upd')!==_updMeta.versao){
         sessionStorage.setItem('gedrem_sys_upd',_updMeta.versao);

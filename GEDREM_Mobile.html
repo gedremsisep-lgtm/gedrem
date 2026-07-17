@@ -507,14 +507,15 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-69';
+const APP_VERSION='20260713-70';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
     const r=await fetch(SUPA_URL+'/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t='+Date.now(),{cache:'no-store'});
     if(!r.ok)return;
     const j=await r.json();
-    if(j&&j.versao&&j.versao!==APP_VERSION){ mostrarUpdateObrigatorio(j.versao); }
+    const _vn=v=>{const m=String(v||'').match(/(\d{6,8})\D+(\d+)/);return m?(parseInt(m[1],10)*100000+parseInt(m[2],10)):0;};
+    if(j&&j.versao&&_vn(j.versao)>_vn(APP_VERSION)){ mostrarUpdateObrigatorio(j.versao); }
   }catch(e){}
 }
 function mostrarUpdateObrigatorio(nova){
