@@ -1732,8 +1732,16 @@ textarea{resize:vertical;min-height:60px}
             <option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option>
           </select>
         </div>
-        <div class="fg"><label>De (entrada)</label><input type="date" id="ofc-res-de" onchange="ofcRenderResumo()"></div>
-        <div class="fg"><label>Até (entrada)</label><input type="date" id="ofc-res-ate" onchange="ofcRenderResumo()"></div>
+        <div class="fg"><label>Filtrar data por</label>
+          <select id="ofc-res-datacampo" onchange="ofcRenderResumo()">
+            <option value="data">Entrada</option>
+            <option value="dataElaboracao">Elaboração</option>
+            <option value="dtResp">Resposta</option>
+            <option value="dtExec">Execução</option>
+          </select>
+        </div>
+        <div class="fg"><label>De</label><input type="date" id="ofc-res-de" onchange="ofcRenderResumo()"></div>
+        <div class="fg"><label>Até</label><input type="date" id="ofc-res-ate" onchange="ofcRenderResumo()"></div>
       </div>
     </div>
     <div class="kg" id="ofc-res-kpis" style="margin-bottom:12px"></div>
@@ -4171,7 +4179,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-88'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-90'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4375,6 +4383,7 @@ async function cloudBulkAdd(store, records){
   return records.length;
 }
 
+async function dbGet(store,id){ try{ const all=await dbGetAll(store); return (all||[]).find(x=>x.id===id || String(x.id)===String(id))||null; }catch(e){ return null; } }
 function dbGetAll(store){ return LOCAL_STORES.includes(store) ? localGetAll(store) : cloudGetAll(store); }
 function dbAdd(store,data){ return LOCAL_STORES.includes(store) ? localAdd(store,data) : cloudAdd(store,data); }
 function dbPut(store,data){ return LOCAL_STORES.includes(store) ? localPut(store,data) : cloudPut(store,data); }
@@ -4481,9 +4490,12 @@ async function loadCfgUsersFromDB(){
           if(u.cargo) CFG_USERS[i].cargo=u.cargo;
           if(u.email) CFG_USERS[i].email=u.email;
           if(Array.isArray(u.modulos)&&u.modulos.length>0){
-            CFG_USERS[i].modulos=u.modulos;
+            let mods=u.modulos.slice();
+            // Técnicos A e B sempre têm Orçamentos e Indenização de Transporte
+            if(u.role==='a'||u.role==='b'){ ['orc','indeniz'].forEach(m=>{ if(!mods.includes(m)) mods.push(m); }); }
+            CFG_USERS[i].modulos=mods;
             // Gestor sempre mantém permissões completas do default — nunca restringir pelo DB
-            if(u.role!=='g'&&PERMS[u.role]) PERMS[u.role]=u.modulos;
+            if(u.role!=='g'&&PERMS[u.role]) PERMS[u.role]=mods;
           }
         }
       });
@@ -10341,15 +10353,25 @@ function ofcFiltrarResumo(all){
   const reg=document.getElementById('ofc-res-reg')?.value||'';
   const de =document.getElementById('ofc-res-de')?.value||'';
   const ate=document.getElementById('ofc-res-ate')?.value||'';
+  const campo=document.getElementById('ofc-res-datacampo')?.value||'data';
+  const getDt=x=>{
+    if(campo==='dataElaboracao') return x.dataElaboracao||'';
+    if(campo==='dtResp') return (x.resposta&&x.resposta.dtResp)||'';
+    if(campo==='dtExec') return (x.resposta&&x.resposta.dtExec)||'';
+    return x.data||'';
+  };
   const hoje=new Date();
+  const temFiltroData = !!(de||ate||per);
   return all.filter(x=>{
     if(sol&&x.solicitante!==sol) return false;
     if(st&&x.status!==st) return false;
     if(reg&&x.regiao!==reg) return false;
-    if(de&&x.data&&x.data<de) return false;
-    if(ate&&x.data&&x.data>ate) return false;
-    if(per&&x.data){
-      const d=new Date(x.data+'T12:00:00');
+    const dt=getDt(x);
+    if(temFiltroData && !dt) return false;
+    if(de&&dt<de) return false;
+    if(ate&&dt>ate) return false;
+    if(per&&dt){
+      const d=new Date(dt+'T12:00:00');
       if(per==='mes'&&(d.getMonth()!==hoje.getMonth()||d.getFullYear()!==hoje.getFullYear())) return false;
       if(per==='trim'){const q=Math.floor(hoje.getMonth()/3);if(Math.floor(d.getMonth()/3)!==q||d.getFullYear()!==hoje.getFullYear()) return false;}
       if(per==='ano'&&d.getFullYear()!==hoje.getFullYear()) return false;
@@ -14512,9 +14534,9 @@ let CFG_USERS=[
   {idx:0,nome:'Juvenil Ferreira Lopes',cargo:'Gerente de Drenagem',role:'g',email:'juvenil@pmcg.ms.gov.br',
    modulos:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','prog','mapa','adm','cfg']},
   {idx:1,nome:'Técnico A',cargo:'Adm. Técnico',role:'a',email:'',
-   modulos:['dash','rf','cs','falacg','prog','mapa']},
+   modulos:['dash','rf','cs','falacg','prog','mapa','orc','indeniz']},
   {idx:2,nome:'Técnico B',cargo:'Adm. Técnico',role:'b',email:'',
-   modulos:['dash','a60','a059','a100','a107','a109','oficios','prog','mapa']},
+   modulos:['dash','a60','a059','a100','a107','a109','oficios','prog','mapa','orc','indeniz']},
 ];
 const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'];
 const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','indeniz':'Indenização Transp.','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
