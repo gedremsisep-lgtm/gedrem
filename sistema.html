@@ -3173,10 +3173,17 @@ textarea{resize:vertical;min-height:60px}
       <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal equipamentos: <span id="orc-eq-sub">R$ 0,00</span></div>
     </div>
     <div class="fcard">
+      <div class="sh"><i class="ti ti-briefcase"></i>Serviços terceirizados — independentes de ATA, mão de obra e equipamento</div>
+      <div class="tw"><table><thead><tr><th>Descrição do serviço</th><th>Und.</th><th>Valor unit.</th><th>Qtd</th><th>Subtotal</th><th class="no-print"></th></tr></thead><tbody id="orc-terc-tb"></tbody></table></div>
+      <button class="btn" style="margin-top:6px" onclick="orcAddTerc()"><i class="ti ti-plus"></i>Adicionar serviço terceirizado</button>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Subtotal serviços terceirizados: <span id="orc-terc-sub">R$ 0,00</span></div>
+    </div>
+    <div class="fcard">
       <div class="kg">
         <div class="kc bl"><div class="kl">Material</div><div class="kv" id="orc-t-mat" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc gn"><div class="kl">Mão de obra</div><div class="kv" id="orc-t-mo" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc am"><div class="kl">Equipamentos</div><div class="kv" id="orc-t-eq" style="font-size:18px">R$ 0,00</div></div>
+        <div class="kc rd"><div class="kl">Serviços terc.</div><div class="kv" id="orc-t-terc" style="font-size:18px">R$ 0,00</div></div>
         <div class="kc pu"><div class="kl">TOTAL GERAL</div><div class="kv" id="orc-t-tot" style="font-size:20px">R$ 0,00</div></div>
       </div>
       <div class="fg fl" style="margin-top:8px"><label>Observações</label><textarea id="orc-obs" placeholder="Condições, prazos, observações..."></textarea></div>
@@ -4243,7 +4250,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-92'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-93'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5145,7 +5152,7 @@ async function refreshDash(){
 
 
 /* ═══════════ ORÇAMENTOS — material (ATA 038) + mão de obra (função×hora) + equipamentos ═══════════ */
-let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_EDIT_ID=null;
+let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_TERC=[], ORC_EDIT_ID=null;
 let ORC_SRV=[], ORC_SRV_SEQ=0;
 const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
 const SINAPI_DREN=[
@@ -5178,7 +5185,7 @@ function orcInit(){
   const dt=document.getElementById('orc-data'); if(dt&&!dt.value) dt.value=new Date().toISOString().slice(0,10);
   orcFillMatSel(); orcFillSrvSel(); orcRenderSrv();
   if(ORC_MO.length===0) ORC_MO=ORC_MO_PADRAO.map(x=>({...x}));
-  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderTerc(); orcCalc();
 }
 async function orcNovoCod(){
   if(ORC_EDIT_ID) return;
@@ -5241,6 +5248,18 @@ function orcRenderEq(){
 }
 function orcAddMO(){ ORC_MO.push({funcao:'',vh:0,h:0}); orcRenderMO(); }
 function orcAddEquip(){ ORC_EQ.push({desc:'',vh:0,h:0}); orcRenderEq(); }
+function orcRenderTerc(){
+  const tb=document.getElementById('orc-terc-tb'); if(!tb)return;
+  tb.innerHTML=ORC_TERC.length?ORC_TERC.map((r,i)=>`<tr>
+    <td><input value="${(r.desc||'').replace(/"/g,'&quot;')}" placeholder="Ex.: Locação de caçamba, topografia, sondagem..." style="width:100%" oninput="ORC_TERC[${i}].desc=this.value"></td>
+    <td><input value="${(r.un||'').replace(/"/g,'&quot;')}" placeholder="un" style="width:52px;text-align:center" oninput="ORC_TERC[${i}].un=this.value"></td>
+    <td><input type="number" step="any" min="0" value="${r.v}" style="width:92px;text-align:right" oninput="ORC_TERC[${i}].v=parseFloat(this.value)||0;orcCalc()"></td>
+    <td><input type="number" step="any" min="0" value="${r.qtd}" style="width:72px;text-align:right" oninput="ORC_TERC[${i}].qtd=parseFloat(this.value)||0;orcCalc()"></td>
+    <td style="text-align:right;font-weight:600" id="orc-terc-st-${i}">${orcMoney((r.v||0)*(r.qtd||0))}</td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="ORC_TERC.splice(${i},1);orcRenderTerc();orcCalc()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:12px">Nenhum serviço terceirizado</td></tr>';
+}
+function orcAddTerc(){ ORC_TERC.push({desc:'',un:'un',v:0,qtd:1}); orcRenderTerc(); orcCalc(); }
 function orcRenderComp(){
   const tb=document.getElementById('orc-comp-tb'); if(!tb)return;
   tb.innerHTML=ORC_COMP.length?ORC_COMP.map((r,i)=>`<tr>
@@ -5266,27 +5285,29 @@ function orcCalc(){
   const to=ORC_MO.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
   const te=ORC_EQ.reduce((s,r)=>s+(r.vh||0)*(r.h||0),0);
   const tc=ORC_COMP.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
+  const tt=ORC_TERC.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
   ORC_MAT.forEach((r,i)=>{const e=document.getElementById('orc-mat-st-'+i); if(e)e.textContent=orcMoney(r.v*r.qtd);});
   ORC_MO.forEach((r,i)=>{const e=document.getElementById('orc-mo-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
   ORC_EQ.forEach((r,i)=>{const e=document.getElementById('orc-eq-st-'+i); if(e)e.textContent=orcMoney(r.vh*r.h);});
   ORC_COMP.forEach((r,i)=>{const e=document.getElementById('orc-comp-st-'+i); if(e)e.textContent=orcMoney(r.v*r.qtd);});
+  ORC_TERC.forEach((r,i)=>{const e=document.getElementById('orc-terc-st-'+i); if(e)e.textContent=orcMoney((r.v||0)*(r.qtd||0));});
   const set=(id,v)=>{const e=document.getElementById(id); if(e)e.textContent=orcMoney(v);};
-  set('orc-mat-sub',tm); set('orc-mo-sub',to); set('orc-eq-sub',te); set('orc-comp-sub',tc);
-  set('orc-t-mat',tm); set('orc-t-mo',to); set('orc-t-eq',te); set('orc-t-comp',tc); set('orc-t-tot',tm+to+te+tc);
-  return {tm,to,te,tc,total:tm+to+te+tc};
+  set('orc-mat-sub',tm); set('orc-mo-sub',to); set('orc-eq-sub',te); set('orc-comp-sub',tc); set('orc-terc-sub',tt);
+  set('orc-t-mat',tm); set('orc-t-mo',to); set('orc-t-eq',te); set('orc-t-comp',tc); set('orc-t-terc',tt); set('orc-t-tot',tm+to+te+tc+tt);
+  return {tm,to,te,tc,tt,total:tm+to+te+tc+tt};
 }
 function orcColeta(){
   const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
   const t=orcCalc();
   return { numero:(g('orc-num')||'').trim(), data:g('orc-data'), objeto:(g('orc-obj')||'').trim(), local:(g('orc-local')||'').trim(),
     bairro:(g('orc-bairro')||'').trim(), regiao:(g('orc-reg')||'').trim(), solicitante:(g('orc-sol')||'').trim(), obs:(g('orc-obs')||'').trim(),
-    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})), composicoes:ORC_COMP.map(x=>({...x})), servicos:ORC_SRV.map(x=>({...x})),
-    totMat:t.tm, totMO:t.to, totEq:t.te, totComp:t.tc, total:t.total };
+    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})), composicoes:ORC_COMP.map(x=>({...x})), servicos:ORC_SRV.map(x=>({...x})), terceirizados:ORC_TERC.map(x=>({...x})),
+    totMat:t.tm, totMO:t.to, totEq:t.te, totComp:t.tc, totTerc:t.tt, total:t.total };
 }
 async function orcSave(){
   const o=orcColeta();
   if(!o.objeto){_om('Informe o objeto/serviço.');return;}
-  if(o.total<=0){_om('Adicione ao menos material, mão de obra ou equipamento.');return;}
+  if(o.total<=0){_om('Adicione ao menos material, mão de obra, equipamento ou serviço terceirizado.');return;}
   o._ts=Date.now();
   try{
     if(ORC_EDIT_ID){ o.id=ORC_EDIT_ID; await dbPut('orcamentos',o); } else { await dbAdd('orcamentos',o); }
@@ -5355,10 +5376,10 @@ function orcRemServico(sid){
   orcRenderSrv(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
 }
 function orcReset(){
-  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_COMP=[]; ORC_SRV=[]; ORC_EDIT_ID=null;
+  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_COMP=[]; ORC_SRV=[]; ORC_TERC=[]; ORC_EDIT_ID=null;
   ['orc-num','orc-obj','orc-local','orc-bairro','orc-reg','orc-sol','orc-obs'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
   const dt=document.getElementById('orc-data'); if(dt)dt.value=new Date().toISOString().slice(0,10);
-  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcCalc();
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcRenderTerc(); orcCalc();
 }
 
 /* ═══════════════ INDENIZAÇÃO DE TRANSPORTE ═══════════════ */
@@ -5606,8 +5627,8 @@ async function orcEditar(id){
   ORC_EDIT_ID=id;
   const s2=(k,v)=>{const e=document.getElementById(k); if(e)e.value=v||'';};
   s2('orc-num',o.numero); s2('orc-data',o.data); s2('orc-obj',o.objeto); s2('orc-local',o.local); s2('orc-bairro',o.bairro); s2('orc-reg',o.regiao); s2('orc-sol',o.solicitante); s2('orc-obs',o.obs);
-  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x})); ORC_COMP=(o.composicoes||[]).map(x=>({...x})); ORC_SRV=(o.servicos||[]).map(x=>({...x}));
-  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcCalc();
+  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x})); ORC_COMP=(o.composicoes||[]).map(x=>({...x})); ORC_SRV=(o.servicos||[]).map(x=>({...x})); ORC_TERC=(o.terceirizados||[]).map(x=>({...x}));
+  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcRenderTerc(); orcCalc();
   const tabs=document.querySelectorAll('#pg-orc .tab'); if(tabs[0]) stab(tabs[0],'orc-novo');
   window.scrollTo(0,0);
 }
@@ -5623,6 +5644,7 @@ function orcBuildPrint(o){
   const matRows=(o.materiais||[]).map(r=>`<tr><td style="${B}">${r.custom?'—':(r.ata?orcAtaLabel(r.ata)+' '+r.n:r.n)}</td><td style="${B}">${r.m}</td><td style="${B}text-align:center">${r.u}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('')||`<tr><td colspan="6" style="${B}text-align:center;color:#777">—</td></tr>`;
   const moRows=(o.maoObra||[]).filter(r=>r.funcao||r.h).map(r=>`<tr><td style="${B}">${r.funcao||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
   const eqRows=(o.equipamentos||[]).filter(r=>r.desc||r.h).map(r=>`<tr><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:right">${orcMoney(r.vh)}</td><td style="${B}text-align:right">${(r.h||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.vh||0)*(r.h||0))}</td></tr>`).join('')||`<tr><td colspan="4" style="${B}text-align:center;color:#777">—</td></tr>`;
+  const tercRows=(o.terceirizados||[]).filter(r=>r.desc||r.qtd).map(r=>`<tr><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:center">${r.un||''}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('');
   const compRows=(o.composicoes||[]).filter(r=>r.desc||r.qtd).map(r=>`<tr><td style="${B}">${r.cod||'—'}</td><td style="${B}">${r.desc||'—'}</td><td style="${B}text-align:center">${r.un||''}</td><td style="${B}text-align:right">${orcMoney(r.v)}</td><td style="${B}text-align:right">${(r.qtd||0).toLocaleString('pt-BR')}</td><td style="${B}text-align:right">${orcMoney((r.v||0)*(r.qtd||0))}</td></tr>`).join('');
   const TH='background:#1a4a8a;color:#fff;'+B;
   return `
@@ -5647,6 +5669,8 @@ function orcBuildPrint(o){
   <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Equipamento</th><th style="${TH}">Valor/hora</th><th style="${TH}">Horas</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${eqRows}</tbody><tfoot><tr><td colspan="3" style="${B}text-align:right;font-weight:bold">Subtotal equipamentos</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totEq)}</td></tr></tfoot></table>
   ${compRows?`<div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">4. COMPOSIÇÕES SINAPI (drenagem)</div>
   <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}">Cód</th><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Un.</th><th style="${TH}">Vlr unit.</th><th style="${TH}">Qtd</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${compRows}</tbody><tfoot><tr><td colspan="5" style="${B}text-align:right;font-weight:bold">Subtotal composições</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totComp)}</td></tr></tfoot></table>`:''}
+  ${tercRows?`<div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">${compRows?'5':'4'}. SERVIÇOS TERCEIRIZADOS</div>
+  <table style="width:100%;border-collapse:collapse;font-size:8pt"><thead><tr><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Un.</th><th style="${TH}">Vlr unit.</th><th style="${TH}">Qtd</th><th style="${TH}">Subtotal</th></tr></thead><tbody>${tercRows}</tbody><tfoot><tr><td colspan="4" style="${B}text-align:right;font-weight:bold">Subtotal serviços terceirizados</td><td style="${B}text-align:right;font-weight:bold">${orcMoney(o.totTerc)}</td></tr></tfoot></table>`:''}
   <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-top:4mm"><tr><td style="padding:3mm;background:#1a4a8a;color:#fff;font-weight:bold">TOTAL GERAL DO ORÇAMENTO</td><td style="padding:3mm;background:#1a4a8a;color:#fff;text-align:right;font-weight:bold">${orcMoney(o.total)}</td></tr></table>
   ${o.obs?`<div style="margin-top:3mm;font-size:8.5pt"><b>Observações:</b> ${o.obs}</div>`:''}
   <div style="margin-top:16mm;text-align:center"><div style="border-top:1.5px solid #333;width:210px;margin:0 auto 4px"></div><div style="font-size:10pt;font-weight:700">Juvenil Ferreira Lopes</div><div style="font-size:8.5pt;color:#444">Gerente de Drenagem Urbana – GEDREM</div><div style="font-size:8.5pt;color:#444">Prefeitura Municipal de Campo Grande – MS</div></div>`;
