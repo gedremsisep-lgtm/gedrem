@@ -483,6 +483,12 @@ textarea{resize:vertical;min-height:60px}
       <div class="mcard" onclick="go('prog')"><div class="micon" style="background:#E1F5EE"><i class="ti ti-calendar-event" style="color:#0F6E56"></i></div><div class="mtitle">Programação</div><div class="mdesc">Programação diária por equipe</div><div class="mstat" style="color:#0F6E56" id="d-prog-stat">—</div></div>
       <div class="mcard" onclick="go('a60')"><div class="micon" style="background:#FEF3E2"><i class="ti ti-history" style="color:#7A4A0A"></i></div><div class="mtitle">ATA 038 – Drenagem</div><div class="mdesc">Novo pedido e formalização de contrato</div><div class="mstat" style="color:#7A4A0A">Saldo · Pedido · Histórico</div></div>
       <div class="mcard" onclick="admAbrirMobile()"><div class="micon" style="background:#E6F1FB"><i class="ti ti-device-mobile" style="color:#185FA5"></i></div><div class="mtitle">GEDREM Mobile</div><div class="mdesc">Lançamentos das equipes via app (-M)</div><div class="mstat" style="color:#185FA5" id="dash-mob-stat">Validação · Relatórios · Execuções</div></div>
+      <div class="mcard" onclick="document.getElementById('disp-card').scrollIntoView({behavior:'smooth'});dispRender()"><div class="micon" style="background:#EAF3DE"><i class="ti ti-devices" style="color:#2D7A3A"></i></div><div class="mtitle">Versões dos dispositivos</div><div class="mdesc">Qual versão cada PC/celular usa</div><div class="mstat" style="color:#2D7A3A" id="dash-disp-stat">—</div></div>
+    </div>
+    <div class="card" id="disp-card">
+      <div class="sh"><i class="ti ti-devices"></i>Versões dos dispositivos<button class="export-btn no-print" style="font-size:11px;padding:3px 10px;margin-left:8px" onclick="dispRender()"><i class="ti ti-refresh"></i>Atualizar</button></div>
+      <div class="al ai" style="font-size:11px;margin:2px 0 8px"><i class="ti ti-info-circle"></i>Cada PC/celular que abre o sistema ou o app aparece aqui com a versão instalada. Verde = atualizado; laranja = desatualizado. O botão "Atualizar" força o aparelho a recarregar assim que estiver online.</div>
+      <div class="tw"><table><thead><tr><th>Dispositivo</th><th>Tipo</th><th>Versão</th><th>Visto por último</th><th class="no-print">Ação</th></tr></thead><tbody id="disp-tb"></tbody></table></div>
     </div>
     <div class="card">
       <div class="sh"><i class="ti ti-refresh"></i>Atualização do Sistema <span id="upd-badge" style="display:none;background:#16a34a;color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;margin-left:8px;font-weight:600">NOVA VERSÃO</span></div>
@@ -4160,12 +4166,12 @@ textarea{resize:vertical;min-height:60px}
 window._GEDREM_JS_OK = true; // flag: script principal carregou
 const DB_NAME = 'GEDREM_DB';
 const DB_VERSION = 4;
-const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes'];
+const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes','dispositivos'];
 
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-86'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-87'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4962,7 +4968,7 @@ function go(pg){
   const p=document.getElementById('pg-'+pg), n=document.getElementById('n-'+pg);
   if(p) p.classList.add('on');
   if(n) n.classList.add('on');
-  if(pg==='dash'){ refreshDash(); checkSistemaUpdate(); }
+  if(pg==='dash'){ refreshDash(); checkSistemaUpdate(); dispRender(); }
   if(pg==='a60') ataRenderConsolid();
   if(pg==='a059') ataRender('059');
   if(pg==='a100') ataRender('100');
@@ -5828,6 +5834,7 @@ async function rfInitCod(codOverride){
 document.addEventListener('DOMContentLoaded',async ()=>{
   rfInitSlots();
   document.getElementById('rf-dt').value=new Date().toISOString().slice(0,10);
+  setTimeout(()=>{ dispHeartbeat(); setInterval(dispHeartbeat,60000); },5000);
 });
 
 async function rfSave(){
@@ -16836,6 +16843,79 @@ async function seedDadosReais(){
 
 // ── Auto-atualização do sistema ──────────────────────────────────────────────
 let _updMeta = null;
+
+/* ═══════════════ VERSÕES DOS DISPOSITIVOS ═══════════════ */
+function dispDeviceId(){
+  let id=localStorage.getItem('gedrem_device_id');
+  if(!id){ id='dv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8); localStorage.setItem('gedrem_device_id',id); }
+  return id;
+}
+function dispPlataforma(){
+  const ua=navigator.userAgent||'';
+  let so='PC'; if(/Windows/i.test(ua))so='Windows'; else if(/Macintosh|Mac OS/i.test(ua))so='Mac'; else if(/Android/i.test(ua))so='Android'; else if(/iPhone|iPad/i.test(ua))so='iOS'; else if(/Linux/i.test(ua))so='Linux';
+  let nav='navegador'; if(/Edg\//i.test(ua))nav='Edge'; else if(/OPR\//i.test(ua))nav='Opera'; else if(/Chrome\//i.test(ua))nav='Chrome'; else if(/Firefox\//i.test(ua))nav='Firefox'; else if(/Safari\//i.test(ua))nav='Safari';
+  return so+' · '+nav;
+}
+async function dispHeartbeat(){
+  try{
+    const id=dispDeviceId();
+    const rec={ deviceId:id, tipo:'Sistema', nome:(typeof DISPLAY_NAMES!=='undefined'&&DISPLAY_NAMES[CU])||(typeof PROFILE_NAMES!=='undefined'&&PROFILE_NAMES[CU])||'Sistema', perfil:(typeof PROFILE_NAMES!=='undefined'&&PROFILE_NAMES[CU])||'', versao:SYSTEM_VERSION, plataforma:dispPlataforma(), ts:Date.now() };
+    const all=await dbGetAll('dispositivos').catch(()=>[]);
+    const ex=(all||[]).find(x=>x.deviceId===id);
+    if(ex){
+      if(ex.forcar && String(ex.forcar)!==localStorage.getItem('gedrem_last_forcar')){
+        localStorage.setItem('gedrem_last_forcar',String(ex.forcar));
+        try{ await dbPut('dispositivos',{...ex,...rec,forcar:null}); cacheInvalidate('dispositivos'); }catch(e){}
+        if(String(location.protocol).startsWith('http')){ location.replace(location.pathname+'?v='+Date.now()); return; }
+      }
+      await dbPut('dispositivos',{...ex,...rec});
+    } else {
+      await dbAdd('dispositivos',rec);
+    }
+    cacheInvalidate('dispositivos');
+  }catch(e){}
+}
+async function dispRender(){
+  const tb=document.getElementById('disp-tb'); const stat=document.getElementById('dash-disp-stat');
+  let all=[]; try{ all=await dbGetAll('dispositivos'); }catch(e){}
+  all=(all||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const verNum=v=>{ const m=String(v||'').match(/(\d+)\s*$/); return m?parseInt(m[1],10):0; };
+  let alvoSis=SYSTEM_VERSION, alvoMob='';
+  try{ const r=await fetch(`${SUPABASE_URL}/storage/v1/object/public/gedrem-docs/sistema/versao.json?t=${Date.now()}`); if(r.ok){const j=await r.json(); if(j&&j.versao&&verNum(j.versao)>verNum(alvoSis))alvoSis=j.versao;} }catch(e){}
+  try{ const r=await fetch(`${SUPABASE_URL}/storage/v1/object/public/gedrem-docs/sistema/versao_app.json?t=${Date.now()}`); if(r.ok){const j=await r.json(); if(j&&j.versao)alvoMob=j.versao;} }catch(e){}
+  all.forEach(d=>{ if(d.tipo==='Mobile'){ if(verNum(d.versao)>verNum(alvoMob))alvoMob=d.versao; } else { if(verNum(d.versao)>verNum(alvoSis))alvoSis=d.versao; } });
+  const rel=t=>{ if(!t)return '—'; const s=Math.floor((Date.now()-t)/1000); if(s<60)return 'agora'; if(s<3600)return Math.floor(s/60)+' min'; if(s<86400)return Math.floor(s/3600)+' h'; return Math.floor(s/86400)+' d'; };
+  const online=all.filter(d=>d.ts&&(Date.now()-d.ts)<120000).length;
+  if(stat) stat.textContent=all.length+' aparelho(s) · '+online+' online';
+  if(!tb)return;
+  const okBadge='background:#E2F3E5;color:#2D7A3A;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700';
+  const upBadge='background:#FCEBD6;color:#9A5B12;padding:1px 8px;border-radius:20px;font-size:11px;font-weight:700';
+  const tipoBadge=t=>t==='Mobile'?'background:#E6F1FB;color:#185FA5':'background:#EEE9FA;color:#5B3FA0';
+  tb.innerHTML=all.length?all.map(d=>{
+    const alvo=d.tipo==='Mobile'?alvoMob:alvoSis;
+    const atual=alvo && d.versao===alvo;
+    const badge=atual?`<span style="${okBadge}">${d.versao||'?'} ✓</span>`:`<span style="${upBadge}" title="Versão publicada: ${alvo||'—'}">${d.versao||'?'} ⬆</span>`;
+    const on=(d.ts&&(Date.now()-d.ts)<120000);
+    return `<tr>
+      <td><b>${(d.nome||'—')}</b><div style="font-size:10px;color:var(--text3)">${d.plataforma||''}${d.equipe?' · '+d.equipe:''}</div></td>
+      <td><span style="${tipoBadge(d.tipo)};padding:1px 8px;border-radius:20px;font-size:11px;font-weight:600">${d.tipo||'—'}</span></td>
+      <td>${badge}</td>
+      <td>${on?'<span style="color:#2D7A3A">● </span>':''}${rel(d.ts)}</td>
+      <td class="no-print"><button class="btn" style="padding:2px 8px;font-size:11px" ${atual?'disabled':''} onclick="dispForcar('${d.deviceId}')"><i class="ti ti-cloud-download"></i>Atualizar</button></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:14px">Nenhum dispositivo registrou ainda. Abra o sistema/app em cada aparelho para aparecer aqui.</td></tr>';
+}
+async function dispForcar(deviceId){
+  try{
+    const all=await dbGetAll('dispositivos'); const rec=(all||[]).find(x=>x.deviceId===deviceId); if(!rec){ _om('Dispositivo não encontrado.'); return; }
+    if(!confirm('Forçar a atualização de "'+(rec.nome||'dispositivo')+'"? Ele vai recarregar assim que estiver online.')) return;
+    await dbPut('dispositivos',{...rec, forcar:Date.now()});
+    cacheInvalidate('dispositivos');
+    _om('Atualização solicitada. O dispositivo recarrega quando estiver online.');
+    dispRender();
+  }catch(e){ _om('Erro: '+e.message); }
+}
+
 async function checkSistemaUpdate(){
   const statusEl = document.getElementById('upd-status');
   const badgeEl  = document.getElementById('upd-badge');

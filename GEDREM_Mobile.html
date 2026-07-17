@@ -174,7 +174,7 @@ body.on-login{padding-bottom:0}
     <div class="sh">📋 1 · Identificação</div>
     <div class="fr">
       <div class="fg"><label>Código</label><input id="f-cod" readonly></div>
-      <div class="fg"><label>Data</label><input id="f-data" type="date"></div>
+      <div class="fg"><label>Data da execução</label><input id="f-data" type="date"></div>
     </div>
     <div class="fr">
       <div class="fg"><label>Origem</label>
@@ -476,7 +476,7 @@ async function fazerLogin(){
   }
   USER=u;localStorage.setItem('gedrem_user',u.id);
   $('lg-pin').value='';
-  atualizaTopo();nav('list');sincronizar(true);
+  atualizaTopo();nav('list');sincronizar(true);dispHeartbeat();
   toast('Bem-vindo, '+u.nome.split(' ')[0]+'! '+(acessoTotal()?'Acesso total.':'Equipe '+u.equipe+'.'));
 }
 function sair(){
@@ -507,7 +507,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-68';
+const APP_VERSION='20260713-69';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -721,7 +721,7 @@ async function sincronizar(silencioso){
       if((it.status||'Programado')!=='Programado')continue;
       if(!it.equipe)continue;
       if(!acessoTotal()&&it.equipe!==USER.equipe)continue;
-      await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:it.data||hoje(),origem:it.origem||'Programação',
+      await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:hoje(),dataProg:it.data||'',origem:it.origem||'Programação',
         os:it.os||'',tipo:it.servico||it.tipo||'',qtd:'',und:'Un.',obs:it.obs||'',
         endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||regiaoDeBairro(it.bairro||'')||'',
         lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
@@ -1137,7 +1137,7 @@ async function importarProgramacao(e){
     if(!eqIt){ign++;continue}
     if(!acessoTotal()&&eqIt!==USER.equipe){ign++;continue}
     const enc=it.encarregado||((!acessoTotal()&&eqIt===USER.equipe)?USER.nome:(ENC_MAP[eqIt]||[''])[0]);
-    await dbPut({codigo:proxCodigo(eqIt),data:it.data||hoje(),origem:it.origem||'Programação diária',
+    await dbPut({codigo:proxCodigo(eqIt),data:hoje(),dataProg:it.data||'',origem:it.origem||'Programação diária',
       os:it.os||'',tipo:it.servico||it.tipo||'',qtd:it.qtd||'',und:it.und||'Un.',obs:it.obs||'',
       endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||'',
       lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
@@ -1256,6 +1256,40 @@ function renderCfg(){
   $('cfg-eq-info').innerHTML=USER?`<b>Usuário:</b> ${esc(USER.nome)}<br><b>Perfil:</b> ${esc(USER.papel)}${USER.equipe?' – '+esc(USER.equipe):''}<br><b>Acesso:</b> ${acessoTotal()?'Total — todas as equipes':'Parcial — somente '+esc(USER.equipe)}<br><b>Próximo nº sequencial:</b> ${String(getSeq()).padStart(4,'0')}`:'Nenhum usuário conectado.';
 }
 
+
+/* ═══════════════ VERSÕES DOS DISPOSITIVOS ═══════════════ */
+function dispDeviceId(){
+  let id=localStorage.getItem('gedrem_device_id');
+  if(!id){ id='dv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8); localStorage.setItem('gedrem_device_id',id); }
+  return id;
+}
+function dispPlataforma(){
+  const ua=navigator.userAgent||''; let so='Aparelho';
+  if(/Android/i.test(ua))so='Android'; else if(/iPhone|iPad|iPod/i.test(ua))so='iPhone/iPad'; else if(/Windows/i.test(ua))so='Windows'; else if(/Macintosh/i.test(ua))so='Mac';
+  return so;
+}
+async function dispHeartbeat(){
+  if(!USER) return;
+  try{
+    const id=dispDeviceId();
+    const rec={ deviceId:id, tipo:'Mobile', nome:(USER.nome||'App'), perfil:(USER.papel||''), equipe:(acessoTotal()?'':USER.equipe)||'', versao:APP_VERSION, plataforma:dispPlataforma(), ts:Date.now() };
+    const all=await storeGet('dispositivos').catch(()=>[]);
+    const ex=(all||[]).find(x=>x.deviceId===id);
+    if(ex){
+      const cid=ex.cloudId; const exData=Object.assign({},ex); delete exData.cloudId;
+      if(ex.forcar && String(ex.forcar)!==localStorage.getItem('gedrem_last_forcar')){
+        localStorage.setItem('gedrem_last_forcar',String(ex.forcar));
+        try{ await storePatch(cid,Object.assign({},exData,rec,{forcar:null})); }catch(e){}
+        try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+        location.replace(location.pathname+'?v='+Date.now()); return;
+      }
+      await storePatch(cid,Object.assign({},exData,rec));
+    } else {
+      await storeAdd('dispositivos',rec);
+    }
+  }catch(e){}
+}
+
 /* ════════════════ INICIALIZAÇÃO ════════════════ */
 (async function(){
   $('top-logo').src=GEDREM_LOGO;
@@ -1269,6 +1303,7 @@ function renderCfg(){
   loadSessao();atualizaTopo();
   if(USER){nav('list');sincronizar(true)}else{mostrarLogin()}
   setInterval(()=>sincronizar(true),60000);
+  dispHeartbeat();setInterval(dispHeartbeat,60000);
 })();
 </script>
 <!-- GEDREM Mobile v2 · usuários e perfis de acesso -->
