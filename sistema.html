@@ -446,6 +446,7 @@ textarea{resize:vertical;min-height:60px}
   <div class="ni" id="n-marmitex" onclick="go('marmitex');marmitexRender()"><i class="ti ti-tools-kitchen-2"></i>Req. Almoço</div>
   <div class="ni" id="n-dboard" onclick="go('dboard')"><i class="ti ti-notebook"></i>Diário de Bordo</div>
   <div class="ni" id="n-orc" onclick="go('orc')"><i class="ti ti-calculator"></i>Orçamentos</div>
+  <div class="ni" id="n-indeniz" onclick="go('indeniz')"><i class="ti ti-car"></i>Indenização de Transporte</div>
   <div class="ns" style="margin-top:auto">Administrador</div>
   <div class="ni" id="n-adm" onclick="go('adm')"><i class="ti ti-shield-lock"></i>Área do Admin.</div>
   <div class="ns">Sistema</div>
@@ -1488,6 +1489,8 @@ textarea{resize:vertical;min-height:60px}
       <select id="fcg-fil-reg" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todas regiões</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select>
       <select id="fcg-fil-srv" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todos serviços</option><option>Limpeza de BL</option><option>Reparo de BL</option><option>Reparo de PV</option><option>Limpeza de PV</option><option>Visita Técnica</option><option>Solapamento</option><option>Desobstrução</option><option>Alagamento</option><option>Reparo de Meio-fio</option><option>Execução de Calçadas</option><option>Implantação de Sarjetão</option><option>Implantação de BL</option><option>Reparo de Sarjeta</option><option>Limpeza de Sarjetão</option></select>
       <select id="fcg-fil-st" onchange="FCG_PAGE=1;fcgRenderLista()"><option value="">Todos status</option><option>Pendente</option><option>Em andamento</option><option>Executado</option><option>SOLURB</option></select>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);white-space:nowrap">De <input type="date" id="fcg-fil-de" onchange="FCG_PAGE=1;fcgRenderLista()" style="max-width:140px"></label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);white-space:nowrap">Até <input type="date" id="fcg-fil-ate" onchange="FCG_PAGE=1;fcgRenderLista()" style="max-width:140px"></label>
     </div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="fcg-count">0</b> registros</div>
     <div class="card tw">
@@ -2181,7 +2184,6 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <!-- Campos comuns -->
     <div class="fr3">
-      <div class="fg"><label>Data</label><input type="date" id="dboard-data"></div>
       <div class="fg"><label>Equipe</label><input id="dboard-equipe" placeholder="Ex: LIMPEZA I"></div>
       <div class="fg" id="dboard-enc-grp"><label>Encarregado</label>
         <input id="dboard-enc" list="dboard-enc-list" placeholder="Nome do encarregado">
@@ -2520,7 +2522,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
       <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('solalm-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
-      <span style="font-size:11px;color:#666">A4 Retrato · 2 vias</span>
+      <span style="font-size:11px;color:#666">A4 Retrato</span>
     </div>
     <div id="solalm-print-content" style="padding:8mm 10mm;font-family:Arial,sans-serif;font-size:9pt;color:#000;background:#fff"></div>
   </div>
@@ -3050,6 +3052,16 @@ textarea{resize:vertical;min-height:60px}
       </div>
     </div>
     <div class="fcard">
+      <div class="sh"><i class="ti ti-list-check"></i>Serviço a executar — puxa a composição (material + mão de obra + equipamento)</div>
+      <div class="fr2" style="align-items:end">
+        <div class="fg fl"><label>Serviço</label><select id="orc-srv-sel"></select></div>
+        <div class="fg"><label>Quantidade a ser feita</label><input id="orc-srv-qtd" type="number" step="any" min="0" placeholder="0"></div>
+        <div class="fg"><button class="btn bp" style="width:100%" onclick="orcAddServico()"><i class="ti ti-plus"></i>Adicionar serviço</button></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>Serviço</th><th>Qtd.</th><th>Itens</th><th class="no-print"></th></tr></thead><tbody id="orc-srv-tb"></tbody></table></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Ao adicionar, os itens da composição entram automaticamente nas seções abaixo (Material · Mão de obra · Equipamentos), já multiplicados pela quantidade e totalmente editáveis. Remover um serviço aqui retira os itens que ele trouxe.</div>
+    </div>
+    <div class="fcard">
       <div class="sh"><i class="ti ti-package"></i>Material — base de preços das ATAs</div>
       <div class="fr2" style="align-items:end">
         <div class="fg"><label>ATA (base de preços)</label><select id="orc-mat-ata" onchange="orcFillMatSel()">
@@ -3112,6 +3124,76 @@ textarea{resize:vertical;min-height:60px}
       <span style="font-size:11px;color:#666">A4 Retrato</span>
     </div>
     <div id="orc-print-content" style="padding:8mm 10mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
+  </div>
+</div>
+
+<div class="pg" id="pg-indeniz">
+  <div class="pt">Indenização de Transporte</div>
+  <div class="ps">Relatório Diário de Deslocamento · Anexo II · Decreto 12.920/2016 · GEDREM</div>
+  <div class="tabs">
+    <div class="tab on" onclick="stab(this,'ind-novo')">Novo relatório</div>
+    <div class="tab" onclick="stab(this,'ind-hist');indRenderHist()">Histórico</div>
+  </div>
+  <div id="ind-novo">
+    <div class="fcard">
+      <div class="fhead"><i class="ti ti-user"></i>Dados do servidor</div>
+      <div class="fr2">
+        <div class="fg fl"><label>Servidor (funcionário)</label><select id="ind-func" onchange="indPickFunc()"><option value="">Selecione...</option></select></div>
+        <div class="fg"><label>Mês de referência</label><input type="month" id="ind-mes"></div>
+      </div>
+      <div class="fr2">
+        <div class="fg fl"><label>Nome completo do servidor público</label><input id="ind-nome" placeholder="Nome do servidor"></div>
+        <div class="fg"><label>Cadastro / Vínculo</label><input id="ind-cadastro" placeholder="Ex.: HSC-7541"></div>
+        <div class="fg"><label>Referência / Classe</label><input id="ind-classe" placeholder="Ex.: DCA - 8"></div>
+        <div class="fg"><label>Cargo comissionado</label><input id="ind-cargo" placeholder="Ex.: Gestor de Processo"></div>
+        <div class="fg"><label>Símbolo</label><input id="ind-simbolo" placeholder="—"></div>
+        <div class="fg"><label>Telefone de contato</label><input id="ind-tel" placeholder="(67) 9...."></div>
+        <div class="fg fl"><label>Unidade de lotação</label><input id="ind-unidade" placeholder="Ex.: SISEP/PMCG"></div>
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-map-pin"></i>Deslocamentos — vistorias, acompanhamentos e fiscalização de obras</div>
+      <div class="brow no-print" style="margin-bottom:6px">
+        <button class="btn bp" onclick="indPull()"><i class="ti ti-download"></i>Puxar do período (Ctrl. Serviços · Rel. Fotográfico)</button>
+        <button class="btn" onclick="indAddDesl()"><i class="ti ti-plus"></i>Adicionar linha</button>
+        <button class="btn" onclick="indClearDesl()"><i class="ti ti-x"></i>Limpar lista</button>
+      </div>
+      <div class="tw"><table><thead><tr><th style="width:150px">Data</th><th>Local / Endereço</th><th>Serviço</th><th class="no-print"></th></tr></thead><tbody id="ind-desl-tb"></tbody></table></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Cada linha vira "DD.MM – Local – Serviço" na impressão. O botão puxa as execuções do mês (Ctrl. de Serviços e Rel. Fotográfico) e você ajusta/edita.</div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-camera"></i>Fotos (opcional) — aparecem no fim da impressão</div>
+      <div class="brow no-print" style="margin-bottom:6px"><button class="btn" onclick="document.getElementById('ind-foto-inp').click()"><i class="ti ti-plus"></i>Adicionar foto</button></div>
+      <input type="file" id="ind-foto-inp" accept="image/*" multiple style="display:none" onchange="indAddFotos(this.files);this.value=''">
+      <div id="ind-fotos-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+    </div>
+    <div class="fcard">
+      <div class="fr2">
+        <div class="fg"><label>Nº do relatório</label><input id="ind-num" placeholder="Auto"></div>
+        <div class="fg"><label>Data do parecer (Em, __/__/__)</label><input type="date" id="ind-parecer-data"></div>
+      </div>
+      <div id="ind-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="ind-ok-txt"></b></div>
+      <div class="brow no-print" style="margin-top:8px">
+        <button class="btn bp" onclick="indSave()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button class="btn" onclick="indPrint()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+        <button class="btn" onclick="indReset()"><i class="ti ti-x"></i>Limpar</button>
+      </div>
+    </div>
+  </div>
+  <div id="ind-hist" style="display:none">
+    <div class="search-bar"><input id="ind-busca" placeholder="Buscar servidor, mês, nº..." oninput="indRenderHist()" style="flex:2"></div>
+    <div class="tw"><table><thead><tr><th>Nº</th><th>Servidor</th><th>Mês ref.</th><th>Deslocam.</th><th>Salvo em</th><th class="no-print">Ações</th></tr></thead><tbody id="ind-hist-tb"></tbody></table></div>
+  </div>
+</div>
+
+<div id="ind-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ind-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ind-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Retrato · Ctrl+P para PDF</span>
+    </div>
+    <div id="ind-print-content" style="padding:8mm 10mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
   </div>
 </div>
 
@@ -4078,12 +4160,12 @@ textarea{resize:vertical;min-height:60px}
 window._GEDREM_JS_OK = true; // flag: script principal carregou
 const DB_NAME = 'GEDREM_DB';
 const DB_VERSION = 4;
-const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos'];
+const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes'];
 
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-82'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-86'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -4813,9 +4895,9 @@ function onBairro(input, regId){
 }
 
 const PERMS={
-  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa','adm','cfg'],
-  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa'],
-  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa'],
+  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'],
+  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
+  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
 };
 const HOMES={g:'dash',a:'cs',b:'a60'};
 let CU='g';
@@ -4893,6 +4975,7 @@ function go(pg){
   if(pg==='dboard') dboardInit();
   if(pg==='marmitex') marmitexRender();
   if(pg==='orc') orcInit();
+  if(pg==='indeniz') indenizInit();
 }
 
 function stab(el,tid){
@@ -4981,6 +5064,7 @@ async function refreshDash(){
 
 /* ═══════════ ORÇAMENTOS — material (ATA 038) + mão de obra (função×hora) + equipamentos ═══════════ */
 let ORC_MAT=[], ORC_MO=[], ORC_EQ=[], ORC_COMP=[], ORC_EDIT_ID=null;
+let ORC_SRV=[], ORC_SRV_SEQ=0;
 const ORC_MO_PADRAO=[{funcao:'Encarregado',vh:0,h:0},{funcao:'Servente',vh:0,h:0},{funcao:'Operador de máquina',vh:0,h:0},{funcao:'Motorista',vh:0,h:0}];
 const SINAPI_DREN=[
  {cod:'92210',desc:'Tubo concreto DN 400 – junta rígida, baixo interf. – fornec.+assent. (SINAPI)',un:'m',v:186.12},
@@ -5010,7 +5094,7 @@ function orcMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimu
 function orcAtaItens(){ return D.filter(it=>it.ata==='060').slice().sort((a,b)=>(a.m||'').localeCompare(b.m||'')); }
 function orcInit(){
   const dt=document.getElementById('orc-data'); if(dt&&!dt.value) dt.value=new Date().toISOString().slice(0,10);
-  orcFillMatSel();
+  orcFillMatSel(); orcFillSrvSel(); orcRenderSrv();
   if(ORC_MO.length===0) ORC_MO=ORC_MO_PADRAO.map(x=>({...x}));
   orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
 }
@@ -5114,7 +5198,7 @@ function orcColeta(){
   const t=orcCalc();
   return { numero:(g('orc-num')||'').trim(), data:g('orc-data'), objeto:(g('orc-obj')||'').trim(), local:(g('orc-local')||'').trim(),
     bairro:(g('orc-bairro')||'').trim(), regiao:(g('orc-reg')||'').trim(), solicitante:(g('orc-sol')||'').trim(), obs:(g('orc-obs')||'').trim(),
-    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})), composicoes:ORC_COMP.map(x=>({...x})),
+    materiais:ORC_MAT.map(x=>({...x})), maoObra:ORC_MO.map(x=>({...x})), equipamentos:ORC_EQ.map(x=>({...x})), composicoes:ORC_COMP.map(x=>({...x})), servicos:ORC_SRV.map(x=>({...x})),
     totMat:t.tm, totMO:t.to, totEq:t.te, totComp:t.tc, total:t.total };
 }
 async function orcSave(){
@@ -5132,12 +5216,289 @@ async function orcSave(){
     await orcRenderHist();
   }catch(e){ _om('Erro ao salvar: '+e.message); }
 }
+async function orcFillSrvSel(){
+  const sel=document.getElementById('orc-srv-sel'); if(!sel)return;
+  let srvs=[];
+  try{ const all=await compGetAll(); srvs=all.map(x=>x.srv).filter(Boolean); }catch(e){}
+  if(!srvs.length) srvs=COMP_SRVS.slice();
+  srvs=Array.from(new Set(srvs)).sort((a,b)=>String(a).localeCompare(String(b)));
+  sel.innerHTML='<option value="">Selecione o serviço...</option>'+srvs.map(x=>`<option value="${String(x).replace(/"/g,'&quot;')}">${x}</option>`).join('');
+}
+async function orcAddServico(){
+  const sel=document.getElementById('orc-srv-sel'); const srv=sel?sel.value:'';
+  const qtd=parseFloat(document.getElementById('orc-srv-qtd')?.value)||0;
+  if(!srv){_om('Selecione um serviço.');return;}
+  if(qtd<=0){_om('Informe a quantidade a ser feita.');return;}
+  let itens=[];
+  try{ const all=await compGetAll(); const rec=all.find(x=>x.srv===srv); itens=(rec&&rec.itens&&rec.itens.length)?rec.itens:(COMP_DEFAULT[srv]||[]); }
+  catch(e){ itens=COMP_DEFAULT[srv]||[]; }
+  if(!itens.length){_om('Este serviço não possui composição cadastrada. Cadastre a composição em Admin → Composição.');return;}
+  let matMap={};
+  try{ const mats=await matEnsureDefault(); matMap=Object.fromEntries(mats.map(m=>[m.cod,m])); }catch(e){}
+  const sid=++ORC_SRV_SEQ; let nIt=0;
+  itens.forEach(it=>{
+    const m=matMap[it.cod]||{};
+    const desc=m.desc||it.desc||it.cod||'';
+    const und=m.und||it.und||'un';
+    const custo=parseFloat(m.custo)||0;
+    const cat=m.cat||it.cat||'';
+    const q=(parseFloat(it.qtd)||0)*qtd;
+    if(cat==='Serviço'||/^MO-/i.test(it.cod||'')){
+      ORC_MO.push({funcao:desc,vh:custo,h:q,_srv:sid});
+    } else if(cat==='Equipamento'||/^EQ-/i.test(it.cod||'')){
+      ORC_EQ.push({desc:desc,vh:custo,h:q,_srv:sid});
+    } else {
+      ORC_MAT.push({n:it.cod||'',m:desc,u:und,v:custo,qtd:q,ata:'060',_srv:sid});
+    }
+    nIt++;
+  });
+  ORC_SRV.push({sid:sid,srv:srv,qtd:qtd,itens:nIt});
+  if(sel)sel.value=''; const qi=document.getElementById('orc-srv-qtd'); if(qi)qi.value='';
+  orcRenderSrv(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+}
+function orcRenderSrv(){
+  const tb=document.getElementById('orc-srv-tb'); if(!tb)return;
+  tb.innerHTML=ORC_SRV.length?ORC_SRV.map(r=>`<tr>
+    <td style="font-size:11px">${r.srv}</td>
+    <td style="text-align:center">${(r.qtd||0).toLocaleString('pt-BR')}</td>
+    <td style="text-align:center;font-size:10px;color:var(--text2)">${r.itens} ${r.itens===1?'item':'itens'}</td>
+    <td class="no-print" style="text-align:right"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="orcRemServico(${r.sid})">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">Nenhum serviço adicionado — selecione um serviço acima para puxar a composição.</td></tr>';
+}
+function orcRemServico(sid){
+  ORC_SRV=ORC_SRV.filter(r=>r.sid!==sid);
+  ORC_MAT=ORC_MAT.filter(r=>r._srv!==sid);
+  ORC_MO=ORC_MO.filter(r=>r._srv!==sid);
+  ORC_EQ=ORC_EQ.filter(r=>r._srv!==sid);
+  orcRenderSrv(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcCalc();
+}
 function orcReset(){
-  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_COMP=[]; ORC_EDIT_ID=null;
+  ORC_MAT=[]; ORC_MO=ORC_MO_PADRAO.map(x=>({...x})); ORC_EQ=[]; ORC_COMP=[]; ORC_SRV=[]; ORC_EDIT_ID=null;
   ['orc-num','orc-obj','orc-local','orc-bairro','orc-reg','orc-sol','orc-obs'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
   const dt=document.getElementById('orc-data'); if(dt)dt.value=new Date().toISOString().slice(0,10);
-  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcCalc();
+  orcNovoCod(); orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcCalc();
 }
+
+/* ═══════════════ INDENIZAÇÃO DE TRANSPORTE ═══════════════ */
+let IND_DESL=[], IND_FOTOS=[], IND_EDIT_ID=null;
+function indFmtDDMM(d){ if(!d||typeof d!=='string'||d.indexOf('-')<0) return d||''; const p=d.split('-'); return p.length===3?p[2]+'.'+p[1]:d; }
+function indMesAtual(){ const n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+async function indenizInit(){
+  const mes=document.getElementById('ind-mes'); if(mes&&!mes.value) mes.value=indMesAtual();
+  await indFillFunc();
+  indNovoNum();
+  indRenderDesl(); indRenderFotos();
+}
+async function indNovoNum(){
+  if(IND_EDIT_ID) return;
+  const el=document.getElementById('ind-num'); if(!el||el.value) return;
+  try{ const all=await dbGetAll('indenizacoes'); let mx=0; all.forEach(o=>{const n=parseInt(String(o.numero||'').replace(/\D/g,''),10); if(!isNaN(n)&&n>mx)mx=n;}); el.value=String(mx+1).padStart(3,'0')+'/'+String(new Date().getFullYear()).slice(2); }catch(e){}
+}
+async function indFillFunc(){
+  const sel=document.getElementById('ind-func'); if(!sel)return;
+  let funcs=[]; try{ funcs=await dbGetAll('funcionarios'); }catch(e){}
+  funcs=(funcs||[]).filter(f=>f&&f.nome).sort((a,b)=>String(a.nome).localeCompare(String(b.nome)));
+  sel.innerHTML='<option value="">Selecione...</option>'+funcs.map(f=>`<option value="${f.id}">${String(f.nome).replace(/</g,'&lt;')}</option>`).join('');
+}
+async function indPickFunc(){
+  const sel=document.getElementById('ind-func'); const id=parseInt(sel.value,10);
+  if(!id) return;
+  let funcs=[]; try{ funcs=await dbGetAll('funcionarios'); }catch(e){}
+  const f=(funcs||[]).find(x=>x.id===id); if(!f) return;
+  const set=(k,v)=>{const e=document.getElementById(k); if(e&&v!=null) e.value=v;};
+  set('ind-nome', f.nome||'');
+  if(f.cargo) set('ind-cargo', f.cargo);
+  if(f.tel) set('ind-tel', f.tel);
+  try{
+    const all=await dbGetAll('indenizacoes');
+    const prev=(all||[]).filter(o=>o.funcId===id).sort((a,b)=>(b._ts||0)-(a._ts||0))[0];
+    if(prev){
+      set('ind-cadastro', prev.cadastro||'');
+      set('ind-classe', prev.classe||'');
+      set('ind-simbolo', prev.simbolo||'');
+      set('ind-unidade', prev.unidade||'');
+      if(!f.cargo&&prev.cargo) set('ind-cargo', prev.cargo);
+      if(!f.tel&&prev.tel) set('ind-tel', prev.tel);
+    }
+  }catch(e){}
+  const uni=document.getElementById('ind-unidade'); if(uni&&!uni.value) uni.value='SISEP/PMCG';
+}
+async function indPull(){
+  const mes=(document.getElementById('ind-mes')&&document.getElementById('ind-mes').value)||indMesAtual();
+  let cs=[], rf=[];
+  try{ cs=await dbGetAll('ctrl_servicos'); }catch(e){}
+  try{ rf=await dbGetAll('relatorio_foto'); }catch(e){}
+  const linhas=[];
+  const add=(data,local,servico)=>{ if(!data) return; if(String(data).slice(0,7)!==mes) return; local=(local||'').trim(); servico=(servico||'').trim(); if(!local&&!servico) return; linhas.push({data:data, local:local, servico:servico}); };
+  (cs||[]).forEach(r=> add(r.data, r.endereco, r.tipo||r.servicoExecutado));
+  (rf||[]).forEach(r=> add(r.data, r.endereco, r.tipo));
+  const seen=new Set(); const dedup=[];
+  linhas.forEach(l=>{ const k=l.data+'|'+l.local.toLowerCase()+'|'+l.servico.toLowerCase(); if(seen.has(k))return; seen.add(k); dedup.push(l); });
+  dedup.sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+  if(!dedup.length){ _om('Nenhuma execução encontrada em '+mes+' (Ctrl. de Serviços / Rel. Fotográfico).'); return; }
+  IND_DESL=dedup;
+  indRenderDesl();
+  _om(dedup.length+' deslocamento(s) importado(s) de '+mes+'. Ajuste se necessário.');
+}
+function indAddDesl(){ IND_DESL.push({data:'',local:'',servico:''}); indRenderDesl(); }
+function indClearDesl(){ if(IND_DESL.length && !confirm('Limpar toda a lista de deslocamentos?'))return; IND_DESL=[]; indRenderDesl(); }
+function indRenderDesl(){
+  const tb=document.getElementById('ind-desl-tb'); if(!tb)return;
+  tb.innerHTML=IND_DESL.length?IND_DESL.map((r,i)=>`<tr>
+    <td><input type="date" value="${r.data||''}" style="width:140px" oninput="IND_DESL[${i}].data=this.value"></td>
+    <td><input value="${(r.local||'').replace(/"/g,'&quot;')}" placeholder="Rua/Av..." style="width:100%" oninput="IND_DESL[${i}].local=this.value"></td>
+    <td><input value="${(r.servico||'').replace(/"/g,'&quot;')}" placeholder="Serviço" style="width:100%" oninput="IND_DESL[${i}].servico=this.value"></td>
+    <td class="no-print"><button class="btn" style="padding:2px 6px;font-size:13px" onclick="IND_DESL.splice(${i},1);indRenderDesl()">🗑️</button></td>
+  </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:12px">Nenhum deslocamento — puxe do período ou adicione linhas.</td></tr>';
+}
+function indAddFotos(files){
+  if(!files||!files.length)return;
+  Array.from(files).forEach(file=>{
+    const rd=new FileReader();
+    rd.onload=e=>{ IND_FOTOS.push({b64:e.target.result, legenda:''}); indRenderFotos(); };
+    rd.readAsDataURL(file);
+  });
+}
+function indRenderFotos(){
+  const g=document.getElementById('ind-fotos-grid'); if(!g)return;
+  g.innerHTML=IND_FOTOS.length?IND_FOTOS.map((f,i)=>`<div style="border:1px solid var(--border);border-radius:8px;padding:6px;background:var(--bg2)">
+    <img src="${f.b64}" style="width:100%;height:150px;object-fit:cover;border-radius:6px">
+    <input value="${(f.legenda||'').replace(/"/g,'&quot;')}" placeholder="Legenda da foto" style="width:100%;margin-top:6px" oninput="IND_FOTOS[${i}].legenda=this.value">
+    <button class="btn no-print" style="width:100%;margin-top:4px;padding:2px 6px;font-size:12px;color:var(--red);border-color:var(--red)" onclick="IND_FOTOS.splice(${i},1);indRenderFotos()">🗑️ Remover</button>
+  </div>`).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:12px;padding:10px">Nenhuma foto adicionada (opcional).</div>';
+}
+function indColeta(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  return {
+    numero:(g('ind-num')||'').trim(), mes:g('ind-mes'),
+    funcId:parseInt(g('ind-func'),10)||null,
+    nome:(g('ind-nome')||'').trim(), cadastro:(g('ind-cadastro')||'').trim(), classe:(g('ind-classe')||'').trim(),
+    cargo:(g('ind-cargo')||'').trim(), simbolo:(g('ind-simbolo')||'').trim(), tel:(g('ind-tel')||'').trim(), unidade:(g('ind-unidade')||'').trim(),
+    parecerData:g('ind-parecer-data'),
+    deslocamentos:IND_DESL.map(x=>({...x})), fotos:IND_FOTOS.map(x=>({...x})),
+  };
+}
+async function indSave(){
+  const o=indColeta();
+  if(!o.nome){ _om('Informe o servidor / nome.'); return; }
+  if(!o.deslocamentos.length){ _om('Adicione ao menos um deslocamento.'); return; }
+  o._ts=Date.now();
+  try{
+    if(IND_EDIT_ID){ o.id=IND_EDIT_ID; await dbPut('indenizacoes',o); } else { await dbAdd('indenizacoes',o); }
+    cacheInvalidate('indenizacoes');
+    const ok=document.getElementById('ind-ok'), okt=document.getElementById('ind-ok-txt');
+    if(okt) okt.textContent='Relatório '+(o.numero||'')+' salvo · '+o.deslocamentos.length+' deslocamento(s).';
+    if(ok){ ok.style.display='flex'; setTimeout(()=>ok.style.display='none',4000); }
+    IND_EDIT_ID=null;
+    await indRenderHist();
+  }catch(e){ _om('Erro ao salvar: '+e.message); }
+}
+function indReset(){
+  IND_DESL=[]; IND_FOTOS=[]; IND_EDIT_ID=null;
+  ['ind-nome','ind-cadastro','ind-classe','ind-cargo','ind-simbolo','ind-tel','ind-unidade','ind-num','ind-parecer-data'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
+  const sel=document.getElementById('ind-func'); if(sel) sel.value='';
+  const mes=document.getElementById('ind-mes'); if(mes) mes.value=indMesAtual();
+  indNovoNum(); indRenderDesl(); indRenderFotos();
+}
+async function indRenderHist(){
+  const tb=document.getElementById('ind-hist-tb'); if(!tb)return;
+  const q=(document.getElementById('ind-busca')&&document.getElementById('ind-busca').value||'').toLowerCase();
+  let all=[]; try{ all=await dbGetAll('indenizacoes'); }catch(e){}
+  all=all.filter(o=>!q||(((o.numero||'')+' '+(o.nome||'')+' '+(o.mes||'')).toLowerCase().includes(q))).sort((a,b)=>(b._ts||0)-(a._ts||0));
+  tb.innerHTML=all.length?all.map(o=>`<tr>
+    <td><b>${o.numero||'—'}</b></td>
+    <td>${(o.nome||'—')}</td>
+    <td>${o.mes||'—'}</td>
+    <td style="text-align:center">${(o.deslocamentos||[]).length}</td>
+    <td>${o._ts?new Date(o._ts).toLocaleDateString('pt-BR'):'—'}</td>
+    <td class="no-print" style="white-space:nowrap;text-align:right">
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="indEditar(${o.id})" title="Editar">✏️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="indPrintId(${o.id})" title="Imprimir">🖨️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="indExcluir(${o.id})" title="Excluir">🗑️</button>
+    </td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:16px">Nenhum relatório salvo ainda</td></tr>';
+}
+async function indEditar(id){
+  const all=await dbGetAll('indenizacoes'); const o=all.find(x=>x.id===id); if(!o)return;
+  IND_EDIT_ID=id;
+  const s2=(k,v)=>{const e=document.getElementById(k); if(e)e.value=v||'';};
+  s2('ind-num',o.numero); s2('ind-mes',o.mes); s2('ind-nome',o.nome); s2('ind-cadastro',o.cadastro); s2('ind-classe',o.classe); s2('ind-cargo',o.cargo); s2('ind-simbolo',o.simbolo); s2('ind-tel',o.tel); s2('ind-unidade',o.unidade); s2('ind-parecer-data',o.parecerData);
+  const sel=document.getElementById('ind-func'); if(sel) sel.value=o.funcId||'';
+  IND_DESL=(o.deslocamentos||[]).map(x=>({...x})); IND_FOTOS=(o.fotos||[]).map(x=>({...x}));
+  indRenderDesl(); indRenderFotos();
+  const tabs=document.querySelectorAll('#pg-indeniz .tab'); if(tabs[0]) stab(tabs[0],'ind-novo');
+  window.scrollTo(0,0);
+}
+async function indExcluir(id){
+  if(!confirm('Excluir este relatório? Esta ação não pode ser desfeita.'))return;
+  await dbDelete('indenizacoes',id); cacheInvalidate('indenizacoes'); await indRenderHist();
+}
+function indPrint(){ document.getElementById('ind-print-content').innerHTML=indBuildPrint(indColeta()); document.getElementById('ind-print-modal').style.display='flex'; }
+async function indPrintId(id){ const all=await dbGetAll('indenizacoes'); const o=all.find(x=>x.id===id); if(!o)return; document.getElementById('ind-print-content').innerHTML=indBuildPrint(o); document.getElementById('ind-print-modal').style.display='flex'; }
+function indBuildPrint(o){
+  const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const B='border:1px solid #000;';
+  const cell='border:1px solid #000;padding:1.2mm 2mm;font-size:9pt;vertical-align:top;';
+  const desl=(o.deslocamentos||[]).filter(d=>d.local||d.servico||d.data);
+  const linhas=desl.map((d,i)=>{
+    const dd=indFmtDDMM(d.data);
+    const partes=[dd, esc(d.local), esc(d.servico)].filter(x=>x&&String(x).trim());
+    return `<div style="font-size:9pt;line-height:1.55"><span style="display:inline-block;width:8mm;text-align:right;padding-right:3mm">${i+1}.</span>${partes.join(' – ')}</div>`;
+  }).join('')||'<div style="font-size:9pt;color:#777">—</div>';
+  const parecerFmt = o.parecerData ? (()=>{const p=String(o.parecerData).split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:'____/____/____';})() : '____/____/____';
+  const emLinha = 'Em, '+parecerFmt;
+  let fotosHtml='';
+  const fts=(o.fotos||[]).filter(f=>f&&f.b64);
+  if(fts.length){
+    fotosHtml='<table style="width:100%;border-collapse:collapse;margin-top:4mm">';
+    for(let i=0;i<fts.length;i+=2){
+      fotosHtml+='<tr>';
+      for(let j=i;j<i+2;j++){
+        if(fts[j]) fotosHtml+=`<td style="${cell}width:50%;text-align:center"><img src="${fts[j].b64}" style="width:100%;max-height:70mm;object-fit:cover"><div style="font-size:8.5pt;margin-top:1mm">${esc(fts[j].legenda)}</div></td>`;
+        else fotosHtml+=`<td style="border:none;width:50%"></td>`;
+      }
+      fotosHtml+='</tr>';
+    }
+    fotosHtml+='</table>';
+  }
+  return `
+  <div style="font-weight:bold;font-size:11pt;margin-bottom:3mm">ANEXO II AO DECRETO n. 12.920, DE 1º DE JULHO DE 2016.</div>
+  <table style="width:100%;border-collapse:collapse;${B}">
+    <tr>
+      <td style="${cell}width:22mm;text-align:center">${logo?`<img src="${logo}" style="height:15mm;width:auto;object-fit:contain">`:''}</td>
+      <td style="${cell}text-align:center"><div style="font-weight:bold;font-size:10pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE/MS</div><div style="font-size:8.5pt">Secretaria Municipal de Infraestrutura e Serviços Públicos</div></td>
+      <td style="${cell}width:52mm;text-align:center;font-weight:bold;font-size:9.5pt">RELATÓRIO DIÁRIO DE DESLOCAMENTO</td>
+    </tr>
+  </table>
+  <table style="width:100%;border-collapse:collapse;${B}border-top:none">
+    <tr>
+      <td style="${cell}width:60%" rowspan="2"><b>Nome Completo do Servidor Público:</b> ${esc(o.nome)}</td>
+      <td style="${cell}"><b>Cadastro/Vínculo:</b> ${esc(o.cadastro)}</td>
+    </tr>
+    <tr><td style="${cell}"><b>Referência/Classe:</b> ${esc(o.classe)}</td></tr>
+    <tr>
+      <td style="${cell}" rowspan="2"><b>Cargo Comissionado:</b> ${esc(o.cargo)}</td>
+      <td style="${cell}"><b>Símbolo:</b> ${esc(o.simbolo)}</td>
+    </tr>
+    <tr><td style="${cell}"><b>Telefone de Contato:</b> ${esc(o.tel)}</td></tr>
+    <tr>
+      <td style="${cell}"><b>Unidade de Lotação:</b> ${esc(o.unidade)}</td>
+      <td style="${cell}"><b>Unidade de Lotação:</b> ${esc(o.unidade)}</td>
+    </tr>
+  </table>
+  <div style="${cell}border-top:none;font-weight:bold;font-size:9pt">RELATÓRIO DE VISTORIAS, ACOMPANHAMENTOS E FISCALIZAÇÃO DE OBRAS.</div>
+  <div style="${cell}border-top:none;min-height:40mm;text-align:left">${linhas}
+    <div style="text-align:center;font-weight:bold;font-size:9pt;margin-top:14mm">Assinatura do Servidor</div>
+  </div>
+  <div style="${cell}border-top:none;font-weight:bold;font-size:9pt">PARECER DA CHEFIA IMEDIATA</div>
+  <div style="${cell}border-top:none">
+    <div style="font-size:9pt;text-align:justify">Autorizo, por ter sido comprovado através de relatório, um deslocamento para execução de serviços externos, previsto no inciso II, do art. 4º do Decreto n. 12.920, de 1º de julho de 2016, atendendo ao interesse da Administração Municipal.</div>
+    <div style="font-size:9pt;margin-top:4mm">${emLinha}</div>
+    <div style="text-align:center;font-weight:bold;font-size:9pt;margin-top:16mm">Carimbo e Assinatura da Chefia Imediata</div>
+  </div>
+  ${fotosHtml}`;
+}
+
 async function orcRenderHist(){
   const tb=document.getElementById('orc-hist-tb'); if(!tb)return;
   const q=(document.getElementById('orc-busca')?.value||'').toLowerCase();
@@ -5163,8 +5524,8 @@ async function orcEditar(id){
   ORC_EDIT_ID=id;
   const s2=(k,v)=>{const e=document.getElementById(k); if(e)e.value=v||'';};
   s2('orc-num',o.numero); s2('orc-data',o.data); s2('orc-obj',o.objeto); s2('orc-local',o.local); s2('orc-bairro',o.bairro); s2('orc-reg',o.regiao); s2('orc-sol',o.solicitante); s2('orc-obs',o.obs);
-  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x})); ORC_COMP=(o.composicoes||[]).map(x=>({...x}));
-  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcCalc();
+  ORC_MAT=(o.materiais||[]).map(x=>({...x})); ORC_MO=(o.maoObra||[]).map(x=>({...x})); ORC_EQ=(o.equipamentos||[]).map(x=>({...x})); ORC_COMP=(o.composicoes||[]).map(x=>({...x})); ORC_SRV=(o.servicos||[]).map(x=>({...x}));
+  orcRenderMat(); orcRenderMO(); orcRenderEq(); orcRenderComp(); orcRenderSrv(); orcCalc();
   const tabs=document.querySelectorAll('#pg-orc .tab'); if(tabs[0]) stab(tabs[0],'orc-novo');
   window.scrollTo(0,0);
 }
@@ -6413,8 +6774,17 @@ async function mobPublicar(evt){
   try{
     const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f);});
     await supStorageUpload('gedrem-docs','sistema/gedrem_mobile_latest.html',b64,'text/html');
-    st.innerHTML='✅ App publicado! Link: <a href="'+APP_PUB_URL+'" target="_blank" style="color:#185FA5">'+APP_PUB_URL+'</a>';
-    alert('App publicado na nuvem!\nEnvie o link aos encarregados (botão "Copiar link do app").');
+    // Grava versao_app.json para os aparelhos receberem a atualização obrigatória
+    let versao='';
+    try{ const txt=await f.text(); const m=txt.match(/APP_VERSION\s*=\s*['"]([^'"]+)['"]/); versao=m?m[1]:''; }catch(e){}
+    if(versao){
+      try{
+        const metaB64='data:application/json;base64,'+btoa(JSON.stringify({versao:versao, publicado_em:new Date().toISOString()}));
+        await supStorageUpload('gedrem-docs','sistema/versao_app.json',metaB64,'application/json');
+      }catch(e){ console.warn('versao_app.json falhou:',e); }
+    }
+    st.innerHTML='✅ App publicado'+(versao?' (v'+versao+')':'')+'! Link: <a href="'+APP_PUB_URL+'" target="_blank" style="color:#185FA5">'+APP_PUB_URL+'</a>';
+    alert('App publicado na nuvem!'+(versao?' Versão '+versao+' — os aparelhos vão receber a atualização.':'')+'\nEnvie o link aos encarregados (botão "Copiar link do app").');
   }catch(e){ st.textContent='❌ Falha ao publicar: '+e.message; }
 }
 async function admMobileEditRf(cod){
@@ -8835,10 +9205,14 @@ async function fcgRenderLista(){
   const freg=document.getElementById('fcg-fil-reg')?.value||'';
   const fsrv=document.getElementById('fcg-fil-srv')?.value||'';
   const fst=document.getElementById('fcg-fil-st')?.value||'';
+  const fde=document.getElementById('fcg-fil-de')?.value||'';
+  const fate=document.getElementById('fcg-fil-ate')?.value||'';
   const fil=all.filter(x=>{
     if(freg&&x.regiao!==freg) return false;
     if(fsrv&&fcgNormalizarServico(x.servico)!==fsrv) return false;
     if(fst&&x.status!==fst) return false;
+    if(fde&&(!x.data||x.data<fde)) return false;
+    if(fate&&(!x.data||x.data>fate)) return false;
     if(busca){ const _b=((x.os||'')+' '+(x.rua||'')+' '+(x.numero||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.servico||'')+' '+(x.refGedrem||'')).toLowerCase(); if(!_b.includes(busca)) return false; }
     return true;
   }).sort((a,b)=>(b._ts||0)-(a._ts||0));
@@ -14135,8 +14509,8 @@ let CFG_USERS=[
   {idx:2,nome:'Técnico B',cargo:'Adm. Técnico',role:'b',email:'',
    modulos:['dash','a60','a059','a100','a107','a109','oficios','prog','mapa']},
 ];
-const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','marmitex','resumo','prog','mapa','adm','cfg'];
-const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
+const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'];
+const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','indeniz':'Indenização Transp.','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
 
 async function cfgAdmRender(){
   aplicarDisplayNames();
@@ -15504,6 +15878,8 @@ function solalmPrint(){
 
 function solalmMostrarImpressao(r){
   const fd=d=>{if(!d)return'___/___/______';const[a,m,dd]=d.split('-');return`${dd}/${m}/${a}`;};
+  const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
+  const gedrem=typeof GEDREM_LOGO!=='undefined'?GEDREM_LOGO:'';
   const itensArr=[];
   for(let i=1;i<=SOLALM_N_ITENS;i++){
     const found=(r.itens||[]).find(x=>x.item===i)||{item:i,material:'',qtd:'',qtdap:'',obs:''};
@@ -15520,10 +15896,14 @@ function solalmMostrarImpressao(r){
   const bloco=()=>`
 <div style="border:2px solid #000;padding:4mm;font-family:Arial,sans-serif;font-size:8pt;page-break-inside:avoid">
   <!-- Cabeçalho -->
-  <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:2mm;margin-bottom:2mm">
-    <div style="font-weight:bold;font-size:9pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE</div>
-    <div style="font-size:7.5pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA, E SERVIÇOS PÚBLICOS</div>
-    <div style="font-size:7.5pt">ALMOXARIFADO E PATRIMÔNIO SISEP</div>
+  <div style="display:flex;align-items:center;gap:4mm;border-bottom:2px solid #000;padding-bottom:2mm;margin-bottom:2mm">
+    ${logo?`<img src="${logo}" style="height:14mm;width:auto;object-fit:contain">`:''}
+    <div style="flex:1;text-align:center">
+      <div style="font-weight:bold;font-size:9pt">PREFEITURA MUNICIPAL DE CAMPO GRANDE</div>
+      <div style="font-size:7.5pt">SECRETARIA MUNICIPAL DE INFRAESTRUTURA, E SERVIÇOS PÚBLICOS</div>
+      <div style="font-size:7.5pt">ALMOXARIFADO E PATRIMÔNIO SISEP</div>
+    </div>
+    ${gedrem?`<img src="${gedrem}" style="height:13mm;width:auto;object-fit:contain">`:''}
   </div>
   <div style="font-weight:bold;font-size:9.5pt;text-align:center;margin-bottom:3mm">SOLICITAÇÃO DE MATERIAIS DE EXPEDIENTE</div>
   <!-- SETOR / DATA -->
@@ -15574,11 +15954,7 @@ function solalmMostrarImpressao(r){
     </tr>
   </table>
 </div>`;
-  const html=`<div style="display:flex;flex-direction:column;gap:5mm">
-    ${bloco()}
-    <div style="text-align:center;font-size:8pt;color:#666;border-top:1px dashed #aaa;padding-top:2mm">✂ Destacar aqui — 2ª via</div>
-    ${bloco()}
-  </div>`;
+  const html=`<div>${bloco()}</div>`;
   document.getElementById('solalm-print-content').innerHTML=html;
   document.getElementById('solalm-print-modal').style.display='flex';
 }
@@ -15588,8 +15964,6 @@ function solalmMostrarImpressao(r){
    DIÁRIO DE BORDO — Controle Diário de Execução de Serviços
 ══════════════════════════════════════════════════════════════════════ */
 async function dboardInit(){
-  const today=new Date().toISOString().slice(0,10);
-  document.getElementById('dboard-data').value=today;
   try{
     const funcs=await dbGetAll('funcionarios');
     const dl=document.getElementById('dboard-enc-list');
@@ -15618,7 +15992,6 @@ function dboardPrint(){
   const fd=d=>{if(!d)return'___/___/______';const[a,m,dd]=d.split('-');return`${dd}/${m}/${a}`;};
   const v=id=>(document.getElementById(id)?.value||'').toUpperCase();
   const ctx={
-    data:fd(document.getElementById('dboard-data').value),
     equipe:v('dboard-equipe'),
     enc:v('dboard-enc'),
     veiculo:v('dboard-veiculo'),
@@ -15926,8 +16299,7 @@ function _dbLimpeza(c){
   const nm=i=>c.n9[i]||'';
   return `${_dbHdr('GEDREM')}
 <table style="width:100%;border-collapse:collapse"><tr>
-  <td style="${B}padding:1.5mm 3mm;width:35%"> </td>
-  <td style="${B}border-left:none;padding:1.5mm 3mm;width:30%"><b>DATA:</b> ${c.data}</td>
+  <td style="${B}padding:1.5mm 3mm;width:50%"> </td>
   <td style="${B}border-left:none;padding:1.5mm 3mm"><b>EQUIPE:</b> ${c.equipe}</td>
 </tr></table>
 <table style="width:100%;border-collapse:collapse"><tr>
@@ -15962,8 +16334,7 @@ function _dbPipa(c){
   const B='border:1px solid #000;border-top:none;';
   return `${_dbHdr('GEDREM')}
 <table style="width:100%;border-collapse:collapse"><tr>
-  <td style="${B}padding:1.5mm 3mm;width:44%"><b>ENCARREGADO:</b> ${c.enc}</td>
-  <td style="${B}border-left:none;padding:1.5mm 3mm;width:26%"><b>DATA:</b> ${c.data}</td>
+  <td style="${B}padding:1.5mm 3mm;width:55%"><b>ENCARREGADO:</b> ${c.enc}</td>
   <td style="${B}border-left:none;padding:1.5mm 3mm"><b>EQUIPE:</b> ${c.equipe}</td>
 </tr></table>
 <table style="width:100%;border-collapse:collapse"><tr>
@@ -15994,8 +16365,7 @@ function _dbManutencao(c){
 
   const esq=`${_dbHdr('GEDREM')}
 <table style="width:100%;border-collapse:collapse"><tr>
-  <td style="${B}padding:1.5mm 2mm;width:44%"><b>ENCARREGADO</b> ${c.enc}</td>
-  <td style="${B}border-left:none;padding:1.5mm 2mm;width:26%"><b>DATA:</b> ${c.data}</td>
+  <td style="${B}padding:1.5mm 2mm;width:55%"><b>ENCARREGADO</b> ${c.enc}</td>
   <td style="${B}border-left:none;padding:1.5mm 2mm"><b>EQUIPE:</b> ${c.equipe}</td>
 </tr></table>
 <table style="width:100%;border-collapse:collapse"><tr>
@@ -16055,8 +16425,7 @@ function _dbRetro(c){
   const B='border:1px solid #000;border-top:none;';
   return `${_dbHdr('GEDREM')}
 <table style="width:100%;border-collapse:collapse"><tr>
-  <td style="${B}padding:1.5mm 3mm;width:44%"><b>ENCARREGADO</b> ${c.enc}</td>
-  <td style="${B}border-left:none;padding:1.5mm 3mm;width:26%"><b>DATA:</b> ${c.data}</td>
+  <td style="${B}padding:1.5mm 3mm;width:55%"><b>ENCARREGADO</b> ${c.enc}</td>
   <td style="${B}border-left:none;padding:1.5mm 3mm"><b>EQUIPE:</b> ${c.equipe}</td>
 </tr></table>
 <table style="width:100%;border-collapse:collapse"><tr>

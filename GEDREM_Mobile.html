@@ -507,7 +507,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-66';
+const APP_VERSION='20260713-68';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -694,7 +694,7 @@ async function enviarRelatorio(d){
       if(r[0]&&r[0].data){const nd=r[0].data;nd.status='Executado';nd.rf_codigo=cod;await storePatch(d.cloudId,nd);}
     }catch(e){}
   }
-  d.enviada=true;d.codSistema=cod;await dbPut(d);
+  d.enviada=true;d.codSistema=cod;if(concl)d.arquivada=true;await dbPut(d);
 }
 async function enviarAgora(d){
   const primeira=!d.enviada;
@@ -728,13 +728,21 @@ async function sincronizar(silencioso){
         status:'pendente',equipe:it.equipe,encarregado:it.encarregado||(ENC_MAP[it.equipe]||[''])[0]||''});
       novos++;
     }
+    // Reconciliação: itens concluídos/removidos na Programação do sistema saem do app
+    let arquivadas=0;
+    const progById={}; prog.forEach(it=>{ if(it&&it.cloudId!=null) progById[it.cloudId]=it; });
+    for(const d of locais){
+      if(acessoTotal()||!d.cloudId||d.arquivada||d.enviada||d.status==='concluida') continue;
+      const pc=progById[d.cloudId];
+      if(!pc || ((pc.status||'Programado')!=='Programado')){ d.arquivada=true; await dbPut(d); arquivadas++; }
+    }
     let enviadas=0;
     for(const d of visiveis(locais)){
       // Só vai ao sistema quando CONCLUÍDA (via "Concluir e enviar"). Demandas em andamento ficam só no aparelho.
       if(!d.enviada&&d.endereco&&d.status==='concluida'){await enviarRelatorio(d);enviadas++;}
     }
-    if(novos||enviadas){
-      toast((novos?novos+' demanda(s) nova(s) da programação. ':'')+(enviadas?enviadas+' relatório(s) enviado(s) ao sistema.':''));
+    if(novos||enviadas||arquivadas){
+      toast((novos?novos+' demanda(s) nova(s) da programação. ':'')+(enviadas?enviadas+' relatório(s) enviado(s) ao sistema. ':'')+(arquivadas?arquivadas+' concluída(s)/removida(s) saíram do app.':''));
       if($('scr-list').classList.contains('on'))renderLista();
     }else if(!silencioso)toast('Sincronizado — nada novo na nuvem.');
   }catch(e){if(!silencioso)toast('Sincronização falhou: '+e.message)}
@@ -743,7 +751,7 @@ async function sincronizar(silencioso){
 
 /* ════════════════ LISTA DE DEMANDAS ════════════════ */
 async function renderLista(){
-  const all=visiveis(await dbAll()).sort((a,b)=>(b.data||'').localeCompare(a.data||'')|| (b.id-a.id));
+  const all=visiveis(await dbAll()).filter(d=>acessoTotal()||!d.arquivada).sort((a,b)=>(b.data||'').localeCompare(a.data||'')|| (b.id-a.id));
   $('k-pend').textContent=all.filter(d=>d.status==='pendente').length;
   $('k-and').textContent=all.filter(d=>d.status==='andamento').length;
   $('k-conc').textContent=all.filter(d=>d.status==='concluida').length;
@@ -891,6 +899,7 @@ async function concluirEnviar(){
   // Depois envia ao sistema
   await enviarAgora(atual);
   toast('✅ Concluído e enviado ao sistema.');
+  nav('list');
 }
 
 /* ════════════════ COMPARTILHAR NO WHATSAPP ════════════════ */
