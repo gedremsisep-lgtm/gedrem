@@ -507,7 +507,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-70';
+const APP_VERSION='20260713-71';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -719,7 +719,7 @@ async function sincronizar(silencioso){
     let novos=0;
     for(const it of prog){
       if(vistos.has(it.cloudId))continue;
-      if((it.status||'Programado')!=='Programado')continue;
+      if(['Executado','Cancelado'].includes(it.status||'Programado'))continue;
       if(!it.equipe)continue;
       if(!acessoTotal()&&it.equipe!==USER.equipe)continue;
       await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:hoje(),dataProg:it.data||'',origem:it.origem||'Programação',
@@ -729,13 +729,15 @@ async function sincronizar(silencioso){
         status:'pendente',equipe:it.equipe,encarregado:it.encarregado||(ENC_MAP[it.equipe]||[''])[0]||''});
       novos++;
     }
-    // Reconciliação: itens concluídos/removidos na Programação do sistema saem do app
+    // Reconciliação: o app reflete exatamente a Programação "em aberto" do sistema
     let arquivadas=0;
-    const progById={}; prog.forEach(it=>{ if(it&&it.cloudId!=null) progById[it.cloudId]=it; });
-    for(const d of locais){
-      if(acessoTotal()||!d.cloudId||d.arquivada||d.enviada||d.status==='concluida') continue;
-      const pc=progById[d.cloudId];
-      if(!pc || ((pc.status||'Programado')!=='Programado')){ d.arquivada=true; await dbPut(d); arquivadas++; }
+    if(Array.isArray(prog) && prog.length){
+      const abertos=new Set(prog.filter(it=>it&&it.cloudId!=null && !['Executado','Cancelado'].includes(it.status||'Programado')).map(it=>it.cloudId));
+      for(const d of locais){
+        if(!d.cloudId) continue;
+        const querArq = !abertos.has(d.cloudId);
+        if(!!d.arquivada !== querArq){ d.arquivada=querArq; await dbPut(d); arquivadas++; }
+      }
     }
     let enviadas=0;
     for(const d of visiveis(locais)){
@@ -752,7 +754,7 @@ async function sincronizar(silencioso){
 
 /* ════════════════ LISTA DE DEMANDAS ════════════════ */
 async function renderLista(){
-  const all=visiveis(await dbAll()).filter(d=>acessoTotal()||!d.arquivada).sort((a,b)=>(b.data||'').localeCompare(a.data||'')|| (b.id-a.id));
+  const all=visiveis(await dbAll()).filter(d=>!d.arquivada).sort((a,b)=>(b.data||'').localeCompare(a.data||'')|| (b.id-a.id));
   $('k-pend').textContent=all.filter(d=>d.status==='pendente').length;
   $('k-and').textContent=all.filter(d=>d.status==='andamento').length;
   $('k-conc').textContent=all.filter(d=>d.status==='concluida').length;
