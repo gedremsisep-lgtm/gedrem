@@ -972,8 +972,66 @@ textarea{resize:vertical;min-height:60px}
     <div class="tab" onclick="abrirPedidoAta('060')">Novo Pedido</div>
     <div class="tab" onclick="abrirPedidoAta('060');pedidoAtaStab('hist')">Histórico</div>
     <div class="tab" onclick="ataStab(this,'a60-doc');ataDocRenderLista()"><i class="ti ti-files"></i> Documentação</div>
+    <div class="tab" onclick="ataStab(this,'a60-prev');prevInit()"><i class="ti ti-calendar-stats"></i> Previsão de consumo</div>
     <div class="tab" onclick="ataStab(this,'a60-fotorel');rfentRenderLista()" style="margin-left:auto"><i class="ti ti-camera"></i> Relatório Fotográfico</div>
   </div>
+
+
+  <!-- ABA: PREVISÃO DE CONSUMO -->
+  <div id="a60-prev" style="display:none">
+    <div class="fcard">
+      <div class="fhead"><i class="ti ti-calendar-stats"></i>Previsão de consumo — Pedido de Utilização de Saldo (por empresa)</div>
+      <div class="fr3">
+        <div class="fg"><label>Empresa *</label>
+          <select id="prev-emp" onchange="prevLoadItens()">
+            <option value="">Selecione a empresa...</option>
+            <option value="FENIX">FÊNIX Comércio e Construções LTDA</option>
+            <option value="NSC">NSC Comércio e Serviços</option>
+            <option value="EVF">EVF Comércio e Serviços LTDA</option>
+            <option value="SJ">São José Engenharia e Comércio LTDA</option>
+          </select>
+        </div>
+        <div class="fg"><label>Nº do pedido</label><input id="prev-num" placeholder="Ex.: 0614765"></div>
+        <div class="fg"><label>Processo nº</label><input id="prev-proc" placeholder="Ex.: 057653/2025-27"></div>
+        <div class="fg"><label>PE</label><input id="prev-pe" placeholder="Ex.: 060/2025"></div>
+        <div class="fg"><label>ATA</label><input id="prev-ata" placeholder="Ex.: 038/2025"></div>
+        <div class="fg fl"><label>Objeto</label><input id="prev-objeto" placeholder="Ex.: AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA"></div>
+        <div class="fg"><label>Mês inicial das parcelas</label><input type="month" id="prev-mes" onchange="prevCalc()"></div>
+        <div class="fg"><label>Nº de meses (parcelas)</label><input type="number" id="prev-nmeses" min="1" max="12" value="4" onchange="prevCalc()"></div>
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-list-numbers"></i>Itens da empresa — informe a quantidade (limitada ao saldo restante da ATA)</div>
+      <div id="prev-itens-info" class="al ai" style="font-size:11px;margin-bottom:6px"><i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.</div>
+      <div class="tw" style="overflow-x:auto"><table style="min-width:640px"><thead><tr>
+        <th>Item</th><th>Código</th><th>Descrição</th><th>Und</th><th style="text-align:right">Saldo</th><th style="text-align:right">Qtd. solicitada</th><th style="text-align:right">Vlr unit.</th><th style="text-align:right">Valor total</th>
+      </tr></thead><tbody id="prev-tb"></tbody></table></div>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Valor total solicitado: <span id="prev-total">R$ 0,00</span> · <span id="prev-parcela" style="font-size:12px;color:var(--text2)">— por mês</span></div>
+    </div>
+    <div class="fcard">
+      <div id="prev-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="prev-ok-txt"></b></div>
+      <div class="brow no-print" style="margin-top:4px">
+        <button class="btn bp" onclick="prevSave()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button class="btn" onclick="prevPrint()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+        <button class="btn" onclick="prevReset()"><i class="ti ti-x"></i>Limpar</button>
+        <button class="btn" style="margin-left:auto" onclick="prevRenderHist()"><i class="ti ti-history"></i>Ver histórico</button>
+      </div>
+      <div id="prev-hist-box" style="display:none;margin-top:10px">
+        <div class="tw"><table><thead><tr><th>Nº</th><th>Empresa</th><th>Mês inicial</th><th>Itens</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="prev-hist-tb"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+
+<div id="prev-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('prev-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('prev-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Retrato · Pedido de Utilização de Saldo</span>
+    </div>
+    <div id="prev-print-content" style="padding:8mm 8mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
+  </div>
+</div>
 
   <!-- ABA: SALDO DE ITENS -->
   <div id="a60-saldo">
@@ -4180,12 +4238,12 @@ textarea{resize:vertical;min-height:60px}
 window._GEDREM_JS_OK = true; // flag: script principal carregou
 const DB_NAME = 'GEDREM_DB';
 const DB_VERSION = 4;
-const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes','dispositivos'];
+const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes','dispositivos','previsoes'];
 
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-91'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-92'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -7682,7 +7740,7 @@ function ataPrint(num){
 function ataStab(el,tid){
   el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
-  ['a60-saldo','a60-pedido','a60-hist','a60-doc','a60-fotorel'].forEach(id=>{const d=document.getElementById(id);if(d)d.style.display='none';});
+  ['a60-saldo','a60-pedido','a60-hist','a60-doc','a60-fotorel','a60-prev','a60-contratos'].forEach(id=>{const d=document.getElementById(id);if(d)d.style.display='none';});
   const t=document.getElementById(tid);if(t)t.style.display='';
 }
 
@@ -15234,6 +15292,208 @@ async function saidDel(id){
 /* Impressão robusta (compatível com macOS Safari/Chrome): imprime num iframe isolado,
    aguardando o logo/imagens carregarem. Evita o problema do window.print()+@media print
    (visibility:hidden/position:fixed) que sai em branco ou cortado no Mac. */
+
+/* ═══════════════ PREVISÃO DE CONSUMO — ATA 038 ═══════════════ */
+let PREV_ITENS=[], PREV_EDIT_ID=null;
+const PREV_CODBASE=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','11.1','17.1','18.1','19.1'];
+const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA'};
+const PREV_MESNOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function prevMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+async function prevSaldoMap(){
+  const s060=await dbGetAll('sol060').catch(()=>[]);
+  const consumida={};
+  s060.filter(x=>x.tipo==='consumir'&&(x.ata||'060')==='060').forEach(p=>{(p.itens||[]).forEach(pi=>{const k=String(pi.n);consumida[k]=(consumida[k]||0)+(parseFloat(pi.qtd)||0);});});
+  const formalizados=s060.filter(x=>x.tipo==='formalizar'&&(x.ata||'060')==='060');
+  const temContrato=formalizados.length>0;
+  const contratada={};
+  formalizados.forEach(f=>{(f.itens||[]).forEach(fi=>{const k=String(fi.n);contratada[k]=(contratada[k]||0)+(parseFloat(fi.qtd)||0);});});
+  const cEf=it=>temContrato?(contratada[String(it.n)]||0):(it.qtdAta||it.c||0);
+  return { salDin: it=>Math.max(0,cEf(it)-(consumida[String(it.n)]||0)) };
+}
+async function prevInit(){
+  const ata=document.getElementById('prev-ata'); if(ata&&!ata.value)ata.value='038/'+new Date().getFullYear();
+  const obj=document.getElementById('prev-objeto'); if(obj&&!obj.value)obj.value='AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA';
+  const mes=document.getElementById('prev-mes'); if(mes&&!mes.value){ const n=new Date(); mes.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+  prevRenderItens(); prevCalc();
+  await prevRenderHist();
+}
+async function prevLoadItens(){
+  const emp=document.getElementById('prev-emp')?.value||'';
+  const info=document.getElementById('prev-itens-info');
+  if(!emp){ PREV_ITENS=[]; prevRenderItens(); prevCalc(); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.'; return; }
+  let salDin=()=>0; try{ ({salDin}=await prevSaldoMap()); }catch(e){}
+  const itens=D.filter(it=>it.ata==='060'&&it.e===emp).sort((a,b)=>a.n-b.n);
+  PREV_ITENS=itens.map(it=>({ n:it.n, cod:PREV_CODBASE[it.n-146]||String(it.n), siga:it.siga||'', desc:it.m||'', un:it.u||'', v:it.v||0, saldo:salDin(it), qtd:0 }));
+  if(info) info.innerHTML='<i class="ti ti-info-circle"></i>'+PREV_ITENS.length+' itens da '+emp+'. Preencha a quantidade solicitada — não pode passar do saldo restante.';
+  prevRenderItens(); prevCalc();
+}
+function prevRenderItens(){
+  const tb=document.getElementById('prev-tb'); if(!tb)return;
+  tb.innerHTML=PREV_ITENS.length?PREV_ITENS.map((r,i)=>`<tr${r.saldo<=0?' style="opacity:.55"':''}>
+    <td style="font-size:10px;font-weight:600">${r.cod}</td>
+    <td style="font-size:10px;font-family:monospace;color:var(--blue)">${r.siga||'—'}</td>
+    <td style="font-size:10px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(r.desc||'').replace(/"/g,'&quot;')}">${r.desc||''}</td>
+    <td style="font-size:10px;text-align:center">${r.un}</td>
+    <td style="text-align:right;font-size:10px;font-weight:600;color:${r.saldo<=0?'var(--red)':'var(--text)'}">${(r.saldo||0).toLocaleString('pt-BR')}</td>
+    <td><input type="number" min="0" step="any" value="${r.qtd||''}" placeholder="0" style="width:88px;text-align:right" ${r.saldo<=0?'disabled title="Sem saldo"':''} oninput="prevSetQtd(${i},this)"></td>
+    <td style="text-align:right;font-size:10px">${prevMoney(r.v)}</td>
+    <td style="text-align:right;font-size:10px;font-weight:600" id="prev-st-${i}">${prevMoney((r.v||0)*(r.qtd||0))}</td>
+  </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:14px">Selecione a empresa para carregar os itens.</td></tr>';
+}
+function prevSetQtd(i,el){
+  const it=PREV_ITENS[i]; if(!it)return;
+  let v=parseFloat(el.value)||0; if(v<0)v=0;
+  if(v>it.saldo){ v=it.saldo; el.value=it.saldo; _om('Quantidade limitada ao saldo restante ('+it.saldo.toLocaleString('pt-BR')+').'); }
+  it.qtd=v;
+  const st=document.getElementById('prev-st-'+i); if(st) st.textContent=prevMoney((it.v||0)*v);
+  prevCalc();
+}
+function prevCalc(){
+  const total=PREV_ITENS.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
+  const n=Math.max(1,Math.min(12,parseInt(document.getElementById('prev-nmeses')?.value)||4));
+  const el=document.getElementById('prev-total'); if(el)el.textContent=prevMoney(total);
+  const pe=document.getElementById('prev-parcela'); if(pe)pe.textContent=prevMoney(total/n)+' por mês ('+n+'x)';
+  return total;
+}
+function prevColeta(){
+  const g=id=>{const e=document.getElementById(id);return e?e.value:'';};
+  const itens=PREV_ITENS.filter(r=>(r.qtd||0)>0).map(r=>({...r}));
+  return {
+    numero:(g('prev-num')||'').trim(), processo:(g('prev-proc')||'').trim(), pe:(g('prev-pe')||'').trim(),
+    ata:(g('prev-ata')||'').trim(), objeto:(g('prev-objeto')||'').trim(),
+    empresa:g('prev-emp'), empresaNome:PREV_EMP_NOME[g('prev-emp')]||g('prev-emp'),
+    mes:g('prev-mes'), nmeses:Math.max(1,Math.min(12,parseInt(g('prev-nmeses'))||4)),
+    itens:itens, total:itens.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0)
+  };
+}
+async function prevSave(){
+  const o=prevColeta();
+  if(!o.empresa){ _om('Selecione a empresa.'); return; }
+  if(!o.itens.length){ _om('Informe a quantidade de ao menos um item.'); return; }
+  o._ts=Date.now();
+  try{
+    if(PREV_EDIT_ID){ o.id=PREV_EDIT_ID; await dbPut('previsoes',o); } else { await dbAdd('previsoes',o); }
+    cacheInvalidate('previsoes');
+    const ok=document.getElementById('prev-ok'), okt=document.getElementById('prev-ok-txt');
+    if(okt)okt.textContent='Previsão salva · '+o.empresa+' · '+o.itens.length+' itens · total '+prevMoney(o.total);
+    if(ok){ok.style.display='flex';setTimeout(()=>ok.style.display='none',4000);}
+    PREV_EDIT_ID=null;
+    await prevRenderHist();
+  }catch(e){ _om('Erro ao salvar: '+e.message); }
+}
+function prevReset(){
+  PREV_ITENS=[]; PREV_EDIT_ID=null;
+  ['prev-num','prev-proc','prev-pe','prev-objeto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  const emp=document.getElementById('prev-emp'); if(emp)emp.value='';
+  const ata=document.getElementById('prev-ata'); if(ata)ata.value='038/'+new Date().getFullYear();
+  prevRenderItens(); prevCalc();
+  const info=document.getElementById('prev-itens-info'); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.';
+}
+async function prevRenderHist(){
+  const box=document.getElementById('prev-hist-box'); const tb=document.getElementById('prev-hist-tb');
+  if(box)box.style.display='';
+  if(!tb)return;
+  let all=[]; try{ all=await dbGetAll('previsoes'); }catch(e){}
+  all=(all||[]).sort((a,b)=>(b._ts||0)-(a._ts||0));
+  tb.innerHTML=all.length?all.map(o=>`<tr>
+    <td><b>${o.numero||'—'}</b></td>
+    <td>${o.empresa||'—'}</td>
+    <td>${o.mes||'—'}</td>
+    <td style="text-align:center">${(o.itens||[]).length}</td>
+    <td style="text-align:right">${prevMoney(o.total)}</td>
+    <td class="no-print" style="white-space:nowrap;text-align:right">
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="prevEditar(${o.id})" title="Editar">✏️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="prevPrintId(${o.id})" title="Imprimir">🖨️</button>
+      <button class="btn" style="padding:2px 6px;font-size:14px" onclick="prevExcluir(${o.id})" title="Excluir">🗑️</button>
+    </td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:12px">Nenhuma previsão salva ainda</td></tr>';
+}
+async function prevEditar(id){
+  const all=await dbGetAll('previsoes'); const o=all.find(x=>x.id===id); if(!o)return;
+  PREV_EDIT_ID=id;
+  const s2=(k,v)=>{const e=document.getElementById(k);if(e)e.value=(v==null?'':v);};
+  s2('prev-num',o.numero); s2('prev-proc',o.processo); s2('prev-pe',o.pe); s2('prev-ata',o.ata); s2('prev-objeto',o.objeto); s2('prev-emp',o.empresa); s2('prev-mes',o.mes); s2('prev-nmeses',o.nmeses);
+  await prevLoadItens();
+  (o.itens||[]).forEach(si=>{ const it=PREV_ITENS.find(x=>x.n===si.n); if(it) it.qtd=si.qtd||0; });
+  prevRenderItens(); prevCalc();
+  window.scrollTo(0,0);
+}
+async function prevExcluir(id){
+  if(!confirm('Excluir esta previsão de consumo?'))return;
+  await dbDelete('previsoes',id); cacheInvalidate('previsoes'); await prevRenderHist();
+}
+function prevMesesArr(mes,n){
+  const out=[];
+  if(mes&&String(mes).indexOf('-')>0){ let p=String(mes).split('-'); let m=parseInt(p[1],10); for(let i=0;i<n;i++) out.push(PREV_MESNOMES[(m-1+i)%12]); }
+  else { for(let i=0;i<n;i++) out.push('Parcela '+(i+1)); }
+  return out;
+}
+function prevPrint(){ const o=prevColeta(); if(!o.empresa){ _om('Selecione a empresa.'); return; } if(!o.itens.length){ _om('Informe ao menos um item com quantidade.'); return; } document.getElementById('prev-print-content').innerHTML=prevBuildPrint(o); document.getElementById('prev-print-modal').style.display='flex'; }
+async function prevPrintId(id){ const all=await dbGetAll('previsoes'); const o=all.find(x=>x.id===id); if(!o)return; document.getElementById('prev-print-content').innerHTML=prevBuildPrint(o); document.getElementById('prev-print-modal').style.display='flex'; }
+function prevBuildPrint(o){
+  const logo=typeof SISEP_LOGO!=='undefined'?SISEP_LOGO:'';
+  const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const n=Math.max(1,Math.min(12,o.nmeses||4));
+  const meses=prevMesesArr(o.mes,n);
+  const B='border:1px solid #000;padding:1mm 1.5mm;font-size:6.8pt;vertical-align:middle;';
+  const TH='border:1px solid #000;padding:1mm;font-size:6.8pt;font-weight:bold;text-align:center;background:#e8e8e8;';
+  const itens=(o.itens||[]).filter(r=>(r.qtd||0)>0);
+  const linhas=itens.map(r=>{
+    const tot=(r.v||0)*(r.qtd||0); const parc=tot/n;
+    const mtd=meses.map(()=>`<td style="${B}text-align:right">${prevMoney(parc)}</td>`).join('');
+    return `<tr>
+      <td style="${B}text-align:center;white-space:nowrap">ITEM ${esc(r.cod)}</td>
+      <td style="${B}text-align:center">${esc(r.siga)}</td>
+      <td style="${B}">${esc(r.desc)}</td>
+      <td style="${B}text-align:center;white-space:nowrap">1 - ${esc(r.un)}</td>
+      <td style="${B}text-align:center">${(r.qtd||0).toLocaleString('pt-BR')}</td>
+      <td style="${B}text-align:right">${prevMoney(r.v)}</td>
+      <td style="${B}text-align:right">${prevMoney(tot)}</td>
+      ${mtd}
+    </tr>`;
+  }).join('');
+  const total=itens.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
+  const parcMes=n?total/n:0;
+  const totTds=meses.map(()=>`<td style="${B}text-align:right;font-weight:bold">${prevMoney(parcMes)}</td>`).join('');
+  const acuTds=meses.map((_,i)=>`<td style="${B}text-align:right;font-weight:bold">${prevMoney(parcMes*(i+1))}</td>`).join('');
+  const mesesTh=meses.map(m=>`<th style="${TH}">${m}</th>`).join('');
+  const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const ano=(o.mes||'').slice(0,4)||String(new Date().getFullYear());
+  return `
+  <div style="text-align:center;margin-bottom:2mm">
+    ${logo?`<img src="${logo}" style="height:15mm;object-fit:contain">`:''}
+    <div style="font-weight:bold;font-size:9.5pt;margin-top:1mm">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
+  </div>
+  <div style="text-align:center;font-weight:bold;font-size:9.5pt;margin-bottom:1mm">PEDIDO DE UTILIZAÇÃO DE SALDO Nº ${esc(o.numero)}/SISEP/SUSEP/GEPLAGE/${esc(ano)}</div>
+  <div style="text-align:center;font-size:8.5pt;margin-bottom:2mm">Processo nº ${esc(o.processo)}</div>
+  <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
+    <b>A DIVEX/SISEP,</b><br>
+    PE: ${esc(o.pe)}<br>
+    ATA: ${esc(o.ata)}<br>
+    EMPRESA: ${esc(o.empresaNome)}<br>
+    OBJETO: ${esc(o.objeto)}
+  </div>
+  <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-bottom:2.5mm">
+    Considerando a necessidade de aquisição de materiais para a execução dos respectivos serviços no Município de Campo Grande. Considerando a solicitação de uso por parte da Superintendência de Serviços Públicos. Encaminhamos demanda para uso de saldo de ata <b>com formalização de contrato</b>, conforme descrito abaixo:
+  </div>
+  <table style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th style="${TH}">Tipo</th><th style="${TH}">Código</th><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Unidade</th><th style="${TH}">Qtde<br>Solicitada</th><th style="${TH}">Vlr.<br>Unitário</th><th style="${TH}">Valor Total</th>${mesesTh}
+    </tr></thead>
+    <tbody>${linhas||'<tr><td colspan="7" style="'+B+'text-align:center;color:#777">Sem itens</td></tr>'}</tbody>
+    <tfoot>
+      <tr><td colspan="6" style="${B}text-align:right;font-weight:bold">TOTAL DESEMBOLSO</td><td style="${B}text-align:right;font-weight:bold">${prevMoney(total)}</td>${totTds}</tr>
+      <tr><td colspan="6" style="${B}text-align:right;font-weight:bold">VALOR ACUMULADO</td><td style="${B}"></td>${acuTds}</tr>
+    </tfoot>
+  </table>
+  <div style="font-size:8pt;margin-top:2.5mm">CAMPO GRANDE - MS, ${hoje}.</div>
+  <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-top:1.5mm">Disponibiliza-se o processo para verificação da disponibilidade de reserva orçamentária e da respectiva fonte de recurso. Após a devida conferência, encaminhar ao setor responsável pela formalização do pedido.</div>
+  <div style="display:flex;justify-content:space-around;margin-top:16mm;font-size:8pt;text-align:center">
+    <div style="border-top:1px solid #000;padding-top:1mm;width:65mm">Juvenil Ferreira Lopes<br><b>Chefe da Divisão de Drenagem Urbana</b></div>
+    <div style="border-top:1px solid #000;padding-top:1mm;width:65mm"><br><b>Superintendente de Serviços Públicos</b></div>
+  </div>
+  <div style="font-size:7.5pt;color:#444;border-top:1px solid #999;margin-top:8mm;padding-top:1mm">Referência: Processo nº ${esc(o.processo)}</div>`;
+}
+
 function _printDocIframe(contentElId,pageRule){
   var src=document.getElementById(contentElId);
   if(!src){return;}
