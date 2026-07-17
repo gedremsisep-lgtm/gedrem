@@ -4250,7 +4250,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-94'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-95'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5670,6 +5670,8 @@ function orcBuildPrint(o){
   }
   const secHtml=secoes.map((sec,i)=>`<div style="font-weight:bold;font-size:9pt;color:#1a4a8a;margin:3mm 0 1mm">${i+1}. ${sec.t}</div>${sec.h}`).join('')||'<div style="font-size:9pt;color:#777;margin:3mm 0">Sem itens preenchidos.</div>';
   return `
+  <div style="display:flex;flex-direction:column;min-height:271mm">
+  <div>
   <div style="display:flex;align-items:center;gap:4mm;border-bottom:2px solid #1a4a8a;padding-bottom:3mm;margin-bottom:4mm">
     ${logo?`<img src="${logo}" style="height:18mm;width:auto;object-fit:contain">`:''}
     <div><div style="font-weight:bold;font-size:13pt;color:#1a4a8a">ORÇAMENTO</div>
@@ -5686,7 +5688,9 @@ function orcBuildPrint(o){
   ${secHtml}
   <table style="width:100%;border-collapse:collapse;font-size:12pt;margin-top:4mm"><tr><td style="padding:3mm;background:#1a4a8a;color:#fff;font-weight:bold">TOTAL GERAL DO ORÇAMENTO</td><td style="padding:3mm;background:#1a4a8a;color:#fff;text-align:right;font-weight:bold">${orcMoney(o.total)}</td></tr></table>
   ${o.obs?`<div style="margin-top:3mm;font-size:8.5pt"><b>Observações:</b> ${o.obs}</div>`:''}
-  <div style="margin-top:16mm;text-align:center"><div style="border-top:1.5px solid #333;width:210px;margin:0 auto 4px"></div><div style="font-size:10pt;font-weight:700">Juvenil Ferreira Lopes</div><div style="font-size:8.5pt;color:#444">Gerente de Drenagem Urbana – GEDREM</div><div style="font-size:8.5pt;color:#444">Prefeitura Municipal de Campo Grande – MS</div></div>`;
+  </div>
+  <div style="margin-top:auto;padding-top:12mm;text-align:center"><div style="border-top:1.5px solid #333;width:210px;margin:0 auto 4px"></div><div style="font-size:10pt;font-weight:700">Juvenil Ferreira Lopes</div><div style="font-size:8.5pt;color:#444">Gerente de Drenagem Urbana – GEDREM</div><div style="font-size:8.5pt;color:#444">Prefeitura Municipal de Campo Grande – MS</div></div>
+  </div>`;
 }
 function orcPrint(){
   const o=orcColeta();
