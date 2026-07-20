@@ -973,7 +973,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="tab" onclick="abrirPedidoAta('060');pedidoAtaStab('hist')">Histórico</div>
     <div class="tab" onclick="ataStab(this,'a60-doc');ataDocRenderLista()"><i class="ti ti-files"></i> Documentação</div>
     <div class="tab" onclick="prevOpen('060')"><i class="ti ti-calendar-stats"></i> Previsão de consumo</div>
-    <div class="tab" onclick="ataStab(this,'a60-fotorel');rfentRenderLista()" style="margin-left:auto"><i class="ti ti-camera"></i> Relatório Fotográfico</div>
+    <div class="tab" onclick="fotorelOpen('060')" style="margin-left:auto"><i class="ti ti-camera"></i> Relatório Fotográfico</div>
   </div>
 
 
@@ -1090,19 +1090,6 @@ textarea{resize:vertical;min-height:60px}
   </div>
 
   <!-- ABA: RELATÓRIO FOTOGRÁFICO DE ENTREGAS -->
-  <div id="a60-fotorel" style="display:none">
-    <div class="ps" style="margin-top:0">Registro fotográfico de recebimento de materiais — somente Pedidos de Entrega aprovados da ATA 038</div>
-    <div class="kg">
-      <div class="kc bl"><div class="kl">Pedidos de entrega</div><div class="kv" id="rfent-tot">0</div></div>
-      <div class="kc gn"><div class="kl">Com fotos</div><div class="kv" id="rfent-foto">0</div></div>
-      <div class="kc am"><div class="kl">Sem fotos</div><div class="kv" id="rfent-sem">0</div></div>
-    </div>
-    <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
-      <input id="rfent-busca" placeholder="Buscar requisição, empresa..." oninput="rfentRenderLista()" style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
-      <button class="btn bp" onclick="abrirPedidoAta('060');document.getElementById('hp-tipo').value='consumir';histOnTipo();"><i class="ti ti-plus"></i>Novo pedido de entrega</button>
-    </div>
-    <div id="rfent-lista"></div>
-  </div>
 </div>
 
 <!-- MODAL: FOTOS DE ENTREGA -->
@@ -1391,6 +1378,27 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
+<!-- MODAL: REL. FOTOGRÁFICO DE ENTREGA (todas as ATAs) -->
+<div id="fotorel-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--bg);width:1120px;max-width:100%;border-radius:8px;padding:16px;max-height:94vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.35)">
+    <div class="brow" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="fhead" style="margin:0"><i class="ti ti-camera"></i>Rel. Fotográfico de entrega — <span id="fotorel-ata-titulo">ATA 038</span></div>
+      <button class="btn" onclick="document.getElementById('fotorel-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+    </div>
+    <div class="ps" style="margin-top:0">Registro fotográfico de recebimento de materiais — somente Pedidos de Entrega aprovados.</div>
+    <div class="kg">
+      <div class="kc bl"><div class="kl">Pedidos de entrega</div><div class="kv" id="rfent-tot">0</div></div>
+      <div class="kc gn"><div class="kl">Com fotos</div><div class="kv" id="rfent-foto">0</div></div>
+      <div class="kc am"><div class="kl">Sem fotos</div><div class="kv" id="rfent-sem">0</div></div>
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+      <input id="rfent-busca" placeholder="Buscar requisição, empresa..." oninput="rfentRenderLista()" style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+      <button class="btn bp" onclick="abrirPedidoAta(ATA_CTX_UI);document.getElementById('hp-tipo').value='consumir';histOnTipo();"><i class="ti ti-plus"></i>Novo pedido de entrega</button>
+    </div>
+    <div id="rfent-lista"></div>
+  </div>
+</div>
+
 <!-- ── ATA 059 ── -->
 <div class="pg" id="pg-a059">
   <div class="pt">ATA 059 – Materiais Hidráulicos I</div>
@@ -1411,6 +1419,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bp" onclick="abrirPedidoAta('059')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('059')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
     <button class="btn" onclick="contrOpen('059')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="fotorelOpen('059')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1451,6 +1460,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bp" onclick="abrirPedidoAta('100')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('100')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
     <button class="btn" onclick="contrOpen('100')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="fotorelOpen('100')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1491,6 +1501,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bp" onclick="abrirPedidoAta('107')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('107')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
     <button class="btn" onclick="contrOpen('107')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="fotorelOpen('107')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1531,6 +1542,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bp" onclick="abrirPedidoAta('109')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('109')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
     <button class="btn" onclick="contrOpen('109')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="fotorelOpen('109')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -4266,7 +4278,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-97'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-98'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -8878,10 +8890,11 @@ function histPrintItem(id){
 
 let rfentContratoAtual=null;
 
+function fotorelOpen(ata){ ATA_CTX_UI=ata||'060'; const t=document.getElementById('fotorel-ata-titulo'); if(t)t.textContent='ATA '+(ATA_UI_NUM[ATA_CTX_UI]||ATA_CTX_UI); const m=document.getElementById('fotorel-modal'); if(m)m.style.display='flex'; rfentRenderLista(); }
 async function rfentRenderLista(){
   const all=await dbGetAll('sol060');
   const q=(document.getElementById('rfent-busca')?.value||'').toLowerCase();
-  const entregas=all.filter(x=>x.tipo==='consumir')
+  const entregas=all.filter(x=>x.tipo==='consumir'&&(x.ata||'060')===ATA_CTX_UI)
     .filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q))
     .sort((a,b)=>(b._ts||0)-(a._ts||0));
 
