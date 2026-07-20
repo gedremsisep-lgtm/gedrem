@@ -972,66 +972,10 @@ textarea{resize:vertical;min-height:60px}
     <div class="tab" onclick="abrirPedidoAta('060')">Novo Pedido</div>
     <div class="tab" onclick="abrirPedidoAta('060');pedidoAtaStab('hist')">Histórico</div>
     <div class="tab" onclick="ataStab(this,'a60-doc');ataDocRenderLista()"><i class="ti ti-files"></i> Documentação</div>
-    <div class="tab" onclick="ataStab(this,'a60-prev');prevInit()"><i class="ti ti-calendar-stats"></i> Previsão de consumo</div>
+    <div class="tab" onclick="prevOpen('060')"><i class="ti ti-calendar-stats"></i> Previsão de consumo</div>
     <div class="tab" onclick="ataStab(this,'a60-fotorel');rfentRenderLista()" style="margin-left:auto"><i class="ti ti-camera"></i> Relatório Fotográfico</div>
   </div>
 
-
-  <!-- ABA: PREVISÃO DE CONSUMO -->
-  <div id="a60-prev" style="display:none">
-    <div class="fcard">
-      <div class="fhead"><i class="ti ti-calendar-stats"></i>Previsão de consumo — Pedido de Utilização de Saldo (por empresa)</div>
-      <div class="fr3">
-        <div class="fg"><label>Empresa *</label>
-          <select id="prev-emp" onchange="prevLoadItens()">
-            <option value="">Selecione a empresa...</option>
-            <option value="FENIX">FÊNIX Comércio e Construções LTDA</option>
-            <option value="NSC">NSC Comércio e Serviços</option>
-            <option value="EVF">EVF Comércio e Serviços LTDA</option>
-            <option value="SJ">São José Engenharia e Comércio LTDA</option>
-          </select>
-        </div>
-        <div class="fg"><label>Nº do pedido</label><input id="prev-num" placeholder="Ex.: 0614765"></div>
-        <div class="fg"><label>Processo nº</label><input id="prev-proc" placeholder="Ex.: 057653/2025-27"></div>
-        <div class="fg"><label>PE</label><input id="prev-pe" placeholder="Ex.: 060/2025"></div>
-        <div class="fg"><label>ATA</label><input id="prev-ata" placeholder="Ex.: 038/2025"></div>
-        <div class="fg fl"><label>Objeto</label><input id="prev-objeto" placeholder="Ex.: AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA"></div>
-        <div class="fg"><label>Mês inicial das parcelas</label><input type="month" id="prev-mes" onchange="prevCalc()"></div>
-        <div class="fg"><label>Nº de meses (parcelas)</label><input type="number" id="prev-nmeses" min="1" max="12" value="4" onchange="prevCalc()"></div>
-      </div>
-    </div>
-    <div class="fcard">
-      <div class="sh"><i class="ti ti-list-numbers"></i>Itens da empresa — informe a quantidade (limitada ao saldo restante da ATA)</div>
-      <div id="prev-itens-info" class="al ai" style="font-size:11px;margin-bottom:6px"><i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.</div>
-      <div class="tw" style="overflow-x:auto"><table style="min-width:640px"><thead><tr>
-        <th>Item</th><th>Código</th><th>Descrição</th><th>Und</th><th style="text-align:right">Saldo</th><th style="text-align:right">Qtd. solicitada</th><th style="text-align:right">Vlr unit.</th><th style="text-align:right">Valor total</th>
-      </tr></thead><tbody id="prev-tb"></tbody></table></div>
-      <div style="text-align:right;font-weight:700;margin-top:6px">Valor total solicitado: <span id="prev-total">R$ 0,00</span> · <span id="prev-parcela" style="font-size:12px;color:var(--text2)">— por mês</span></div>
-    </div>
-    <div class="fcard">
-      <div id="prev-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="prev-ok-txt"></b></div>
-      <div class="brow no-print" style="margin-top:4px">
-        <button class="btn bp" onclick="prevSave()"><i class="ti ti-device-floppy"></i>Salvar</button>
-        <button class="btn" onclick="prevPrint()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
-        <button class="btn" onclick="prevReset()"><i class="ti ti-x"></i>Limpar</button>
-        <button class="btn" style="margin-left:auto" onclick="prevRenderHist()"><i class="ti ti-history"></i>Ver histórico</button>
-      </div>
-      <div id="prev-hist-box" style="display:none;margin-top:10px">
-        <div class="tw"><table><thead><tr><th>Nº</th><th>Empresa</th><th>Mês inicial</th><th>Itens</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="prev-hist-tb"></tbody></table></div>
-      </div>
-    </div>
-  </div>
-
-<div id="prev-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
-    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="_printDocIframe('prev-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
-      <button class="btn" onclick="document.getElementById('prev-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
-      <span style="font-size:11px;color:#666">A4 Retrato · Pedido de Utilização de Saldo</span>
-    </div>
-    <div id="prev-print-content" style="padding:8mm 8mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
-  </div>
-</div>
 
   <!-- ABA: SALDO DE ITENS -->
   <div id="a60-saldo">
@@ -1383,6 +1327,62 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
+<!-- MODAL: PREVISÃO DE CONSUMO (todas as ATAs) -->
+<div id="prev-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--bg);width:1060px;max-width:100%;border-radius:8px;padding:16px;max-height:94vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.35)">
+    <div class="brow" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="fhead" style="margin:0"><i class="ti ti-calendar-stats"></i>Previsão de consumo — <span id="prev-ata-titulo">ATA 038</span></div>
+      <button class="btn" onclick="document.getElementById('prev-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-file-invoice"></i>Dados do pedido (Pedido de Utilização de Saldo)</div>
+      <div class="fr3">
+        <div class="fg"><label>Empresa *</label>
+          <select id="prev-emp" onchange="prevLoadItens()"><option value="">Selecione a empresa...</option></select>
+        </div>
+        <div class="fg"><label>Nº do pedido</label><input id="prev-num" placeholder="Ex.: 0614765"></div>
+        <div class="fg"><label>Processo nº</label><input id="prev-proc" placeholder="Ex.: 057653/2025-27"></div>
+        <div class="fg"><label>PE</label><input id="prev-pe" placeholder="Ex.: 060/2025"></div>
+        <div class="fg"><label>ATA</label><input id="prev-ata" placeholder="Ex.: 038/2025"></div>
+        <div class="fg fl"><label>Objeto</label><input id="prev-objeto" placeholder="Ex.: AQUISIÇÃO DE MATERIAIS"></div>
+        <div class="fg"><label>Mês inicial das parcelas</label><input type="month" id="prev-mes" onchange="prevCalc()"></div>
+        <div class="fg"><label>Nº de meses (parcelas)</label><input type="number" id="prev-nmeses" min="1" max="12" value="4" onchange="prevCalc()"></div>
+      </div>
+    </div>
+    <div class="fcard">
+      <div class="sh"><i class="ti ti-list-numbers"></i>Itens da empresa — informe a quantidade (limitada ao saldo restante da ATA)</div>
+      <div id="prev-itens-info" class="al ai" style="font-size:11px;margin-bottom:6px"><i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.</div>
+      <div class="tw" style="overflow-x:auto"><table style="min-width:640px"><thead><tr>
+        <th>Item</th><th>Código</th><th>Descrição</th><th>Und</th><th style="text-align:right">Saldo</th><th style="text-align:right">Qtd. solicitada</th><th style="text-align:right">Vlr unit.</th><th style="text-align:right">Valor total</th>
+      </tr></thead><tbody id="prev-tb"></tbody></table></div>
+      <div style="text-align:right;font-weight:700;margin-top:6px">Valor total solicitado: <span id="prev-total">R$ 0,00</span> · <span id="prev-parcela" style="font-size:12px;color:var(--text2)">— por mês</span></div>
+    </div>
+    <div class="fcard">
+      <div id="prev-ok" class="ag3" style="display:none"><i class="ti ti-circle-check"></i><b id="prev-ok-txt"></b></div>
+      <div class="brow no-print" style="margin-top:4px">
+        <button class="btn bp" onclick="prevSave()"><i class="ti ti-device-floppy"></i>Salvar</button>
+        <button class="btn" onclick="prevPrint()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+        <button class="btn" onclick="prevReset()"><i class="ti ti-x"></i>Limpar</button>
+        <button class="btn" style="margin-left:auto" onclick="prevRenderHist()"><i class="ti ti-history"></i>Ver histórico</button>
+      </div>
+      <div id="prev-hist-box" style="display:none;margin-top:10px">
+        <div class="tw"><table><thead><tr><th>Nº</th><th>Empresa</th><th>Mês inicial</th><th>Itens</th><th>Total</th><th class="no-print">Ações</th></tr></thead><tbody id="prev-hist-tb"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="prev-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('prev-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('prev-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Retrato · Pedido de Utilização de Saldo</span>
+    </div>
+    <div id="prev-print-content" style="padding:8mm 8mm;font-family:Arial,sans-serif;font-size:10pt;color:#000;background:#fff"></div>
+  </div>
+</div>
+
 <!-- ── ATA 059 ── -->
 <div class="pg" id="pg-a059">
   <div class="pt">ATA 059 – Materiais Hidráulicos I</div>
@@ -1401,6 +1401,7 @@ textarea{resize:vertical;min-height:60px}
       style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
     <button class="btn bg2" onclick="ataPrint('059')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('059')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('059')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1439,6 +1440,7 @@ textarea{resize:vertical;min-height:60px}
       style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
     <button class="btn bg2" onclick="ataPrint('100')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('100')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('100')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1477,6 +1479,7 @@ textarea{resize:vertical;min-height:60px}
       style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
     <button class="btn bg2" onclick="ataPrint('107')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('107')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('107')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1515,6 +1518,7 @@ textarea{resize:vertical;min-height:60px}
       style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
     <button class="btn bg2" onclick="ataPrint('109')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('109')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('109')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -4250,7 +4254,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-95'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-96'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -15335,12 +15339,16 @@ async function saidDel(id){
    (visibility:hidden/position:fixed) que sai em branco ou cortado no Mac. */
 
 /* ═══════════════ PREVISÃO DE CONSUMO — ATA 038 ═══════════════ */
-let PREV_ITENS=[], PREV_EDIT_ID=null;
+let PREV_ITENS=[], PREV_EDIT_ID=null, PREV_ATA='060';
+const PREV_ATANUM={'060':'038','059':'059','100':'100','107':'107','109':'109'};
+function prevOpen(ata){ PREV_ATA=ata||'060'; const m=document.getElementById('prev-modal'); if(m)m.style.display='flex'; prevReset(); prevInit(); }
+async function prevFillEmp(){ const sel=document.getElementById('prev-emp'); if(!sel)return; const emps=Array.from(new Set(D.filter(it=>it.ata===PREV_ATA).map(it=>it.e).filter(Boolean))).sort(); sel.innerHTML='<option value="">Selecione a empresa...</option>'+emps.map(e=>`<option value="${e}">${(PREV_EMP_NOME[e]||e)}</option>`).join(''); }
 const PREV_CODBASE=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','11.1','17.1','18.1','19.1'];
 const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA'};
 const PREV_MESNOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function prevMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 async function prevSaldoMap(){
+  if(PREV_ATA!=='060'){ return { salDin: it=>Math.max(0,(it.qtdAta||it.c||0)) }; }
   const s060=await dbGetAll('sol060').catch(()=>[]);
   const consumida={};
   s060.filter(x=>x.tipo==='consumir'&&(x.ata||'060')==='060').forEach(p=>{(p.itens||[]).forEach(pi=>{const k=String(pi.n);consumida[k]=(consumida[k]||0)+(parseFloat(pi.qtd)||0);});});
@@ -15352,8 +15360,10 @@ async function prevSaldoMap(){
   return { salDin: it=>Math.max(0,cEf(it)-(consumida[String(it.n)]||0)) };
 }
 async function prevInit(){
-  const ata=document.getElementById('prev-ata'); if(ata&&!ata.value)ata.value='038/'+new Date().getFullYear();
-  const obj=document.getElementById('prev-objeto'); if(obj&&!obj.value)obj.value='AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA';
+  const tit=document.getElementById('prev-ata-titulo'); if(tit)tit.textContent='ATA '+(PREV_ATANUM[PREV_ATA]||PREV_ATA);
+  await prevFillEmp();
+  const ata=document.getElementById('prev-ata'); if(ata&&!ata.value)ata.value=(PREV_ATANUM[PREV_ATA]||'038')+'/'+new Date().getFullYear();
+  const obj=document.getElementById('prev-objeto'); if(obj&&!obj.value)obj.value=(PREV_ATA==='060'?'AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA':'AQUISIÇÃO DE MATERIAIS');
   const mes=document.getElementById('prev-mes'); if(mes&&!mes.value){ const n=new Date(); mes.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
   prevRenderItens(); prevCalc();
   await prevRenderHist();
@@ -15363,8 +15373,8 @@ async function prevLoadItens(){
   const info=document.getElementById('prev-itens-info');
   if(!emp){ PREV_ITENS=[]; prevRenderItens(); prevCalc(); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.'; return; }
   let salDin=()=>0; try{ ({salDin}=await prevSaldoMap()); }catch(e){}
-  const itens=D.filter(it=>it.ata==='060'&&it.e===emp).sort((a,b)=>a.n-b.n);
-  PREV_ITENS=itens.map(it=>({ n:it.n, cod:PREV_CODBASE[it.n-146]||String(it.n), siga:it.siga||'', desc:it.m||'', un:it.u||'', v:it.v||0, saldo:salDin(it), qtd:0 }));
+  const itens=D.filter(it=>it.ata===PREV_ATA&&it.e===emp).sort((a,b)=>a.n-b.n);
+  PREV_ITENS=itens.map((it,idx)=>({ n:it.n, cod:(PREV_ATA==='060'?(PREV_CODBASE[it.n-146]||String(idx+1)):String(idx+1).padStart(2,'0')), siga:it.siga||'', desc:it.m||'', un:it.u||'', v:it.v||0, saldo:salDin(it), qtd:0 }));
   if(info) info.innerHTML='<i class="ti ti-info-circle"></i>'+PREV_ITENS.length+' itens da '+emp+'. Preencha a quantidade solicitada — não pode passar do saldo restante.';
   prevRenderItens(); prevCalc();
 }
@@ -15403,7 +15413,7 @@ function prevColeta(){
     numero:(g('prev-num')||'').trim(), processo:(g('prev-proc')||'').trim(), pe:(g('prev-pe')||'').trim(),
     ata:(g('prev-ata')||'').trim(), objeto:(g('prev-objeto')||'').trim(),
     empresa:g('prev-emp'), empresaNome:PREV_EMP_NOME[g('prev-emp')]||g('prev-emp'),
-    mes:g('prev-mes'), nmeses:Math.max(1,Math.min(12,parseInt(g('prev-nmeses'))||4)),
+    mes:g('prev-mes'), nmeses:Math.max(1,Math.min(12,parseInt(g('prev-nmeses'))||4)), ataCod:PREV_ATA,
     itens:itens, total:itens.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0)
   };
 }
@@ -15426,7 +15436,7 @@ function prevReset(){
   PREV_ITENS=[]; PREV_EDIT_ID=null;
   ['prev-num','prev-proc','prev-pe','prev-objeto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const emp=document.getElementById('prev-emp'); if(emp)emp.value='';
-  const ata=document.getElementById('prev-ata'); if(ata)ata.value='038/'+new Date().getFullYear();
+  const ata=document.getElementById('prev-ata'); if(ata)ata.value=(PREV_ATANUM[PREV_ATA]||'038')+'/'+new Date().getFullYear();
   prevRenderItens(); prevCalc();
   const info=document.getElementById('prev-itens-info'); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.';
 }
@@ -15435,7 +15445,7 @@ async function prevRenderHist(){
   if(box)box.style.display='';
   if(!tb)return;
   let all=[]; try{ all=await dbGetAll('previsoes'); }catch(e){}
-  all=(all||[]).sort((a,b)=>(b._ts||0)-(a._ts||0));
+  all=(all||[]).filter(o=>(o.ataCod||'060')===PREV_ATA).sort((a,b)=>(b._ts||0)-(a._ts||0));
   tb.innerHTML=all.length?all.map(o=>`<tr>
     <td><b>${o.numero||'—'}</b></td>
     <td>${o.empresa||'—'}</td>
@@ -15450,13 +15460,16 @@ async function prevRenderHist(){
 }
 async function prevEditar(id){
   const all=await dbGetAll('previsoes'); const o=all.find(x=>x.id===id); if(!o)return;
+  PREV_ATA=o.ataCod||'060';
+  const m=document.getElementById('prev-modal'); if(m)m.style.display='flex';
+  const tit=document.getElementById('prev-ata-titulo'); if(tit)tit.textContent='ATA '+(PREV_ATANUM[PREV_ATA]||PREV_ATA);
+  await prevFillEmp();
   PREV_EDIT_ID=id;
   const s2=(k,v)=>{const e=document.getElementById(k);if(e)e.value=(v==null?'':v);};
   s2('prev-num',o.numero); s2('prev-proc',o.processo); s2('prev-pe',o.pe); s2('prev-ata',o.ata); s2('prev-objeto',o.objeto); s2('prev-emp',o.empresa); s2('prev-mes',o.mes); s2('prev-nmeses',o.nmeses);
   await prevLoadItens();
   (o.itens||[]).forEach(si=>{ const it=PREV_ITENS.find(x=>x.n===si.n); if(it) it.qtd=si.qtd||0; });
   prevRenderItens(); prevCalc();
-  window.scrollTo(0,0);
 }
 async function prevExcluir(id){
   if(!confirm('Excluir esta previsão de consumo?'))return;
