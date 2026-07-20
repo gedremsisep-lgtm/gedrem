@@ -968,7 +968,7 @@ textarea{resize:vertical;min-height:60px}
 
   <div class="tabs">
     <div class="tab on" onclick="ataStab(this,'a60-saldo')">Saldo de Itens</div>
-    <div class="tab" onclick="ataStab(this,'a60-contratos');ataRenderContratos()"><i class="ti ti-file-description"></i> Contratos</div>
+    <div class="tab" onclick="contrOpen('060')"><i class="ti ti-file-description"></i> Contratos</div>
     <div class="tab" onclick="abrirPedidoAta('060')">Novo Pedido</div>
     <div class="tab" onclick="abrirPedidoAta('060');pedidoAtaStab('hist')">Histórico</div>
     <div class="tab" onclick="ataStab(this,'a60-doc');ataDocRenderLista()"><i class="ti ti-files"></i> Documentação</div>
@@ -1034,9 +1034,6 @@ textarea{resize:vertical;min-height:60px}
   </div>
 
   <!-- ABA: CONTRATOS -->
-  <div id="a60-contratos" style="display:none">
-    <div id="a60-contratos-lista" style="padding-top:4px"></div>
-  </div>
 
   <!-- ABA: NOVO PEDIDO -->
 
@@ -1383,6 +1380,17 @@ textarea{resize:vertical;min-height:60px}
   </div>
 </div>
 
+<!-- MODAL: CONTRATOS (todas as ATAs) -->
+<div id="contr-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--bg);width:1120px;max-width:100%;border-radius:8px;padding:16px;max-height:94vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.35)">
+    <div class="brow" style="justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="fhead" style="margin:0"><i class="ti ti-file-description"></i>Contratos — <span id="contr-ata-titulo">ATA 038</span></div>
+      <button class="btn" onclick="document.getElementById('contr-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+    </div>
+    <div id="a60-contratos-lista" style="padding-top:4px"></div>
+  </div>
+</div>
+
 <!-- ── ATA 059 ── -->
 <div class="pg" id="pg-a059">
   <div class="pt">ATA 059 – Materiais Hidráulicos I</div>
@@ -1402,6 +1410,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bg2" onclick="ataPrint('059')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('059')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('059')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('059')"><i class="ti ti-file-description"></i>Contratos</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1441,6 +1450,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bg2" onclick="ataPrint('100')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('100')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('100')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('100')"><i class="ti ti-file-description"></i>Contratos</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1480,6 +1490,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bg2" onclick="ataPrint('107')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('107')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('107')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('107')"><i class="ti ti-file-description"></i>Contratos</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -1519,6 +1530,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn bg2" onclick="ataPrint('109')"><i class="ti ti-printer"></i>Imprimir</button>
     <button class="btn bp" onclick="abrirPedidoAta('109')"><i class="ti ti-plus"></i>Novo pedido</button>
     <button class="btn" onclick="prevOpen('109')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('109')"><i class="ti ti-file-description"></i>Contratos</button>
   </div>
   <div class="card tw"><table><thead><tr>
     <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
@@ -4254,7 +4266,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-96'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
+const SYSTEM_VERSION = '20260713-97'; // Programação do dia: campo Origem do pedido + Nº (alimenta o Mobile via origem/os)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -7806,13 +7818,16 @@ function ataAbrirFormFormalizar(){
   histOnTipo();
 }
 
+let ATA_CTX_UI='060';
+const ATA_UI_NUM={'060':'038','059':'059','100':'100','107':'107','109':'109'};
+function contrOpen(ata){ ATA_CTX_UI=ata||'060'; const t=document.getElementById('contr-ata-titulo'); if(t)t.textContent='ATA '+(ATA_UI_NUM[ATA_CTX_UI]||ATA_CTX_UI); const m=document.getElementById('contr-modal'); if(m)m.style.display='flex'; ataRenderContratos(); }
 async function ataRenderContratos(){
   const box=document.getElementById('a60-contratos-lista');
   if(!box)return;
   box.innerHTML='<div style="text-align:center;color:var(--text3);padding:30px;font-size:13px">Carregando contratos...</div>';
   const all=await dbGetAll('sol060');
-  const contratos=all.filter(x=>x.tipo==='formalizar'&&(x.ata||'060')==='060');
-  const consumos=all.filter(x=>x.tipo==='consumir'&&(x.ata||'060')==='060');
+  const contratos=all.filter(x=>x.tipo==='formalizar'&&(x.ata||'060')===ATA_CTX_UI);
+  const consumos=all.filter(x=>x.tipo==='consumir'&&(x.ata||'060')===ATA_CTX_UI);
   const BRLfmt=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const nomesForn={FENIX:'FENIX COMERCIO E CONSTRUÇÕES LTDA',NSC:'NSC COMERCIO E SERVIÇOS LTDA',EVF:'EVF COMÉRCIO E SERVIÇOS LTDA',SJ:'SÃO JOSE ENGENHARIA E COMERCIO LTDA'};
 
@@ -7821,7 +7836,7 @@ async function ataRenderContratos(){
       <div style="font-size:32px;margin-bottom:10px">📋</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px">Nenhum contrato formalizado</div>
       <div style="font-size:12px;margin-bottom:14px">Formalize um contrato com um fornecedor para habilitar o lançamento de pedidos.</div>
-      <button class="btn bp" onclick="abrirPedidoAta('060');document.getElementById('hp-tipo').value='formalizar';histOnTipo()">
+      <button class="btn bp" onclick="abrirPedidoAta(ATA_CTX_UI);document.getElementById('hp-tipo').value='formalizar';histOnTipo()">
         <i class="ti ti-plus"></i> Formalizar Contrato
       </button>
     </div>`;
