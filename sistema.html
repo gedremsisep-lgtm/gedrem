@@ -1279,8 +1279,16 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>PE</label><input id="prev-pe" placeholder="Ex.: 060/2025"></div>
         <div class="fg"><label>ATA</label><input id="prev-ata" placeholder="Ex.: 038/2025"></div>
         <div class="fg fl"><label>Objeto</label><input id="prev-objeto" placeholder="Ex.: AQUISIÇÃO DE MATERIAIS"></div>
-        <div class="fg"><label>Mês inicial das parcelas</label><input type="month" id="prev-mes" onchange="prevCalc()"></div>
-        <div class="fg"><label>Nº de meses (parcelas)</label><input type="number" id="prev-nmeses" min="1" max="12" value="4" onchange="prevCalc()"></div>
+        <div class="fg"><label>Mês inicial das parcelas</label><input type="month" id="prev-mes" onchange="prevBuildPcts();prevCalc()"></div>
+        <div class="fg"><label>Nº de meses (parcelas)</label><input type="number" id="prev-nmeses" min="1" max="12" value="4" onchange="prevSyncPcts();prevCalc()"></div>
+      </div>
+      <div id="prev-pct-wrap" style="margin-top:6px;border-top:1px dashed var(--border2);padding-top:8px">
+        <div class="brow" style="justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div class="sh" style="margin:0"><i class="ti ti-percentage"></i>Percentual de desembolso por parcela</div>
+          <button class="btn" style="padding:3px 9px;font-size:10px" onclick="prevIgualar()"><i class="ti ti-arrows-horizontal"></i>Distribuir igualmente</button>
+        </div>
+        <div id="prev-pct-row" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div style="font-size:11px;margin-top:5px" id="prev-pct-sum">Soma: 100%</div>
       </div>
     </div>
     <div class="fcard">
@@ -4283,7 +4291,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-99'; // Documentação por ATA: modal compartilhado, store/pasta por ATA (038/059/100/107/109)
+const SYSTEM_VERSION = '20260713-100'; // Previsão de consumo: percentual de desembolso configurável por parcela (todas as ATAs)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -15391,9 +15399,41 @@ async function saidDel(id){
    (visibility:hidden/position:fixed) que sai em branco ou cortado no Mac. */
 
 /* ═══════════════ PREVISÃO DE CONSUMO — ATA 038 ═══════════════ */
-let PREV_ITENS=[], PREV_EDIT_ID=null, PREV_ATA='060';
+let PREV_ITENS=[], PREV_EDIT_ID=null, PREV_ATA='060', PREV_PCTS=[];
 const PREV_ATANUM={'060':'038','059':'059','100':'100','107':'107','109':'109'};
 function prevOpen(ata){ PREV_ATA=ata||'060'; const m=document.getElementById('prev-modal'); if(m)m.style.display='flex'; prevReset(); prevInit(); }
+function prevDefaultPcts(n){
+  n=Math.max(1,Math.min(12,parseInt(n)||1));
+  const base=Math.floor((100/n)*100)/100;
+  const arr=Array(n).fill(base);
+  const s=arr.reduce((a,b)=>a+b,0);
+  arr[n-1]=Math.round((arr[n-1]+(100-s))*100)/100;
+  return arr;
+}
+function prevSyncPcts(){
+  const n=Math.max(1,Math.min(12,parseInt(document.getElementById('prev-nmeses')?.value)||4));
+  if(PREV_PCTS.length!==n) PREV_PCTS=prevDefaultPcts(n);
+  prevBuildPcts();
+}
+function prevBuildPcts(){
+  const wrap=document.getElementById('prev-pct-row'); if(!wrap)return;
+  const n=PREV_PCTS.length||Math.max(1,Math.min(12,parseInt(document.getElementById('prev-nmeses')?.value)||4));
+  if(PREV_PCTS.length!==n) PREV_PCTS=prevDefaultPcts(n);
+  const meses=prevMesesArr(document.getElementById('prev-mes')?.value,n);
+  wrap.innerHTML=PREV_PCTS.map((p,i)=>`<div style="display:flex;flex-direction:column;min-width:92px">
+    <label style="font-size:9px;color:var(--text3)">${i+1}ª · ${meses[i]}</label>
+    <div style="display:flex;align-items:center;gap:3px"><input type="number" min="0" max="100" step="any" value="${p}" style="width:66px;text-align:right" oninput="prevSetPct(${i},this)"><span style="font-size:11px;color:var(--text2)">%</span></div>
+  </div>`).join('');
+  prevPctSum();
+}
+function prevSetPct(i,el){ PREV_PCTS[i]=parseFloat(el.value)||0; prevPctSum(); prevCalc(); }
+function prevPctSum(){
+  const el=document.getElementById('prev-pct-sum'); if(!el)return;
+  const s=PREV_PCTS.reduce((a,b)=>a+(b||0),0);
+  const ok=Math.abs(s-100)<0.02;
+  el.innerHTML='Soma: <b style="color:'+(ok?'var(--green)':'var(--red)')+'">'+s.toLocaleString('pt-BR',{maximumFractionDigits:2})+'%</b>'+(ok?'':' — o ideal é somar 100%');
+}
+function prevIgualar(){ PREV_PCTS=prevDefaultPcts(PREV_PCTS.length||parseInt(document.getElementById('prev-nmeses')?.value)||4); prevBuildPcts(); prevCalc(); }
 async function prevFillEmp(){ const sel=document.getElementById('prev-emp'); if(!sel)return; const emps=Array.from(new Set(D.filter(it=>it.ata===PREV_ATA).map(it=>it.e).filter(Boolean))).sort(); sel.innerHTML='<option value="">Selecione a empresa...</option>'+emps.map(e=>`<option value="${e}">${(PREV_EMP_NOME[e]||e)}</option>`).join(''); }
 const PREV_CODBASE=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','11.1','17.1','18.1','19.1'];
 const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA'};
@@ -15417,6 +15457,7 @@ async function prevInit(){
   const ata=document.getElementById('prev-ata'); if(ata&&!ata.value)ata.value=(PREV_ATANUM[PREV_ATA]||'038')+'/'+new Date().getFullYear();
   const obj=document.getElementById('prev-objeto'); if(obj&&!obj.value)obj.value=(PREV_ATA==='060'?'AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA':'AQUISIÇÃO DE MATERIAIS');
   const mes=document.getElementById('prev-mes'); if(mes&&!mes.value){ const n=new Date(); mes.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+  prevSyncPcts();
   prevRenderItens(); prevCalc();
   await prevRenderHist();
 }
@@ -15455,7 +15496,11 @@ function prevCalc(){
   const total=PREV_ITENS.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
   const n=Math.max(1,Math.min(12,parseInt(document.getElementById('prev-nmeses')?.value)||4));
   const el=document.getElementById('prev-total'); if(el)el.textContent=prevMoney(total);
-  const pe=document.getElementById('prev-parcela'); if(pe)pe.textContent=prevMoney(total/n)+' por mês ('+n+'x)';
+  const pe=document.getElementById('prev-parcela');
+  if(pe){
+    const pcts=(PREV_PCTS.length===n)?PREV_PCTS:prevDefaultPcts(n);
+    pe.textContent=pcts.map((p,i)=>(p||0).toLocaleString('pt-BR',{maximumFractionDigits:2})+'% = '+prevMoney(total*(p||0)/100)).join(' · ');
+  }
   return total;
 }
 function prevColeta(){
@@ -15466,6 +15511,7 @@ function prevColeta(){
     ata:(g('prev-ata')||'').trim(), objeto:(g('prev-objeto')||'').trim(),
     empresa:g('prev-emp'), empresaNome:PREV_EMP_NOME[g('prev-emp')]||g('prev-emp'),
     mes:g('prev-mes'), nmeses:Math.max(1,Math.min(12,parseInt(g('prev-nmeses'))||4)), ataCod:PREV_ATA,
+    pcts:(PREV_PCTS&&PREV_PCTS.length)?PREV_PCTS.slice():prevDefaultPcts(parseInt(g('prev-nmeses'))||4),
     itens:itens, total:itens.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0)
   };
 }
@@ -15489,6 +15535,7 @@ function prevReset(){
   ['prev-num','prev-proc','prev-pe','prev-objeto'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const emp=document.getElementById('prev-emp'); if(emp)emp.value='';
   const ata=document.getElementById('prev-ata'); if(ata)ata.value=(PREV_ATANUM[PREV_ATA]||'038')+'/'+new Date().getFullYear();
+  PREV_PCTS=[]; prevSyncPcts();
   prevRenderItens(); prevCalc();
   const info=document.getElementById('prev-itens-info'); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.';
 }
@@ -15519,6 +15566,8 @@ async function prevEditar(id){
   PREV_EDIT_ID=id;
   const s2=(k,v)=>{const e=document.getElementById(k);if(e)e.value=(v==null?'':v);};
   s2('prev-num',o.numero); s2('prev-proc',o.processo); s2('prev-pe',o.pe); s2('prev-ata',o.ata); s2('prev-objeto',o.objeto); s2('prev-emp',o.empresa); s2('prev-mes',o.mes); s2('prev-nmeses',o.nmeses);
+  PREV_PCTS=(o.pcts&&o.pcts.length)?o.pcts.slice():prevDefaultPcts(o.nmeses||4);
+  prevBuildPcts();
   await prevLoadItens();
   (o.itens||[]).forEach(si=>{ const it=PREV_ITENS.find(x=>x.n===si.n); if(it) it.qtd=si.qtd||0; });
   prevRenderItens(); prevCalc();
@@ -15540,12 +15589,13 @@ function prevBuildPrint(o){
   const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const n=Math.max(1,Math.min(12,o.nmeses||4));
   const meses=prevMesesArr(o.mes,n);
+  const pcts=(o.pcts&&o.pcts.length===n)?o.pcts:prevDefaultPcts(n);
   const B='border:1px solid #000;padding:1mm 1.5mm;font-size:6.8pt;vertical-align:middle;';
   const TH='border:1px solid #000;padding:1mm;font-size:6.8pt;font-weight:bold;text-align:center;background:#e8e8e8;';
   const itens=(o.itens||[]).filter(r=>(r.qtd||0)>0);
   const linhas=itens.map(r=>{
-    const tot=(r.v||0)*(r.qtd||0); const parc=tot/n;
-    const mtd=meses.map(()=>`<td style="${B}text-align:right">${prevMoney(parc)}</td>`).join('');
+    const tot=(r.v||0)*(r.qtd||0);
+    const mtd=meses.map((_,i)=>`<td style="${B}text-align:right">${prevMoney(tot*(pcts[i]||0)/100)}</td>`).join('');
     return `<tr>
       <td style="${B}text-align:center;white-space:nowrap">ITEM ${esc(r.cod)}</td>
       <td style="${B}text-align:center">${esc(r.siga)}</td>
@@ -15558,10 +15608,9 @@ function prevBuildPrint(o){
     </tr>`;
   }).join('');
   const total=itens.reduce((s,r)=>s+(r.v||0)*(r.qtd||0),0);
-  const parcMes=n?total/n:0;
-  const totTds=meses.map(()=>`<td style="${B}text-align:right;font-weight:bold">${prevMoney(parcMes)}</td>`).join('');
-  const acuTds=meses.map((_,i)=>`<td style="${B}text-align:right;font-weight:bold">${prevMoney(parcMes*(i+1))}</td>`).join('');
-  const mesesTh=meses.map(m=>`<th style="${TH}">${m}</th>`).join('');
+  const totTds=meses.map((_,i)=>`<td style="${B}text-align:right;font-weight:bold">${prevMoney(total*(pcts[i]||0)/100)}</td>`).join('');
+  let _acu=0; const acuTds=meses.map((_,i)=>{ _acu+=total*(pcts[i]||0)/100; return `<td style="${B}text-align:right;font-weight:bold">${prevMoney(_acu)}</td>`; }).join('');
+  const mesesTh=meses.map((m,i)=>`<th style="${TH}">${m}<br>${(pcts[i]||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}%</th>`).join('');
   const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   const ano=(o.mes||'').slice(0,4)||String(new Date().getFullYear());
   return `
