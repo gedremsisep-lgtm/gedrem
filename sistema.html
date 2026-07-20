@@ -4291,7 +4291,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-100'; // Previsão de consumo: percentual de desembolso configurável por parcela (todas as ATAs)
+const SYSTEM_VERSION = '20260713-101'; // Previsão de consumo: impressão mostra quantidade E valor por mês de cada item
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -15593,9 +15593,14 @@ function prevBuildPrint(o){
   const B='border:1px solid #000;padding:1mm 1.5mm;font-size:6.8pt;vertical-align:middle;';
   const TH='border:1px solid #000;padding:1mm;font-size:6.8pt;font-weight:bold;text-align:center;background:#e8e8e8;';
   const itens=(o.itens||[]).filter(r=>(r.qtd||0)>0);
+  const qFmt=q=>(q||0).toLocaleString('pt-BR',{maximumFractionDigits:2});
   const linhas=itens.map(r=>{
     const tot=(r.v||0)*(r.qtd||0);
-    const mtd=meses.map((_,i)=>`<td style="${B}text-align:right">${prevMoney(tot*(pcts[i]||0)/100)}</td>`).join('');
+    const mtd=meses.map((_,i)=>{
+      const qm=(r.qtd||0)*(pcts[i]||0)/100;
+      const vm=tot*(pcts[i]||0)/100;
+      return `<td style="${B}text-align:right;white-space:nowrap"><div style="font-weight:bold">${qFmt(qm)}</div><div style="color:#333">${prevMoney(vm)}</div></td>`;
+    }).join('');
     return `<tr>
       <td style="${B}text-align:center;white-space:nowrap">ITEM ${esc(r.cod)}</td>
       <td style="${B}text-align:center">${esc(r.siga)}</td>
@@ -15640,6 +15645,7 @@ function prevBuildPrint(o){
       <tr><td colspan="6" style="${B}text-align:right;font-weight:bold">VALOR ACUMULADO</td><td style="${B}"></td>${acuTds}</tr>
     </tfoot>
   </table>
+  <div style="font-size:6.5pt;color:#555;margin-top:1mm">Em cada mês, por item: <b>quantidade</b> (linha superior) e <b>valor</b> correspondente (linha inferior), conforme o percentual de desembolso indicado no cabeçalho de cada parcela.</div>
   <div style="font-size:8pt;margin-top:2.5mm">CAMPO GRANDE - MS, ${hoje}.</div>
   <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-top:1.5mm">Disponibiliza-se o processo para verificação da disponibilidade de reserva orçamentária e da respectiva fonte de recurso. Após a devida conferência, encaminhar ao setor responsável pela formalização do pedido.</div>
   <div style="display:flex;justify-content:space-around;margin-top:16mm;font-size:8pt;text-align:center">
