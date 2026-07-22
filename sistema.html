@@ -1228,7 +1228,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="rfent-print-modal" class="print-modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="print-modal">
     <div class="pm-toolbar no-print">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir</button>
+      <button class="btn bp" onclick="_printFit1('rfent-pm-body','portrait')"><i class="ti ti-printer"></i>Imprimir</button>
       <button class="btn" onclick="document.getElementById('rfent-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">Pré-visualização do Relatório Fotográfico de Entrega</span>
     </div>
@@ -1866,7 +1866,7 @@ textarea{resize:vertical;min-height:60px}
   <div id="ofc-res-print-modal" class="print-modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
     <div class="print-modal" style="width:297mm;max-width:100%">
       <div class="pm-toolbar no-print">
-        <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+        <button class="btn bp" onclick="_printFit1('ofc-res-pm-body','landscape')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
         <button class="btn" style="color:var(--green);border-color:var(--green)" onclick="ofcResExportExcel()"><i class="ti ti-file-spreadsheet"></i>Excel</button>
         <button class="btn" onclick="document.getElementById('ofc-res-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
         <span style="font-size:11px;color:#666;margin-left:8px">Pré-visualização Resumo · Ctrl+P para PDF</span>
@@ -2054,7 +2054,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="ofc-resp-print-modal" class="print-modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="print-modal" style="width:210mm;max-width:100%">
     <div class="pm-toolbar no-print">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / Salvar PDF</button>
+      <button class="btn bp" onclick="_printFit1('ofc-resp-pm-body','portrait')"><i class="ti ti-printer"></i>Imprimir / Salvar PDF</button>
       <button class="btn" onclick="document.getElementById('ofc-resp-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">Pré-visualização · Ctrl+P para PDF</span>
     </div>
@@ -2640,7 +2640,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="solalm-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:210mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printFit1('solalm-print-content','portrait')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('solalm-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666">A4 Retrato</span>
     </div>
@@ -2655,7 +2655,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="resg-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF (horizontal)</button>
+      <button class="btn bp" onclick="_printFit1('resg-pm-body','landscape')"><i class="ti ti-printer"></i>Imprimir / PDF (horizontal)</button>
       <button class="btn" onclick="document.getElementById('resg-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">A4 Paisagem · Ctrl+P para PDF</span>
     </div>
@@ -2894,7 +2894,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="prog-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div class="pm-toolbar no-print" style="background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF (horizontal)</button>
+      <button class="btn bp" onclick="_printFit1('prog-print-content','landscape')"><i class="ti ti-printer"></i>Imprimir / PDF (horizontal)</button>
       <button class="btn" onclick="document.getElementById('prog-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">A4 Paisagem · Ctrl+P para PDF</span>
     </div>
@@ -3067,7 +3067,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="mapa-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printFit1('mapa-print-content','portrait')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('mapa-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
     </div>
@@ -3143,7 +3143,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="marmitex-print-modal" class="modal-overlay" style="display:none;padding:0;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div id="marmitex-print-wrapper" style="background:#fff;width:220mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);margin:16px auto">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printFit1('marmitex-print-content','portrait')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('marmitex-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666">A4 Retrato</span>
     </div>
@@ -4062,7 +4062,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="desp-print-modal" class="print-modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="print-modal" style="width:297mm;max-width:100%">
     <div class="pm-toolbar no-print">
-      <button class="btn bp" onclick="window.print()"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printFit1('desp-pm-body','landscape')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('desp-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">A4 Paisagem · Ctrl+P para PDF</span>
     </div>
@@ -4325,7 +4325,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-103'; // Diário de Bordo: campo Data + impressão em 1 página (auto-fit); Orçamento: aba Despesas (diário, subtotais mensais)
+const SYSTEM_VERSION = '20260713-104'; // Impressão em 1 página (auto-fit) em Rel.Fotográfico, Ofícios, Sol.Almox, Resumo, Programação, Mapa, Req.Almoço e Despesas
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
