@@ -3212,9 +3212,18 @@ textarea{resize:vertical;min-height:60px}
   <div id="orc-desp" style="display:none">
     <div class="ps" style="margin-top:0">Lançamento diário de despesas — com quantidade, valor unitário e total; subtotais por mês.</div>
     <div class="fcard">
+      <div class="fhead"><i class="ti ti-building-store"></i>Fornecedores</div>
+      <div class="brow no-print" style="align-items:flex-end;gap:8px;flex-wrap:wrap">
+        <div class="fg" style="flex:2;min-width:180px"><label>Cadastrar novo fornecedor</label><input id="orcd-forn-novo" placeholder="Nome do fornecedor" onkeydown="if(event.key==='Enter'){event.preventDefault();orcFornSalvar();}"></div>
+        <button class="btn bp" onclick="orcFornSalvar()"><i class="ti ti-plus"></i>Cadastrar</button>
+      </div>
+      <div id="orcd-forn-lista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+    </div>
+    <div class="fcard">
       <div class="fhead"><i class="ti ti-plus"></i>Nova despesa</div>
       <div class="fr3">
         <div class="fg"><label>Data *</label><input type="date" id="orcd-data"></div>
+        <div class="fg"><label>Fornecedor</label><select id="orcd-forn"><option value="">Selecione...</option></select></div>
         <div class="fg fl"><label>Descrição *</label><input id="orcd-desc" placeholder="Ex.: Combustível, material, diária..."></div>
         <div class="fg"><label>Quantidade *</label><input type="number" step="any" min="0" id="orcd-qtd" value="1" oninput="orcDespPrev()"></div>
         <div class="fg"><label>Valor unitário (R$) *</label><input type="number" step="any" min="0" id="orcd-vu" placeholder="0,00" oninput="orcDespPrev()"></div>
@@ -3230,6 +3239,7 @@ textarea{resize:vertical;min-height:60px}
     <div style="display:flex;gap:7px;margin:14px 0 10px;flex-wrap:wrap;align-items:center" class="no-print">
       <input id="orcd-busca" placeholder="Buscar descrição..." oninput="orcDespRender()" style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
       <select id="orcd-ano" onchange="orcDespRender()" style="font-size:11px;padding:6px 10px;width:auto"><option value="">Todos os anos</option></select>
+      <select id="orcd-fil-forn" onchange="orcDespRender()" style="font-size:11px;padding:6px 10px;width:auto"><option value="">Todos fornecedores</option></select>
       <button class="btn bg2" onclick="orcDespPrint()"><i class="ti ti-printer"></i>Imprimir</button>
     </div>
     <div class="kg">
@@ -4368,12 +4378,12 @@ textarea{resize:vertical;min-height:60px}
 window._GEDREM_JS_OK = true; // flag: script principal carregou
 const DB_NAME = 'GEDREM_DB';
 const DB_VERSION = 4;
-const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','documentos059','documentos100','documentos107','documentos109','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes','dispositivos','previsoes','orc_despesas'];
+const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos','sol060','ofc_scans','equipes','funcionarios','materiais','composicoes','despesas','ci','ssi','documentos038','documentos059','documentos100','documentos107','documentos109','setores','app_config','saideiras','req_abastecimento','sol_almoxarifado','orcamentos','indenizacoes','dispositivos','previsoes','orc_despesas','orc_fornecedores'];
 
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-105'; // Ícone PWA cinza (emblema GEDREM) + otimização mobile (menu retrátil, formulários empilhados, toque)
+const SYSTEM_VERSION = '20260713-106'; // Orçamento/Despesas: cadastro de fornecedores + fornecedor por despesa (coluna, filtro, impressão)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5730,6 +5740,42 @@ const _ORCD_MES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','
 const _orcdM=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const _orcdFmtD=iso=>{ if(!iso)return'—'; const p=String(iso).split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso; };
 function orcDespHoje(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+/* ─── Fornecedores das despesas ─── */
+async function orcFornSalvar(){
+  const inp=document.getElementById('orcd-forn-novo'); if(!inp)return;
+  const nome=(inp.value||'').trim();
+  if(!nome){ inp.focus(); return; }
+  try{
+    let all=await dbGetAll('orc_fornecedores'); all=all||[];
+    if(all.some(f=>(f.nome||'').toLowerCase()===nome.toLowerCase())){ (typeof _om==='function'?_om:alert)('Fornecedor "'+nome+'" já cadastrado.'); return; }
+    await dbAdd('orc_fornecedores',{nome,_ts:Date.now()});
+    try{ cacheInvalidate('orc_fornecedores'); }catch(e){}
+  }catch(e){ (typeof _om==='function'?_om:alert)('Erro ao cadastrar: '+e.message); return; }
+  inp.value='';
+  await orcFornRender();
+  await orcDespPopularForn(nome);
+}
+async function orcFornExcluir(id){
+  if(!confirm('Remover este fornecedor da lista? As despesas já lançadas mantêm o nome registrado.'))return;
+  try{ await dbDelete('orc_fornecedores',id); cacheInvalidate('orc_fornecedores'); }catch(e){}
+  await orcFornRender(); await orcDespPopularForn();
+}
+async function orcFornRender(){
+  const box=document.getElementById('orcd-forn-lista'); if(!box)return;
+  let all=[]; try{ all=await dbGetAll('orc_fornecedores'); }catch(e){}
+  all=(all||[]).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  if(!all.length){ box.innerHTML='<span style="font-size:11px;color:var(--text3)">Nenhum fornecedor cadastrado ainda.</span>'; return; }
+  box.innerHTML=all.map(f=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border2);border-radius:99px;padding:4px 6px 4px 12px;font-size:12px"><i class="ti ti-building-store" style="color:var(--blue)"></i>${(f.nome||'').replace(/</g,'&lt;')}<button class="btn" style="padding:1px 6px;font-size:10px;color:var(--red);border-color:var(--red)" title="Remover" onclick="orcFornExcluir(${f.id})"><i class="ti ti-x"></i></button></span>`).join('');
+}
+async function orcDespPopularForn(selecionar){
+  let all=[]; try{ all=await dbGetAll('orc_fornecedores'); }catch(e){}
+  all=(all||[]).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const opts=all.map(f=>`<option>${(f.nome||'').replace(/</g,'&lt;')}</option>`).join('');
+  const s=document.getElementById('orcd-forn');
+  if(s){ const cur=(selecionar!=null)?selecionar:s.value; s.innerHTML='<option value="">Selecione...</option>'+opts; s.value=cur||''; }
+  const f=document.getElementById('orcd-fil-forn');
+  if(f){ const cur=f.value; f.innerHTML='<option value="">Todos fornecedores</option>'+opts; f.value=cur||''; }
+}
 function orcDespPrev(){
   const qtd=parseFloat(document.getElementById('orcd-qtd')?.value)||0;
   const vu=parseFloat(document.getElementById('orcd-vu')?.value)||0;
@@ -5738,12 +5784,13 @@ function orcDespPrev(){
 function orcDespLimpar(keepData){
   if(!keepData){ const dt=document.getElementById('orcd-data'); if(dt)dt.value=''; }
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
-  s('orcd-desc',''); s('orcd-qtd','1'); s('orcd-vu',''); s('orcd-tot','R$ 0,00');
+  s('orcd-desc',''); s('orcd-qtd','1'); s('orcd-vu',''); s('orcd-tot','R$ 0,00'); s('orcd-forn','');
   const e=document.getElementById('orcd-err'); if(e)e.style.display='none';
 }
 async function orcDespSalvar(){
   const g=id=>document.getElementById(id);
   const data=g('orcd-data').value;
+  const forn=(g('orcd-forn')?.value||'').trim();
   const desc=(g('orcd-desc').value||'').trim();
   const qtd=parseFloat(g('orcd-qtd').value)||0;
   const vu=parseFloat(g('orcd-vu').value)||0;
@@ -5751,9 +5798,12 @@ async function orcDespSalvar(){
   if(!data){ err('Informe a data.'); return; }
   if(!desc){ err('Informe a descrição.'); return; }
   if(qtd<=0){ err('Quantidade deve ser maior que zero.'); return; }
+  // Se há fornecedores cadastrados, exige escolher para qual fornecedor vai a despesa.
+  let temForn=false; try{ temForn=((await dbGetAll('orc_fornecedores'))||[]).length>0; }catch(e){}
+  if(temForn && !forn){ err('Selecione o fornecedor desta despesa.'); return; }
   g('orcd-err').style.display='none';
   try{
-    await dbAdd('orc_despesas',{data,descricao:desc,quantidade:qtd,valorUnit:vu,_ts:Date.now(),registradoPor:'Juvenil Ferreira Lopes'});
+    await dbAdd('orc_despesas',{data,fornecedor:forn,descricao:desc,quantidade:qtd,valorUnit:vu,_ts:Date.now(),registradoPor:'Juvenil Ferreira Lopes'});
     try{ cacheInvalidate('orc_despesas'); }catch(e){}
     orcDespLimpar(true);
     await orcDespRender();
@@ -5767,9 +5817,11 @@ async function orcDespExcluir(id){
 function _orcdFiltrar(all){
   const q=(document.getElementById('orcd-busca')?.value||'').toLowerCase();
   const fAno=document.getElementById('orcd-ano')?.value||'';
+  const fForn=document.getElementById('orcd-fil-forn')?.value||'';
   return (all||[]).filter(d=>{
     if(fAno && (d.data||'').slice(0,4)!==fAno) return false;
-    if(q && !((d.descricao||'').toLowerCase().includes(q))) return false;
+    if(fForn && (d.fornecedor||'')!==fForn) return false;
+    if(q && !(((d.descricao||'')+' '+(d.fornecedor||'')).toLowerCase().includes(q))) return false;
     return true;
   }).sort((a,b)=>(a.data||'').localeCompare(b.data||'')||(a._ts||0)-(b._ts||0));
 }
@@ -5780,6 +5832,7 @@ function _orcdGrupos(fil){
 async function orcDespRender(){
   const box=document.getElementById('orcd-lista'); if(!box)return;
   const dt=document.getElementById('orcd-data'); if(dt&&!dt.value)dt.value=orcDespHoje();
+  try{ await orcFornRender(); await orcDespPopularForn(); }catch(e){}
   let all=[]; try{ all=await dbGetAll('orc_despesas'); }catch(e){}
   all=all||[];
   // popular filtro de ano
@@ -5800,12 +5853,13 @@ async function orcDespRender(){
     html+=`<div class="card" style="padding:0;margin-bottom:12px;overflow:hidden">
       <div style="background:var(--bg2);padding:8px 12px;font-weight:700;font-size:12px;border-bottom:1px solid var(--border)"><i class="ti ti-calendar"></i> ${_ORCD_MES[parseInt(mes,10)-1]||mes} / ${ano} · ${rows.length} lançamento(s)</div>
       <div class="tw" style="overflow-x:auto"><table style="width:100%"><thead><tr>
-        <th style="text-align:left">Data</th><th style="text-align:left">Descrição</th><th style="text-align:right">Qtd</th><th style="text-align:right">Vlr unit.</th><th style="text-align:right">Total</th><th class="no-print"></th>
+        <th style="text-align:left">Data</th><th style="text-align:left">Fornecedor</th><th style="text-align:left">Descrição</th><th style="text-align:right">Qtd</th><th style="text-align:right">Vlr unit.</th><th style="text-align:right">Total</th><th class="no-print"></th>
       </tr></thead><tbody>`;
     rows.forEach(d=>{
       const tot=(d.quantidade||0)*(d.valorUnit||0);
       html+=`<tr>
         <td style="white-space:nowrap">${_orcdFmtD(d.data)}</td>
+        <td>${d.fornecedor?('<span class="st s-bl">'+d.fornecedor.replace(/</g,'&lt;')+'</span>'):'<span style="color:var(--text3)">—</span>'}</td>
         <td>${(d.descricao||'').replace(/</g,'&lt;')}</td>
         <td style="text-align:right">${(d.quantidade||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
         <td style="text-align:right">${_orcdM(d.valorUnit)}</td>
@@ -5814,7 +5868,7 @@ async function orcDespRender(){
       </tr>`;
     });
     html+=`</tbody><tfoot><tr style="background:var(--bg2);font-weight:700">
-      <td colspan="4" style="text-align:right">Subtotal ${_ORCD_MES[parseInt(mes,10)-1]||mes}/${ano}</td>
+      <td colspan="5" style="text-align:right">Subtotal ${_ORCD_MES[parseInt(mes,10)-1]||mes}/${ano}</td>
       <td style="text-align:right;color:var(--blue)">${_orcdM(sub)}</td><td class="no-print"></td>
     </tr></tfoot></table></div></div>`;
   });
@@ -5844,19 +5898,20 @@ async function orcDespPrint(){
     const sub=rows.reduce((s,d)=>s+(d.quantidade||0)*(d.valorUnit||0),0);
     body+=`<div style="border:1px solid #000;border-top:none;padding:1mm 2mm;font-weight:bold;font-size:8pt;background:#c8c8c8">${_ORCD_MES[parseInt(mes,10)-1]||mes} / ${ano}</div>
     <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-      <col style="width:14%"><col style="width:46%"><col style="width:10%"><col style="width:15%"><col style="width:15%">
-      <tr><td style="${TH}">Data</td><td style="${TH}">Descrição</td><td style="${TH}text-align:right">Qtd</td><td style="${TH}text-align:right">Vlr unit.</td><td style="${TH}text-align:right">Total</td></tr>`;
+      <col style="width:12%"><col style="width:22%"><col style="width:34%"><col style="width:9%"><col style="width:11.5%"><col style="width:11.5%">
+      <tr><td style="${TH}">Data</td><td style="${TH}">Fornecedor</td><td style="${TH}">Descrição</td><td style="${TH}text-align:right">Qtd</td><td style="${TH}text-align:right">Vlr unit.</td><td style="${TH}text-align:right">Total</td></tr>`;
     rows.forEach(d=>{
       const tot=(d.quantidade||0)*(d.valorUnit||0);
       body+=`<tr>
         <td style="${B}">${_orcdFmtD(d.data)}</td>
+        <td style="${B}">${(d.fornecedor||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>
         <td style="${B}">${(d.descricao||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td>
         <td style="${B}text-align:right">${(d.quantidade||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
         <td style="${B}text-align:right">${_orcdM(d.valorUnit)}</td>
         <td style="${B}text-align:right">${_orcdM(tot)}</td>
       </tr>`;
     });
-    body+=`<tr><td colspan="4" style="${B}text-align:right;font-weight:bold;background:#f0f0f0">Subtotal ${_ORCD_MES[parseInt(mes,10)-1]||mes}/${ano}</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(sub)}</td></tr></table>`;
+    body+=`<tr><td colspan="5" style="${B}text-align:right;font-weight:bold;background:#f0f0f0">Subtotal ${_ORCD_MES[parseInt(mes,10)-1]||mes}/${ano}</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(sub)}</td></tr></table>`;
   });
   body+=`<table style="width:100%;border-collapse:collapse"><tr><td style="border:1px solid #000;border-top:none;padding:1.5mm 2mm;text-align:right;font-weight:bold;font-size:9pt;background:#e0e0e0">TOTAL GERAL: ${_orcdM(grand)}</td></tr></table>`;
   let el=document.getElementById('orcd-print-content');
