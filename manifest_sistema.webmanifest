@@ -1,10 +1,10 @@
 {
   "name": "GEDREM Sistema",
-  "short_name": "GEDREM",
+  "short_name": "GEDREM Sistema",
   "description": "Sistema de gestão da Gerência de Drenagem Urbana - SISEP / Prefeitura de Campo Grande - MS",
   "lang": "pt-BR",
   "start_url": "sistema.html",
-  "scope": "./",
+  "scope": "sistema.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0052A2",

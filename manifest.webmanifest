@@ -1,10 +1,10 @@
 {
   "name": "GEDREM Mobile",
-  "short_name": "GEDREM",
+  "short_name": "GEDREM Mobile",
   "description": "Lançamentos das equipes GEDREM — SISEP · Campo Grande-MS",
   "lang": "pt-BR",
-  "start_url": "GEDREM_Mobile.html",
-  "scope": "./",
+  "start_url": "app.html",
+  "scope": "app.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0052A2",
