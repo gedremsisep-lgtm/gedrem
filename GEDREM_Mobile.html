@@ -507,7 +507,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-71';
+const APP_VERSION='20260713-73';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -515,7 +515,16 @@ async function checkAppUpdate(){
     if(!r.ok)return;
     const j=await r.json();
     const _vn=v=>{const m=String(v||'').match(/(\d{6,8})\D+(\d+)/);return m?(parseInt(m[1],10)*100000+parseInt(m[2],10)):0;};
-    if(j&&j.versao&&_vn(j.versao)>_vn(APP_VERSION)){ mostrarUpdateObrigatorio(j.versao); }
+    if(j&&j.versao&&_vn(j.versao)>_vn(APP_VERSION)){
+      // TRAVA ANTI-LOOP: se já recarregamos para esta versão e o arquivo servido ainda não subiu
+      // (ex.: arquivo desatualizado no servidor/cache), NÃO trava o app — abre normalmente.
+      const jaTentou=new URLSearchParams(location.search).get('v');
+      if(jaTentou && _vn(jaTentou)>=_vn(j.versao)){
+        console.warn('Atualização para '+j.versao+' não aplicada (arquivo servido ainda em '+APP_VERSION+'). Abrindo o app assim mesmo.');
+        return;
+      }
+      mostrarUpdateObrigatorio(j.versao);
+    }
   }catch(e){}
 }
 function mostrarUpdateObrigatorio(nova){
@@ -636,6 +645,10 @@ async function maxCod(store,campo,base){
 function endComp(d){return (d&&d.endereco?d.endereco:'')+(d&&d.numCruz?(' · '+d.numCruz):'');}
 async function enviarRelatorio(d){
   const concl=d.status==='concluida';
+  // DATA DE EXECUÇÃO: carimba o dia real da conclusão no 1º envio como concluída.
+  // Antes, 'data' ficava congelado no dia da importação da programação, aparecendo errado no Sistema (Ctrl. Serviços / Rel. Fotográfico).
+  // Só sobrescreve quando o técnico não alterou a data manualmente (ainda igual à data de importação, ou vazia).
+  if(concl && !d.enviada && (!d.data || d.data===d.dataImport)){ d.data=hoje(); }
   const marca={_ts:Date.now(),_user:'app:'+(USER?USER.id:'?')};
   // ── Rel. Fotográfico: cria na 1ª vez (código -M), atualiza nas seguintes ──
   // Codigo unico por demanda: usa o codigo local do aparelho (evita colisao do maxCod)
@@ -722,7 +735,7 @@ async function sincronizar(silencioso){
       if(['Executado','Cancelado'].includes(it.status||'Programado'))continue;
       if(!it.equipe)continue;
       if(!acessoTotal()&&it.equipe!==USER.equipe)continue;
-      await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:hoje(),dataProg:it.data||'',origem:it.origem||'Programação',
+      await dbPut({codigo:proxCodigo(it.equipe),cloudId:it.cloudId,data:hoje(),dataImport:hoje(),dataProg:it.data||'',origem:it.origem||'Programação',
         os:it.os||'',tipo:it.servico||it.tipo||'',qtd:'',und:'Un.',obs:it.obs||'',
         endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||regiaoDeBairro(it.bairro||'')||'',
         lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
@@ -1140,7 +1153,7 @@ async function importarProgramacao(e){
     if(!eqIt){ign++;continue}
     if(!acessoTotal()&&eqIt!==USER.equipe){ign++;continue}
     const enc=it.encarregado||((!acessoTotal()&&eqIt===USER.equipe)?USER.nome:(ENC_MAP[eqIt]||[''])[0]);
-    await dbPut({codigo:proxCodigo(eqIt),data:hoje(),dataProg:it.data||'',origem:it.origem||'Programação diária',
+    await dbPut({codigo:proxCodigo(eqIt),data:hoje(),dataImport:hoje(),dataProg:it.data||'',origem:it.origem||'Programação diária',
       os:it.os||'',tipo:it.servico||it.tipo||'',qtd:it.qtd||'',und:it.und||'Un.',obs:it.obs||'',
       endereco:it.endereco||'',bairro:it.bairro||'',regiao:it.regiao||'',
       lat:null,lon:null,mapa:null,fotos:Array(N_FOTOS).fill(null),
