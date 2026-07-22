@@ -514,6 +514,14 @@ textarea{resize:vertical;min-height:60px}
 <div class="pg on" id="pg-dash">
   <div class="pt">Visão Geral</div>
   <div class="ps">Acompanhamento integrado · GEDREM · Campo Grande – MS</div>
+  <div id="dash-install-card" class="fcard no-print" style="display:none;align-items:center;gap:12px;background:var(--blue-bg);border-color:var(--blue)">
+    <i class="ti ti-device-mobile-down" style="font-size:26px;color:var(--blue);flex-shrink:0"></i>
+    <div style="flex:1;min-width:140px">
+      <div style="font-weight:700;font-size:13px;color:var(--text)">Instalar o app GEDREM</div>
+      <div style="font-size:11px;color:var(--text2)">Adicione o GEDREM à tela inicial do celular (ou à área de trabalho) e abra em tela cheia, com o ícone da GEDREM.</div>
+    </div>
+    <button class="btn bp" onclick="_sysInstall()"><i class="ti ti-download"></i>Instalar app</button>
+  </div>
   <div class="tabs">
     <div class="tab on" onclick="stab(this,'dash-painel')">Painel</div>
     <div class="tab" onclick="stab(this,'dash-resumo');resumoRender()">Resumo Geral</div>
@@ -4383,7 +4391,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-106'; // Orçamento/Despesas: cadastro de fornecedores + fornecedor por despesa (coluna, filtro, impressão)
+const SYSTEM_VERSION = '20260713-107'; // Ícone com contorno preto nos elementos + botão "Instalar app" na Visão Geral
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -18007,8 +18015,8 @@ window.addEventListener('load',function(){
 if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 var _sysPwaPrompt=null;
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); _sysPwaPrompt=e; _sysShowInstall(); });
-window.addEventListener('appinstalled',function(){ _sysPwaPrompt=null; var b=document.getElementById('sys-pwa-fab'); if(b)b.remove(); });
-window.addEventListener('load',function(){ setTimeout(_sysShowInstall,1800); });
+window.addEventListener('appinstalled',function(){ _sysPwaPrompt=null; var b=document.getElementById('sys-pwa-fab'); if(b)b.remove(); var c=document.getElementById('dash-install-card'); if(c)c.style.display='none'; });
+window.addEventListener('load',function(){ setTimeout(function(){ _sysShowInstall(); var c=document.getElementById('dash-install-card'); if(c && !window.matchMedia('(display-mode: standalone)').matches) c.style.display='flex'; },1800); });
 function _sysShowInstall(){
   if(document.getElementById('sys-pwa-fab'))return;
   if(window.matchMedia('(display-mode: standalone)').matches)return;
