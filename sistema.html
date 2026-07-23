@@ -1572,7 +1572,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn" onclick="fotorelOpen('107')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
-    <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
     <th style="text-align:right">Vl. Unit.</th>
     <th style="text-align:right">Contrato</th>
     <th style="text-align:right">Saldo</th><th>%</th>
@@ -1614,7 +1614,7 @@ textarea{resize:vertical;min-height:60px}
     <button class="btn" onclick="fotorelOpen('109')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
   </div>
   <div class="card tw"><table><thead><tr>
-    <th>Nº</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
     <th style="text-align:right">Vl. Unit.</th>
     <th style="text-align:right">Contrato</th>
     <th style="text-align:right">Saldo</th><th>%</th>
@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-112'; // ATAs 107/109: saldos corrigidos para o Saldo do Órgão + nomes oficiais (107/2024 e 109/2024)
+const SYSTEM_VERSION = '20260713-113'; // ATAs 107/109 refeitas pelo PDF oficial: nº ITEM (Tipo), itens, valores, unidades, fornecedores e Saldo do Órgão
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5014,80 +5014,84 @@ const D=[
   {n:71,  ata:'100',e:'TOMAZ',    m:'Tubos e conexões – polipropileno sanfonado, Tipo: sifão, Bitola: universal',                     u:'Un.',  v:15.81,  c:149, en:149, saldo:245},
   {n:72,  ata:'100',e:'TOMAZ',    m:'Tubos e conexões – polipropileno cromado, Tipo: sifão, copo com adaptador universal, 1¼×1½"',   u:'Un.',  v:4.68,   c:0,   en:0,   saldo:76},
   
-  {n:73,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: porta cadeado, Tamanho: 4,1/2"',                                              u:'Un.',  v:7.86,   c:0,   en:0,   saldo:0},
-  {n:74,  ata:'109',e:'GAP',      m:'Porta – Material: aço laminada, Tam: 2,10×0,70m, Lado direito',                                 u:'Un.',  v:297.74, c:16,  en:16,  saldo:16},
-  {n:75,  ata:'109',e:'GAP',      m:'Porta – Material: aço laminada, Tam: 2,10×0,70m, Lado direito',                                 u:'Un.',  v:297.74, c:5,   en:5,   saldo:5},
-  {n:76,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,60m, Lado direito',                                 u:'Un.',  v:286.06, c:0,   en:0,   saldo:0},
-  {n:77,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,60m, Lado esquerdo',                               u:'Un.',  v:287.44, c:0,   en:0,   saldo:0},
-  {n:78,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,70m, Lado esquerdo',                               u:'Un.',  v:266.10, c:9,   en:9,   saldo:9},
-  {n:79,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,70m, Lado direito',                                 u:'Un.',  v:266.10, c:3,   en:3,   saldo:3},
-  {n:80,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,80m, Lado esquerdo',                               u:'Un.',  v:266.10, c:0,   en:0,   saldo:0},
-  {n:81,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,70m, Lado esquerdo',                               u:'Un.',  v:293.31, c:0,   en:0,   saldo:0},
-  {n:82,  ata:'109',e:'GAP',      m:'Porta – Uso: porta de madeira, lisa, semi sólida, Tam: 0,80×2,10m',                             u:'Un.',  v:174.44, c:0,   en:0,   saldo:0},
-  {n:83,  ata:'109',e:'FENIX',    m:'Porta – Material: aço laminada, Tam: 2,10×0,80m, Lado direito',                                 u:'Un.',  v:266.42, c:21,  en:21,  saldo:21},
-  {n:84,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 17×21',                                                u:'Pct. 1Kg.',v:15.34,c:96,  en:96,  saldo:96},
-  {n:85,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 18×24',                                                u:'Pct. 1Kg.',v:14.23,c:96,  en:96,  saldo:96},
-  {n:86,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 19×36',                                                u:'Pct. 1Kg.',v:14.79,c:96,  en:96,  saldo:96},
-  {n:87,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 22×42',                                                u:'Pct. 1Kg.',v:12.80,c:96,  en:96,  saldo:96},
-  {n:88,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 22×48',                                                u:'Pct. 1Kg.',v:17.72,c:96,  en:96,  saldo:96},
-  {n:89,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 24×60',                                                u:'Pct. 1Kg.',v:20.19,c:96,  en:96,  saldo:96},
-  {n:90,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: rebite, Material: alumínio, Tam: 4,8×16mm, Aba larga',                       u:'Emb. 100 Un.',v:14.89,c:0,en:0,saldo:0},
-  {n:91,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: fechadura completa, chave simples, Uso: porta de madeira',                    u:'Un.',  v:61.43,  c:0,   en:0,   saldo:0},
-  {n:92,  ata:'109',e:'GAP',      m:'Ferragens – Tipo: prego com cabeça, Tam: 10×10',                                               u:'Pct. 1Kg.',v:22.51,c:96,  en:96,  saldo:96},
-  {n:93,  ata:'109',e:'FENIX',    m:'Ferragens – Tipo: prego com cabeça, Tam: 12×12',                                               u:'Pct. 1Kg.',v:20.19,c:96,  en:96,  saldo:96},
-  {n:94,  ata:'109',e:'FENIX',    m:'Ferro CA-50 Vergalhão nervurado, Comprimento 12m, Espessura: 12,5mm',                           u:'Un.',  v:86.50,  c:800, en:800, saldo:800},
-  {n:95,  ata:'109',e:'FENIX',    m:'Ferro CA-50 Vergalhão nervurado, Comprimento 12m, Espessura: 6,3mm',                            u:'Un.',  v:26.18,  c:800, en:800, saldo:800},
-  {n:96,  ata:'109',e:'FENIX',    m:'Ferro CA-50 Vergalhão nervurado, Comprimento 12m, Espessura: 10mm',                             u:'Un.',  v:60.27,  c:800, en:800, saldo:800},
-  {n:97,  ata:'109',e:'FENIX',    m:'Ferro CA-50 Vergalhão nervurado, Comprimento 12m, Espessura: 8mm',                              u:'Un.',  v:33.46,  c:800, en:800, saldo:800},
-  {n:98,  ata:'109',e:'FENIX',    m:'Ferro – Espessura: 4,2mm, Bitola: 3, Comprimento: 12m',                                        u:'Un.',  v:13.50,  c:800, en:800, saldo:800},
-  {n:99,  ata:'109',e:'FENIX',    m:'Perfil – Tipo: U, Medida: 3×1,1/2", Espessura: mín 2mm, Material: aço',                        u:'br. 6 Mt.',v:142.63,c:0,en:0,saldo:0},
-  {n:100, ata:'109',e:'FENIX',    m:'Rejunte – Uso: azulejos e pisos cerâmicos, Cor: branco, Aplicação: interno',                    u:'saco 1Kg.',v:4.55,c:0,en:0,saldo:0},
-  {n:101, ata:'109',e:'FENIX',    m:'Rejunte – Uso: azulejos e pisos cerâmicos, Cor: preto, Aplicação: interno',                     u:'saco 5Kg.',v:18.47,c:0,en:0,saldo:0},
-  {n:102, ata:'109',e:'FENIX',    m:'Tampa – Tipo: tampão, Material: ferro fundido, Medida: 40×40cm',                                u:'Un.',  v:130.57, c:284, en:284, saldo:284},
-  {n:103, ata:'109',e:'GAP',      m:'Telha – Tipo: ondulada, Material: fibrocimento, 6mm, 3,66m, Largura: 1,10m',                   u:'Un.',  v:119.69, c:29,  en:29,  saldo:29},
-  {n:104, ata:'109',e:'FENIX',    m:'Telha – Tipo: ondulada, Material: fibrocimento, 6mm, 2,44m, Largura: 1,10m',                   u:'Un.',  v:74.52,  c:0,   en:0,   saldo:0},
-  {n:105, ata:'109',e:'GAP',      m:'Telha – Tipo: ondulada, Material: fibrocimento, 6mm, 2,44m, Largura: 1,10m',                   u:'Un.',  v:74.53,  c:0,   en:0,   saldo:0},
-  {n:106, ata:'109',e:'GAP',      m:'Telha – Tipo: ondulada, Material: fibrocimento semi-amianto, 6mm, 1,83m, Largura: 1,10m',      u:'Un.',  v:62.69,  c:0,   en:0,   saldo:0},
-  {n:107, ata:'109',e:'FENIX',    m:'Tijolo – Tipo: 8 furos, Material: cerâmica, Medida: 9×19×19cm',                                u:'Un.',  v:1.22,   c:22102,en:22102,saldo:22102},
-  {n:108, ata:'109',e:'GAP',      m:'Tijolo – Tipo: 8 furos, Material: cerâmica, Medida: 9×19×19cm',                                u:'Un.',  v:1.20,   c:66343,en:66343,saldo:66343},
-  {n:109, ata:'109',e:'GAP',      m:'Tijolo – Tipo: comum maciço',                                                                    u:'Un.',  v:1.03,   c:48000,en:48000,saldo:48000},
-  {n:110, ata:'109',e:'FENIX',    m:'Telha – Tipo: romana, Material: cerâmica',                                                      u:'Un.',  v:3.11,   c:0,   en:0,   saldo:0},
-  
-  {n:111, ata:'107',e:'FENIX',    m:'Cimento – Tipo: portland CP II-E-32',                                                           u:'saco 50Kg.',v:41.64,c:7274,en:7274,saldo:7274},
-  {n:112, ata:'107',e:'IAENG',    m:'Cimento – Tipo: portland CP II-E-32 (São José IA E Engenhar)',                                  u:'saco 50Kg.',v:41.64,c:2423,en:2423,saldo:2423},
-  {n:113, ata:'107',e:'FENIX',    m:'Lápis – Tipo: grafite, Uso: carpinteiro',                                                       u:'Un.',  v:1.94,   c:82,  en:82,  saldo:82},
-  {n:114, ata:'107',e:'FENIX',    m:'Lona – Material: 100% polietileno, 8m, Espessura: mín 200 micras, Cor: preta',                  u:'1 Mt.',v:7.37,   c:155, en:155, saldo:155},
-  {n:115, ata:'107',e:'FENIX',    m:'Lona – Material: 100% polietileno, 8m, Espessura: mín 200 micras, Cor: preta',                  u:'1 Mt.',v:7.37,   c:51,  en:51,  saldo:51},
-  {n:116, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: chapa compensado resinado 14mm, 2,20×1,10m, Uso: forma concreto',               u:'Un.',  v:93.85,  c:150, en:150, saldo:150},
-  {n:117, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: chapa compensado resinado 14mm, 2,20×1,10m, Uso: forma concreto',               u:'Un.',  v:101.10, c:450, en:450, saldo:450},
-  {n:118, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: caibro, Área: 5×6cm, maçaranduba/angelim, Comprimento mín 1m',                 u:'1 mt/linear',v:9.96,c:240,en:240,saldo:240},
-  {n:119, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: caibro, Área: 6×8cm, maçaranduba/angelim, Comprimento mín 1m',                 u:'1 mt/linear',v:13.91,c:823,en:823,saldo:823},
-  {n:120, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: chapa comp. resinado 14mm, 2,20×1,10m, Uso: forma concreto',                   u:'Un.',  v:93.85,  c:150, en:150, saldo:150},
-  {n:121, ata:'107',e:'SANJOSE',  m:'Madeira – Tipo: ipa, Área: 1,5×5cm, maçaranduba/angelim',                                      u:'1 mt/linear',v:2.36,c:2469,en:2469,saldo:2469},
-  {n:122, ata:'107',e:'MBASSI',   m:'Madeira – Tipo: viga, Área: 6×12cm, maçaranduba/angelim, mín 1m',                              u:'1 mt/linear',v:15.29,c:617,en:617,saldo:617},
-  {n:123, ata:'107',e:'GAP',      m:'Madeira – Tipo: viga cambará, 15,5×5,5×4m',                                                     u:'Un.',  v:100.18, c:226, en:226, saldo:226},
-  {n:124, ata:'107',e:'GAP',      m:'Madeira – Tipo: viga cambará, 15,5×5,5×4m',                                                     u:'Un.',  v:100.18, c:74,  en:74,  saldo:74},
-  {n:125, ata:'107',e:'GAP',      m:'Tubos e conexões – quadrado, Comprimento: barra 6m, Tamanho: 15×15mm, Material: metalon',       u:'Un.',  v:61.47,  c:0,   en:0,   saldo:0},
-  {n:126, ata:'107',e:'FENIX',    m:'Telha – Tipo: cumeeira trapezoidal, Material: fibrocimento ondulada, 6mm, 1,10m',               u:'Un.',  v:72.40,  c:0,   en:0,   saldo:0},
-  {n:127, ata:'107',e:'FENIX',    m:'Telha – trapezoidal, aço galvalume, 30mm, mín 1,05×3m, Modelo: sanduíche',                     u:'Un.',  v:331.49, c:150, en:150, saldo:150},
-  {n:128, ata:'107',e:'MBASSI',   m:'Tábua – Tipo: beiral, Medida: 2,5×15cm, maçaranduba/angelim, Comprimento: 3m',                 u:'1 Mt.',v:11.60,  c:4114,en:4114,saldo:4114},
-  {n:129, ata:'107',e:'MBASSI',   m:'Tábua – Tipo: beiral, Medida: 2,5×10cm, maçaranduba/angelim, Comprimento: 3m',                 u:'1 Mt.',v:16.87,  c:1029,en:1029,saldo:1029},
-  {n:130, ata:'107',e:'GAP',      m:'Roda forro / meia cana PVC, 8mm × 6m, Material: PVC',                                          u:'Un.',  v:42.59,  c:0,   en:0,   saldo:0},
-  {n:131, ata:'107',e:'MBASSI',   m:'Ripão – Tipo: cedrinho, Medida: 5×2,5cm',                                                      u:'1 Mt.',v:4.22,   c:0,   en:0,   saldo:0},
-  {n:132, ata:'107',e:'FENIX',    m:'Parafuso – Tipo: auto brocante, Tam: 6,3mm × 3/4" (D 19mm), zinco, com arruela vedação',       u:'Un.',  v:0.40,   c:0,   en:0,   saldo:0},
-  {n:133, ata:'107',e:'FENIX',    m:'Parafuso – Tipo: philips, Tam: 4,5×50, cabeça chata, bt cromado',                              u:'Un.',  v:2.63,   c:0,   en:0,   saldo:0},
-  {n:134, ata:'107',e:'FENIX',    m:'Parafuso – Tipo: haste para telha, 5/16×500mm, acompanha arruela côncava e porca sextavada',    u:'Un.',  v:5.30,   c:0,   en:0,   saldo:0},
-  {n:135, ata:'107',e:'FENIX',    m:'Parafuso – Tipo: auto brocante, Tam: 6,3mm × 7/8", zinco, com arruela vedação, Drywall',       u:'Un.',  v:0.77,   c:0,   en:0,   saldo:0},
-  {n:136, ata:'107',e:'SANJOSE',  m:'Mangueira – Uso: nível, Material: PVC, transparente, Espessura: mín 1mm',                      u:'rl. 10 Mts.',v:27.21,c:8,en:8,saldo:8},
-  {n:137, ata:'107',e:'FENIX',    m:'Tábua – Tipo: caixaria, Medida: 2×20cm, maçaranduba/angelim, Comprimento: 3m',                 u:'Un.',  v:23.73,  c:772, en:772, saldo:772},
-  {n:138, ata:'107',e:'GAP',      m:'Tábua – Tipo: caixaria, Medida: 2×20cm, maçaranduba/angelim, Comprimento: 3m',                 u:'Un.',  v:23.73,  c:772, en:772, saldo:772},
-  {n:139, ata:'107',e:'GAP',      m:'Tábua – Tipo: caixaria, Medida: 2×25cm, maçaranduba/angelim, Comprimento: 3m',                 u:'Un.',  v:29.84,  c:1029,en:1029,saldo:1029},
-  {n:140, ata:'107',e:'GAP',      m:'Tábua – Tipo: caixaria, Medida: 2×30cm, maçaranduba/angelim, Comprimento: 3m',                 u:'Un.',  v:52.73,  c:772, en:772, saldo:772},
-  {n:141, ata:'107',e:'GAP',      m:'Tábua – Tipo: caixaria, Medida: 2×30cm, maçaranduba/angelim, Comprimento: 3m (esq.)',          u:'Un.',  v:52.73,  c:257, en:257, saldo:257},
-  {n:142, ata:'107',e:'GAP',      m:'Telha – Tipo: canalete, Material: fibrocimento, 8mm, mín 0m, Largura: 90cm',                   u:'Un.',  v:711.82, c:0,   en:0,   saldo:0},
-  {n:143, ata:'107',e:'GAP',      m:'Telha – Tipo: canalete, fibrocimento 8mm, mín 6m, Largura: 90cm',                              u:'Un.',  v:711.82, c:0,   en:0,   saldo:0},
-  {n:144, ata:'107',e:'FENIX',    m:'Telha – Tipo: ondulada fibrocimento 8mm, Uso: telha ondulada, 1,10m',                          u:'Un.',  v:80.89,  c:0,   en:0,   saldo:0},
-  {n:145, ata:'107',e:'GAP',      m:'Telha – Tipo: cumeeira universal, Material: fibrocimento, 8mm, mín 0m',                        u:'Un.',  v:69.38,  c:0,   en:0,   saldo:0},
+  {n:73, tipo:'Item 001', ata:'109', e:'FENIX', cod:'0001913', m:'Ferragens – Tipo: porta cadeado; Material: aço; Tamanho: 4.1/2"', u:'Un.', v:7.86, c:0, en:0, saldo:0},
+  {n:74, tipo:'Item 002', ata:'109', e:'GAP', cod:'00013768', m:'Porta – Material: aço laminada; Tam: 2,10×0,70m (A×L) lado direito', u:'Un.', v:297.74, c:16, en:0, saldo:16},
+  {n:75, tipo:'Item 002.1', ata:'109', e:'GAP', cod:'00013768', m:'Porta – Material: aço laminada; Tam: 2,10×0,70m (A×L) lado direito', u:'Un.', v:297.74, c:5, en:0, saldo:5},
+  {n:76, tipo:'Item 003', ata:'109', e:'FENIX', cod:'00013742', m:'Porta – Material: aço laminada; Tam: 2,10×0,60m (A×L) lado direito', u:'Un.', v:286.06, c:0, en:0, saldo:0},
+  {n:77, tipo:'Item 004', ata:'109', e:'FENIX', cod:'00013743', m:'Porta – Material: aço laminada; Tam: 2,10×0,60m (A×L) lado esquerdo', u:'Un.', v:287.44, c:0, en:0, saldo:0},
+  {n:78, tipo:'Item 005', ata:'109', e:'GAP', cod:'00013744', m:'Porta – Material: aço laminada; Tam: 2,10×0,70m (A×L) lado esquerdo', u:'Un.', v:293.31, c:0, en:0, saldo:0},
+  {n:79, tipo:'Item 006', ata:'109', e:'FENIX', cod:'00013746', m:'Porta – Material: aço laminada; Tam: 2,10×0,80m (A×L) lado esquerdo', u:'Un.', v:266.1, c:9, en:0, saldo:9},
+  {n:80, tipo:'Item 006.1', ata:'109', e:'FENIX', cod:'00013746', m:'Porta – Material: aço laminada; Tam: 2,10×0,80m (A×L) lado esquerdo', u:'Un.', v:266.1, c:3, en:0, saldo:3},
+  {n:81, tipo:'Item 007', ata:'109', e:'FENIX', cod:'00013745', m:'Porta – Material: aço laminada; Tam: 2,10×0,80m (A×L) lado direito', u:'Un.', v:266.42, c:21, en:0, saldo:21},
+  {n:82, tipo:'Item 008', ata:'109', e:'FENIX', cod:'0008345', m:'Porta – Uso: para pintura; lisa de madeira; semi sólida; 0,80×2,10m', u:'Un.', v:174.44, c:0, en:0, saldo:0},
+  {n:83, tipo:'Item 009', ata:'109', e:'FENIX', cod:'00013758', m:'Ferragens – prego sem cabeça; Tam: 10×10', u:'Pct. 1Kg.', v:22.51, c:96, en:0, saldo:96},
+  {n:84, tipo:'Item 010', ata:'109', e:'FENIX', cod:'00013784', m:'Ferragens – prego com cabeça; Tam: 12×12', u:'Pct. 1Kg.', v:20.19, c:96, en:0, saldo:96},
+  {n:85, tipo:'Item 011', ata:'109', e:'FENIX', cod:'0002018', m:'Ferragens – prego com cabeça; Tam: 15×15', u:'Pct. 1Kg.', v:18.35, c:96, en:0, saldo:96},
+  {n:86, tipo:'Item 012', ata:'109', e:'FENIX', cod:'0002019', m:'Ferragens – prego com cabeça; Tam: 17×21', u:'Pct. 1Kg.', v:15.34, c:96, en:0, saldo:96},
+  {n:87, tipo:'Item 013', ata:'109', e:'FENIX', cod:'0009004', m:'Ferragens – prego com cabeça; Tam: 17×27', u:'Pct. 1Kg.', v:16.47, c:96, en:0, saldo:96},
+  {n:88, tipo:'Item 014', ata:'109', e:'FENIX', cod:'0002063', m:'Ferragens – prego com cabeça; Tam: 18×24', u:'Pct. 1Kg.', v:14.23, c:96, en:0, saldo:96},
+  {n:89, tipo:'Item 015', ata:'109', e:'FENIX', cod:'00013755', m:'Ferragens – prego com cabeça; Tam: 19×36', u:'Pct. 1Kg.', v:14.79, c:96, en:0, saldo:96},
+  {n:90, tipo:'Item 016', ata:'109', e:'FENIX', cod:'00013756', m:'Ferragens – prego com cabeça; Tam: 22×42', u:'Pct. 1Kg.', v:12.8, c:96, en:0, saldo:96},
+  {n:91, tipo:'Item 017', ata:'109', e:'FENIX', cod:'0006324', m:'Ferragens – prego com cabeça; Tam: 22×48', u:'Pct. 1Kg.', v:14.98, c:96, en:0, saldo:96},
+  {n:92, tipo:'Item 018', ata:'109', e:'FENIX', cod:'00013757', m:'Ferragens – prego com cabeça; Tam: 24×60', u:'Pct. 1Kg.', v:17.72, c:96, en:0, saldo:96},
+  {n:93, tipo:'Item 019', ata:'109', e:'FENIX', cod:'00013759', m:'Ferragens – rebite; alumínio; 4,8×16mm; Aba larga', u:'Emb. 100 Un.', v:14.89, c:0, en:0, saldo:0},
+  {n:94, tipo:'Item 020', ata:'109', e:'FENIX', cod:'00013753', m:'Rejunte – azulejos e pisos cerâmicos; Cor: branco', u:'saco 1Kg.', v:4.67, c:0, en:0, saldo:0},
+  {n:95, tipo:'Item 021', ata:'109', e:'FENIX', cod:'00013754', m:'Rejunte – azulejos e pisos cerâmicos; Cor: preto; Aplicação: interno', u:'saco 1Kg.', v:4.55, c:0, en:0, saldo:0},
+  {n:96, tipo:'Item 022', ata:'109', e:'FENIX', cod:'00013754', m:'Rejunte – azulejos e pisos cerâmicos; Cor: preto; Aplicação: interno', u:'saco 5Kg.', v:18.47, c:0, en:0, saldo:0},
+  {n:97, tipo:'Item 023', ata:'109', e:'FENIX', cod:'00013752', m:'Tampa – tampão; ferro fundido; 40×40cm', u:'Un.', v:130.57, c:284, en:0, saldo:284},
+  {n:98, tipo:'Item 024', ata:'109', e:'FENIX', cod:'0008965', m:'Telha – ondulada; fibrocimento; 6mm; comp 1,83m; larg 1,10m; sem amianto', u:'Un.', v:62.69, c:0, en:0, saldo:0},
+  {n:99, tipo:'Item 025', ata:'109', e:'GAP', cod:'0002581', m:'Telha – ondulada; fibrocimento; 6mm; comp 2,44m; larg 1,10m', u:'Un.', v:74.53, c:0, en:0, saldo:0},
+  {n:100, tipo:'Item 025.1', ata:'109', e:'FENIX', cod:'0002581', m:'Telha – ondulada; fibrocimento; 6mm; comp 2,44m; larg 1,10m', u:'Un.', v:74.52, c:0, en:0, saldo:0},
+  {n:101, tipo:'Item 026', ata:'109', e:'GAP', cod:'0002968', m:'Telha – ondulada; fibrocimento; 6mm; comp 3,66m; larg 1,10m', u:'Un.', v:119.69, c:29, en:0, saldo:29},
+  {n:102, tipo:'Item 026.1', ata:'109', e:'FENIX', cod:'0002968', m:'Telha – ondulada; fibrocimento; 6mm; comp 3,66m; larg 1,10m', u:'Un.', v:116.68, c:10, en:0, saldo:10},
+  {n:103, tipo:'Item 027', ata:'109', e:'FENIX', cod:'0000350', m:'Telha – romana; cerâmica', u:'Un.', v:3.11, c:0, en:0, saldo:0},
+  {n:104, tipo:'Item 027.1', ata:'109', e:'FENIX', cod:'0000350', m:'Telha – romana; cerâmica', u:'Un.', v:3.11, c:0, en:0, saldo:0},
+  {n:105, tipo:'Item 028', ata:'109', e:'GAP', cod:'0001207', m:'Tijolo – 8 furos; cerâmica; 9×19×19cm', u:'Un.', v:1.22, c:66343, en:0, saldo:66343},
+  {n:106, tipo:'Item 028.1', ata:'109', e:'GAP', cod:'0001207', m:'Tijolo – 8 furos; cerâmica; 9×19×19cm', u:'Un.', v:1.22, c:22102, en:0, saldo:22102},
+  {n:107, tipo:'Item 029', ata:'109', e:'FENIX', cod:'0001214', m:'Tijolo – comum maciço vermelho', u:'Un.', v:1.03, c:48000, en:0, saldo:48000},
+  {n:108, tipo:'Item 030', ata:'109', e:'FENIX', cod:'0001903', m:'Ferragens – fechadura completa; porta de madeira; chave simples', u:'Un.', v:61.43, c:0, en:0, saldo:0},
+  {n:109, tipo:'Item 031', ata:'109', e:'FENIX', cod:'00140622', m:'Perfil – Tipo: U; 3×1.1/2"; aço; esp mín 2mm', u:'br 6 Mt.', v:142.63, c:0, en:0, saldo:0},
+  {n:110, tipo:'Item 032', ata:'109', e:'FENIX', cod:'0008943', m:'Ferro – Vergalhão nervurado; 12m; 12,5mm; CA-50', u:'Un.', v:86.5, c:800, en:0, saldo:800},
+  {n:111, tipo:'Item 033', ata:'109', e:'FENIX', cod:'0008946', m:'Ferro – Vergalhão nervurado; 12m; 6,3mm; CA-50', u:'Un.', v:26.18, c:800, en:0, saldo:800},
+  {n:112, tipo:'Item 034', ata:'109', e:'FENIX', cod:'0008942', m:'Ferro – Vergalhão nervurado; 12m; 10mm; CA-50', u:'Un.', v:60.27, c:800, en:0, saldo:800},
+  {n:113, tipo:'Item 035', ata:'109', e:'FENIX', cod:'0008947', m:'Ferro – Vergalhão nervurado; 12m; 8mm; CA-50', u:'Un.', v:33.46, c:800, en:0, saldo:800},
+  {n:114, tipo:'Item 036', ata:'109', e:'FENIX', cod:'0003931', m:'Ferro – Espessura: 4,2mm; Bitola: 3/16"; comp 12m', u:'Un.', v:13.5, c:800, en:0, saldo:800},
+  {n:400, tipo:'Item 001', ata:'107', e:'FENIX', cod:'00014033', m:'Cimento – portland CP II-E-32', u:'saco 50Kg.', v:41.64, c:7274, en:0, saldo:7274},
+  {n:401, tipo:'Item 001.1', ata:'107', e:'SANJOSE', cod:'00014033', m:'Cimento – portland CP II-E-32', u:'saco 50Kg.', v:41.64, c:2423, en:0, saldo:2423},
+  {n:402, tipo:'Item 002', ata:'107', e:'FENIX', cod:'0001378', m:'Lápis – grafite; Uso: carpinteiro', u:'Un.', v:1.94, c:82, en:0, saldo:82},
+  {n:403, tipo:'Item 003', ata:'107', e:'FENIX', cod:'00015580', m:'Lona – 100% polietileno; Larg 8m; esp mín 200 micras; Cor: preto', u:'1 Mt.', v:7.37, c:155, en:0, saldo:155},
+  {n:404, tipo:'Item 003.1', ata:'107', e:'FENIX', cod:'00015580', m:'Lona – 100% polietileno; Larg 8m; esp mín 200 micras; Cor: preto', u:'1 Mt.', v:7.37, c:51, en:0, saldo:51},
+  {n:405, tipo:'Item 004', ata:'107', e:'MBASSI', cod:'00021826', m:'Madeira – caibro; não aparelhada; 5×6cm; maçaranduba/angelin; comp mín 1m', u:'1 mt/linear', v:9.96, c:240, en:0, saldo:240},
+  {n:406, tipo:'Item 005', ata:'107', e:'MBASSI', cod:'00021824', m:'Madeira – caibro; não aparelhada; 6×8cm; maçaranduba/angelin; comp mín 1m', u:'1 mt/linear', v:13.91, c:823, en:0, saldo:823},
+  {n:407, tipo:'Item 006', ata:'107', e:'MBASSI', cod:'00021804', m:'Madeira – chapa; esp 14mm; 2,20×1,10m; compensado resinado; fôrma de concreto', u:'Un.', v:101.1, c:450, en:0, saldo:450},
+  {n:408, tipo:'Item 006.1', ata:'107', e:'SANJOSE', cod:'00021804', m:'Madeira – chapa; esp 14mm; 2,20×1,10m; compensado resinado; fôrma de concreto', u:'Un.', v:93.85, c:150, en:0, saldo:150},
+  {n:409, tipo:'Item 007', ata:'107', e:'MBASSI', cod:'00021400', m:'Madeira – ripa; aparelhada; 1,5×5cm; maçaranduba/angelin', u:'1 mt/linear', v:2.36, c:2469, en:0, saldo:2469},
+  {n:410, tipo:'Item 008', ata:'107', e:'GAP', cod:'00021401', m:'Madeira – viga; não aparelhada; 6×12cm; maçaranduba/angelin', u:'1 mt/linear', v:15.29, c:617, en:0, saldo:617},
+  {n:411, tipo:'Item 009', ata:'107', e:'GAP', cod:'0008967', m:'Madeira – viga; não aparelhada; 6×16cm; maçaranduba/angelin; comp mín 1m', u:'1 mt/linear', v:24.25, c:206, en:0, saldo:206},
+  {n:412, tipo:'Item 010', ata:'107', e:'FENIX', cod:'00021818', m:'Mangueira – nível; PVC; transparente; esp mín 1mm; diâmetro 5/16"', u:'RI 10 Mts.', v:27.21, c:8, en:0, saldo:8},
+  {n:413, tipo:'Item 011', ata:'107', e:'FENIX', cod:'00021451', m:'Parafuso – auto brocante; sextavado; 6,3×3/4"; arruela vedação; zincado; aço carbono', u:'Un.', v:0.4, c:0, en:0, saldo:0},
+  {n:414, tipo:'Item 012', ata:'107', e:'FENIX', cod:'00021450', m:'Parafuso – auto brocante; sextavado; 6,3×7/8"; arruela vedação; zincado; aço carbono', u:'Un.', v:0.77, c:0, en:0, saldo:0},
+  {n:415, tipo:'Item 013', ata:'107', e:'FENIX', cod:'00021815', m:'Parafuso – haste para telha; 5/16"×500mm; arruela chupeta/côncava e porca sextavada', u:'Un.', v:5.3, c:0, en:0, saldo:0},
+  {n:416, tipo:'Item 014', ata:'107', e:'FENIX', cod:'00021816', m:'Parafuso – philips; chipboard cabeça chata; 4,5×50mm; bi cromatizado', u:'Un.', v:0.41, c:0, en:0, saldo:0},
+  {n:417, tipo:'Item 015', ata:'107', e:'FENIX', cod:'00021452', m:'Parafuso – rosca soberba; sextavado; 5/16"×150mm; arruela vedação; fixação de telha; zincado', u:'Un.', v:2.63, c:0, en:0, saldo:0},
+  {n:418, tipo:'Item 016', ata:'107', e:'MBASSI', cod:'0008349', m:'Ripão – cedrinho; 5×2,5cm (L×E)', u:'1 Mt.', v:4.22, c:0, en:0, saldo:0},
+  {n:419, tipo:'Item 017', ata:'107', e:'GAP', cod:'00021460', m:'Roda forro / meia cana – Tipo: U; 8mm×6m (L×C); PVC', u:'Un.', v:42.59, c:0, en:0, saldo:0},
+  {n:420, tipo:'Item 018', ata:'107', e:'GAP', cod:'00021828', m:'Tábua – 2×20cm (E×L); maçaranduba/angelin; não aparelhada; caixaria; comp 3m', u:'Un.', v:23.73, c:772, en:0, saldo:772},
+  {n:421, tipo:'Item 018.1', ata:'107', e:'GAP', cod:'00021828', m:'Tábua – 2×20cm (E×L); maçaranduba/angelin; não aparelhada; caixaria; comp 3m', u:'Un.', v:23.73, c:257, en:0, saldo:257},
+  {n:422, tipo:'Item 019', ata:'107', e:'GAP', cod:'00021829', m:'Tábua – 2×25cm (E×L); maçaranduba/angelin; não aparelhada; caixaria; comp 3m', u:'Un.', v:29.84, c:1029, en:0, saldo:1029},
+  {n:423, tipo:'Item 020', ata:'107', e:'GAP', cod:'00021830', m:'Tábua – 2×30cm (E×L); maçaranduba/angelin; não aparelhada; caixaria; comp 3m', u:'Un.', v:52.73, c:772, en:0, saldo:772},
+  {n:424, tipo:'Item 020.1', ata:'107', e:'GAP', cod:'00021830', m:'Tábua – 2×30cm (E×L); maçaranduba/angelin; não aparelhada; caixaria; comp 3m', u:'Un.', v:52.73, c:257, en:0, saldo:257},
+  {n:425, tipo:'Item 021', ata:'107', e:'MBASSI', cod:'00022701', m:'Tábua – beiral; 2,5×10cm (E×L); maçaranduba/angelin; aparelhada', u:'1 Mt.', v:11.6, c:4114, en:0, saldo:4114},
+  {n:426, tipo:'Item 022', ata:'107', e:'MBASSI', cod:'00022702', m:'Tábua – beiral; 2,5×15cm (E×L); maçaranduba/angelin; aparelhada', u:'1 Mt.', v:16.87, c:1029, en:0, saldo:1029},
+  {n:427, tipo:'Item 023', ata:'107', e:'GAP', cod:'00021813', m:'Telha – canalete; fibrocimento; 8mm; comp mín 06m; larg útil 90cm', u:'Un.', v:711.82, c:0, en:0, saldo:0},
+  {n:428, tipo:'Item 023.1', ata:'107', e:'GAP', cod:'00021813', m:'Telha – canalete; fibrocimento; 8mm; comp mín 06m; larg útil 90cm', u:'Un.', v:711.82, c:0, en:0, saldo:0},
+  {n:429, tipo:'Item 024', ata:'107', e:'FENIX', cod:'00021808', m:'Telha – cumeeira universal; ondulada; fibrocimento; 6mm; comp 1,10m; Aba 210mm', u:'Un.', v:80.89, c:0, en:0, saldo:0},
+  {n:430, tipo:'Item 025', ata:'107', e:'SANJOSE', cod:'00021871', m:'Telha – cumeeira; aço galvalume; esp mín 0,4mm; trapezoidal; 100×60×4cm', u:'Un.', v:69.38, c:0, en:0, saldo:0},
+  {n:431, tipo:'Item 026', ata:'107', e:'FENIX', cod:'00022357', m:'Telha – cumeeira; ondulada; fibrocimento; 6mm; comp 1,10m; Inclinação 15 graus', u:'Un.', v:72.4, c:0, en:0, saldo:0},
+  {n:432, tipo:'Item 027.1', ata:'107', e:'FENIX', cod:'00021448', m:'Telha – trapezoidal; aço galvalume; 30mm; sanduíche; 1,05×3m (L×C)', u:'Un.', v:331.49, c:150, en:0, saldo:150},
+  {n:433, tipo:'Item 028', ata:'107', e:'SANJOSE', cod:'00014027', m:'Tubos e conexões – quadrado; metalon; barra de 6m; 15×15mm; Chapa 18', u:'Un.', v:61.47, c:0, en:0, saldo:0},
+  {n:434, tipo:'Item 029', ata:'107', e:'GAP', cod:'0008300', m:'Viga – madeira cambará; 15,5×5,5cm×4m (L×E×C)', u:'Un.', v:100.18, c:226, en:0, saldo:226},
+  {n:435, tipo:'Item 029.1', ata:'107', e:'GAP', cod:'0008300', m:'Viga – madeira cambará; 15,5×5,5cm×4m (L×E×C)', u:'Un.', v:100.18, c:74, en:0, saldo:74},
   
   {n:146,  ata:'060',e:'FENIX',    m:'Aduela - Tipo: galeria; Estrutura: pré-moldada; Seção: retangular aberta; Material: concreto armado; Medida: 2,50 x 2,50 x 1,00 m (L x A x C); Espessura: 15 cm; Sistema de encaixe: macho e fêmea.', u:'UN.',  v:6986, qtdAta:50, c:20, en:20, siga:19826, marca:null},
   {n:147,  ata:'060',e:'NSC',    m:'Areia - Tipo: Lavada média', u:'M³',  v:89.5, qtdAta:1500, c:600, en:450, siga:3807, marca:null},
@@ -7944,7 +7948,7 @@ function ataRender(num){
       const sbg=s<=0?'var(--red-bg)':s<cMax*.2?'var(--amber-bg)':'';
       const sco=s<=0?'var(--red)':s<cMax*.2?'var(--amber)':'var(--text)';
       return `<tr>
-        <td style="font-size:10px;font-weight:700;color:var(--text2)">${it.n}</td>
+        <td style="font-size:10px;font-weight:700;color:var(--text2);white-space:nowrap">${it.tipo||it.n}</td>
         <td><span style="background:${EB[it.e]||'#eee'};color:${EC[it.e]||'#333'};padding:2px 8px;border-radius:99px;font-size:9px;font-weight:600">${it.e}</span></td>
         <td style="font-size:10px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(it.m||'').replace(/"/g,'&quot;')}">${it.m}</td>
         <td style="font-size:10px;text-align:center">${it.u}</td>
@@ -8202,7 +8206,7 @@ function ataPrint(num){
     const sco=s<=0?'#A32D2D':s<cMax*.2?'#854F0B':'#2D7A3A';
     const sbg=s<=0?'#FCEBEB':s<cMax*.2?'#FAEEDA':'';
     return `<tr style="background:${sbg}">
-      <td style="font-size:7.5pt;font-weight:600">${it.n}</td>
+      <td style="font-size:7.5pt;font-weight:600;white-space:nowrap">${it.tipo||it.n}</td>
       <td style="font-size:7pt;padding:2px 6px">
         <span style="background:${EB[it.e]||'#eee'};color:${EC[it.e]||'#333'};padding:1px 5px;border-radius:3px;font-size:7pt;font-weight:600">${it.e}</span>
       </td>
