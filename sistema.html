@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-113'; // ATAs 107/109 refeitas pelo PDF oficial: nº ITEM (Tipo), itens, valores, unidades, fornecedores e Saldo do Órgão
+const SYSTEM_VERSION = '20260713-114'; // Impressão Previsão (Pedido de Utilização de Saldo): cabeçalho enxuto, Ata/OBJETO pelo nome oficial, sem PE e sem coluna Código, +assinatura do Secretário
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16093,7 +16093,6 @@ function prevBuildPrint(o){
     }).join('');
     return `<tr>
       <td style="${B}text-align:center;white-space:nowrap">ITEM ${esc(r.cod)}</td>
-      <td style="${B}text-align:center">${esc(r.siga)}</td>
       <td style="${B}">${esc(r.desc)}</td>
       <td style="${B}text-align:center;white-space:nowrap">1 - ${esc(r.un)}</td>
       <td style="${B}text-align:center">${(r.qtd||0).toLocaleString('pt-BR')}</td>
@@ -16108,39 +16107,37 @@ function prevBuildPrint(o){
   const mesesTh=meses.map((m,i)=>`<th style="${TH}">${m}<br>${(pcts[i]||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}%</th>`).join('');
   const hoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   const ano=(o.mes||'').slice(0,4)||String(new Date().getFullYear());
+  const _ataLbl=(typeof ATA_COR!=='undefined'&&ATA_COR[o.ataCod]?.label)||'';
+  const ataNum=_ataLbl?_ataLbl.split(' – ')[0].replace(/^ATA\s+/i,'').trim():esc(o.ata||'');
+  const ataFull=_ataLbl?_ataLbl.replace(/^ATA\s+/i,'Ata '):esc(o.objeto||'');
   return `
-  <div style="text-align:center;margin-bottom:2mm">
-    ${logo?`<img src="${logo}" style="height:15mm;object-fit:contain">`:''}
-    <div style="font-weight:bold;font-size:9.5pt;margin-top:1mm">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS</div>
-  </div>
-  <div style="text-align:center;font-weight:bold;font-size:9.5pt;margin-bottom:1mm">PEDIDO DE UTILIZAÇÃO DE SALDO Nº ${esc(o.numero)}/SISEP/SUSEP/GEPLAGE/${esc(ano)}</div>
-  <div style="text-align:center;font-size:8.5pt;margin-bottom:2mm">Processo nº ${esc(o.processo)}</div>
+  <div style="text-align:center;font-weight:bold;font-size:11pt;margin-bottom:3mm">PEDIDO DE UTILIZAÇÃO DE SALDO Nº ${esc(o.numero)}/SISEP/SUSEP/GEPLAGE/${esc(ano)}</div>
   <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
     <b>A DIVEX/SISEP,</b><br>
-    PE: ${esc(o.pe)}<br>
-    ATA: ${esc(o.ata)}<br>
+    Ata: ${ataNum}<br>
     EMPRESA: ${esc(o.empresaNome)}<br>
-    OBJETO: ${esc(o.objeto)}
+    OBJETO: ${ataFull}
   </div>
   <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-bottom:2.5mm">
     Considerando a necessidade de aquisição de materiais para a execução dos respectivos serviços no Município de Campo Grande. Considerando a solicitação de uso por parte da Superintendência de Serviços Públicos. Encaminhamos demanda para uso de saldo de ata <b>com formalização de contrato</b>, conforme descrito abaixo:
   </div>
   <table style="width:100%;border-collapse:collapse">
     <thead><tr>
-      <th style="${TH}">Tipo</th><th style="${TH}">Código</th><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Unidade</th><th style="${TH}">Qtde<br>Solicitada</th><th style="${TH}">Vlr.<br>Unitário</th><th style="${TH}">Valor Total</th>${mesesTh}
+      <th style="${TH}">Tipo</th><th style="${TH}text-align:left">Descrição</th><th style="${TH}">Unidade</th><th style="${TH}">Qtde<br>Solicitada</th><th style="${TH}">Vlr.<br>Unitário</th><th style="${TH}">Valor Total</th>${mesesTh}
     </tr></thead>
-    <tbody>${linhas||'<tr><td colspan="7" style="'+B+'text-align:center;color:#777">Sem itens</td></tr>'}</tbody>
+    <tbody>${linhas||'<tr><td colspan="6" style="'+B+'text-align:center;color:#777">Sem itens</td></tr>'}</tbody>
     <tfoot>
-      <tr><td colspan="6" style="${B}text-align:right;font-weight:bold">TOTAL DESEMBOLSO</td><td style="${B}text-align:right;font-weight:bold">${prevMoney(total)}</td>${totTds}</tr>
-      <tr><td colspan="6" style="${B}text-align:right;font-weight:bold">VALOR ACUMULADO</td><td style="${B}"></td>${acuTds}</tr>
+      <tr><td colspan="5" style="${B}text-align:right;font-weight:bold">TOTAL DESEMBOLSO</td><td style="${B}text-align:right;font-weight:bold">${prevMoney(total)}</td>${totTds}</tr>
+      <tr><td colspan="5" style="${B}text-align:right;font-weight:bold">VALOR ACUMULADO</td><td style="${B}"></td>${acuTds}</tr>
     </tfoot>
   </table>
   <div style="font-size:6.5pt;color:#555;margin-top:1mm">Em cada mês, por item: <b>quantidade</b> (linha superior, em unidades inteiras) e <b>valor</b> correspondente (linha inferior). As quantidades seguem o percentual de cada parcela e são distribuídas em números inteiros que somam exatamente a quantidade solicitada.</div>
   <div style="font-size:8pt;margin-top:2.5mm">CAMPO GRANDE - MS, ${hoje}.</div>
   <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-top:1.5mm">Disponibiliza-se o processo para verificação da disponibilidade de reserva orçamentária e da respectiva fonte de recurso. Após a devida conferência, encaminhar ao setor responsável pela formalização do pedido.</div>
-  <div style="display:flex;justify-content:space-around;margin-top:16mm;font-size:8pt;text-align:center">
-    <div style="border-top:1px solid #000;padding-top:1mm;width:65mm">Juvenil Ferreira Lopes<br><b>Chefe da Divisão de Drenagem Urbana</b></div>
-    <div style="border-top:1px solid #000;padding-top:1mm;width:65mm"><br><b>Superintendente de Serviços Públicos</b></div>
+  <div style="display:flex;justify-content:space-between;gap:6mm;margin-top:16mm;font-size:7.5pt;text-align:center">
+    <div style="border-top:1px solid #000;padding-top:1mm;flex:1">Juvenil Ferreira Lopes<br><b>Chefe da Divisão de Drenagem Urbana</b></div>
+    <div style="border-top:1px solid #000;padding-top:1mm;flex:1"><br><b>Superintendente de Serviços Públicos</b></div>
+    <div style="border-top:1px solid #000;padding-top:1mm;flex:1"><br><b>Secretário Municipal de Infraestrutura e Serviços Públicos</b></div>
   </div>
   <div style="font-size:7.5pt;color:#444;border-top:1px solid #999;margin-top:8mm;padding-top:1mm">Referência: Processo nº ${esc(o.processo)}</div>`;
 }
