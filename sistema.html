@@ -3237,10 +3237,12 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>Valor unitário (R$) *</label><input type="number" step="any" min="0" id="orcd-vu" placeholder="0,00" oninput="orcDespPrev()"></div>
         <div class="fg"><label>Total</label><input id="orcd-tot" readonly style="background:var(--bg);font-weight:700;color:var(--blue)" value="R$ 0,00"></div>
       </div>
+      <div id="orcd-edit-info" class="al ai" style="display:none;align-items:center;font-size:11px;margin-bottom:6px"><i class="ti ti-pencil"></i>Editando uma despesa existente — altere os campos e clique em <b>&nbsp;Salvar alterações</b>.</div>
       <div id="orcd-err" class="ae" style="display:none"><i class="ti ti-alert-circle"></i><span id="orcd-err-txt"></span></div>
       <div class="brow no-print">
-        <button class="btn bp" onclick="orcDespSalvar()"><i class="ti ti-device-floppy"></i>Adicionar despesa</button>
+        <button class="btn bp" id="orcd-save-btn" onclick="orcDespSalvar()"><i class="ti ti-device-floppy"></i>Adicionar despesa</button>
         <button class="btn" onclick="orcDespLimpar()"><i class="ti ti-x"></i>Limpar</button>
+        <button class="btn" id="orcd-cancel-edit" style="display:none;color:var(--red);border-color:var(--red)" onclick="orcDespCancelarEdicao()"><i class="ti ti-arrow-back-up"></i>Cancelar edição</button>
       </div>
     </div>
 
@@ -4391,7 +4393,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-108'; // Resposta a Ofício: impressão multipágina (paginação natural) + relatório fotográfico completo a partir da página 2
+const SYSTEM_VERSION = '20260713-109'; // Orçamento/Despesas: botão Editar (data, fornecedor, descrição, quantidade e valor de lançamentos existentes)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5789,11 +5791,36 @@ function orcDespPrev(){
   const vu=parseFloat(document.getElementById('orcd-vu')?.value)||0;
   const t=document.getElementById('orcd-tot'); if(t)t.value=_orcdM(qtd*vu);
 }
+let ORCD_EDIT_ID=null;
 function orcDespLimpar(keepData){
   if(!keepData){ const dt=document.getElementById('orcd-data'); if(dt)dt.value=''; }
   const s=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v;};
   s('orcd-desc',''); s('orcd-qtd','1'); s('orcd-vu',''); s('orcd-tot','R$ 0,00'); s('orcd-forn','');
   const e=document.getElementById('orcd-err'); if(e)e.style.display='none';
+  ORCD_EDIT_ID=null;
+  const btn=document.getElementById('orcd-save-btn'); if(btn) btn.innerHTML='<i class="ti ti-device-floppy"></i>Adicionar despesa';
+  const cx=document.getElementById('orcd-cancel-edit'); if(cx) cx.style.display='none';
+  const ed=document.getElementById('orcd-edit-info'); if(ed) ed.style.display='none';
+}
+function orcDespCancelarEdicao(){ orcDespLimpar(); }
+async function orcDespEditar(id){
+  let all=[]; try{ all=await dbGetAll('orc_despesas'); }catch(e){}
+  const rec=(all||[]).find(x=>String(x.id)===String(id));
+  if(!rec){ alert('Despesa não encontrada.'); return; }
+  try{ await orcDespPopularForn(); }catch(e){}
+  const s=(k,v)=>{const e=document.getElementById(k);if(e)e.value=(v==null?'':v);};
+  s('orcd-data',rec.data||'');
+  const fsel=document.getElementById('orcd-forn'); if(fsel) fsel.value=rec.fornecedor||'';
+  s('orcd-desc',rec.descricao||'');
+  s('orcd-qtd',rec.quantidade!=null?rec.quantidade:'');
+  s('orcd-vu',rec.valorUnit!=null?rec.valorUnit:'');
+  orcDespPrev();
+  ORCD_EDIT_ID=rec.id;
+  const btn=document.getElementById('orcd-save-btn'); if(btn) btn.innerHTML='<i class="ti ti-device-floppy"></i>Salvar alterações';
+  const cx=document.getElementById('orcd-cancel-edit'); if(cx) cx.style.display='';
+  const ed=document.getElementById('orcd-edit-info'); if(ed){ ed.style.display='flex'; }
+  const err=document.getElementById('orcd-err'); if(err) err.style.display='none';
+  document.getElementById('orcd-data')?.scrollIntoView({behavior:'smooth',block:'center'});
 }
 async function orcDespSalvar(){
   const g=id=>document.getElementById(id);
@@ -5811,9 +5838,17 @@ async function orcDespSalvar(){
   if(temForn && !forn){ err('Selecione o fornecedor desta despesa.'); return; }
   g('orcd-err').style.display='none';
   try{
-    await dbAdd('orc_despesas',{data,fornecedor:forn,descricao:desc,quantidade:qtd,valorUnit:vu,_ts:Date.now(),registradoPor:'Juvenil Ferreira Lopes'});
-    try{ cacheInvalidate('orc_despesas'); }catch(e){}
-    orcDespLimpar(true);
+    if(ORCD_EDIT_ID){
+      let all=[]; try{ all=await dbGetAll('orc_despesas'); }catch(e){}
+      const orig=(all||[]).find(x=>String(x.id)===String(ORCD_EDIT_ID))||{};
+      await dbPut('orc_despesas',{...orig,id:ORCD_EDIT_ID,data,fornecedor:forn,descricao:desc,quantidade:qtd,valorUnit:vu,editadoEm:Date.now(),editadoPor:'Juvenil Ferreira Lopes'});
+      try{ cacheInvalidate('orc_despesas'); }catch(e){}
+      orcDespLimpar();
+    } else {
+      await dbAdd('orc_despesas',{data,fornecedor:forn,descricao:desc,quantidade:qtd,valorUnit:vu,_ts:Date.now(),registradoPor:'Juvenil Ferreira Lopes'});
+      try{ cacheInvalidate('orc_despesas'); }catch(e){}
+      orcDespLimpar(true);
+    }
     await orcDespRender();
   }catch(e){ err('Erro ao salvar: '+e.message); }
 }
@@ -5872,7 +5907,7 @@ async function orcDespRender(){
         <td style="text-align:right">${(d.quantidade||0).toLocaleString('pt-BR',{maximumFractionDigits:2})}</td>
         <td style="text-align:right">${_orcdM(d.valorUnit)}</td>
         <td style="text-align:right;font-weight:600">${_orcdM(tot)}</td>
-        <td class="no-print" style="text-align:right"><button class="btn" style="padding:2px 7px;font-size:10px;color:var(--red);border-color:var(--red)" onclick="orcDespExcluir(${d.id})"><i class="ti ti-trash"></i></button></td>
+        <td class="no-print" style="text-align:right;white-space:nowrap"><button class="btn" style="padding:2px 7px;font-size:10px;margin-right:3px" title="Editar" onclick="orcDespEditar(${d.id})"><i class="ti ti-pencil"></i></button><button class="btn" style="padding:2px 7px;font-size:10px;color:var(--red);border-color:var(--red)" title="Excluir" onclick="orcDespExcluir(${d.id})"><i class="ti ti-trash"></i></button></td>
       </tr>`;
     });
     html+=`</tbody><tfoot><tr style="background:var(--bg2);font-weight:700">
