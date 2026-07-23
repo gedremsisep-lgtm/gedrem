@@ -2110,7 +2110,7 @@ textarea{resize:vertical;min-height:60px}
 <div id="ofc-resp-print-modal" class="print-modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="print-modal" style="width:210mm;max-width:100%">
     <div class="pm-toolbar no-print">
-      <button class="btn bp" onclick="_printFit1('ofc-resp-pm-body','portrait')"><i class="ti ti-printer"></i>Imprimir / Salvar PDF</button>
+      <button class="btn bp" onclick="_printDocIframe('ofc-resp-pm-body','size:A4 portrait;margin:15mm',PM_PRINT_CSS)"><i class="ti ti-printer"></i>Imprimir / Salvar PDF</button>
       <button class="btn" onclick="document.getElementById('ofc-resp-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
       <span style="font-size:11px;color:#666;margin-left:8px">Pré-visualização · Ctrl+P para PDF</span>
     </div>
@@ -4391,7 +4391,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-107'; // Ícone com contorno preto nos elementos + botão "Instalar app" na Visão Geral
+const SYSTEM_VERSION = '20260713-108'; // Resposta a Ofício: impressão multipágina (paginação natural) + relatório fotográfico completo a partir da página 2
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -10537,6 +10537,8 @@ async function ofcRespPrintPreview(){
       </div>
     </div>`:'';
 
+  // Relatório fotográfico vinculado impresso por completo, a partir da PÁGINA 2 (quebra de página)
+  const anexoFoto = gedremRec ? `<div style="page-break-before:always;break-before:page">${rfBuildPrintBody(gedremRec)}</div>` : '';
   document.getElementById('ofc-resp-pm-body').innerHTML=`
     <div class="pm-header">
       <img class="pm-logo" src="${SISEP_LOGO}" alt="Logo SISEP" style="height:56px;width:auto;margin-right:12px;flex-shrink:0"><img src="${GEDREM_LOGO}" alt="Emblema GEDREM" style="height:54px;object-fit:contain;flex-shrink:0;order:5;margin-left:auto">
@@ -10596,7 +10598,8 @@ async function ofcRespPrintPreview(){
     </div>
     <div class="pm-footer" style="margin-top:5mm;padding-top:2mm;border-top:1px solid #ddd;text-align:center;font-size:7pt;color:#999">
       SISEP · GEDREM · Prefeitura Municipal de Campo Grande – Mato Grosso do Sul
-    </div>`;
+    </div>
+    ${anexoFoto}`;
   document.getElementById('ofc-resp-print-modal').style.display='flex';
 }
 
@@ -15961,7 +15964,9 @@ function prevBuildPrint(o){
   <div style="font-size:7.5pt;color:#444;border-top:1px solid #999;margin-top:8mm;padding-top:1mm">Referência: Processo nº ${esc(o.processo)}</div>`;
 }
 
-function _printDocIframe(contentElId,pageRule){
+// CSS das classes .pm-* (usado quando o conteúdo impresso depende delas, ex.: relatório fotográfico anexo)
+const PM_PRINT_CSS='.pm-header{display:flex;align-items:center;margin-bottom:3mm;padding-bottom:2mm;border-bottom:2px solid #1a4a8a}.pm-logo{height:50px;width:auto;margin-right:10px}.pm-header-text{flex:1;text-align:center}.pm-header-text h1{font-size:11pt;font-weight:700;color:#1a4a8a;margin:0 0 1px}.pm-header-text p{font-size:7pt;color:#444;margin:0}.pm-table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:8pt}.pm-table td{padding:2px 5px;border:1px solid #ccc}.pm-table td:first-child{font-weight:700;color:#1a4a8a;background:#f0f5ff;width:28%;white-space:nowrap}.pm-photos{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-bottom:3mm}.pm-photo-wrap{display:flex;flex-direction:column;gap:1mm}.pm-photo{width:100%;height:50mm;object-fit:fill;border:1px solid #ccc;border-radius:2px;display:block}.pm-photo-label{font-size:8.5pt;font-weight:700;color:#1a4a8a;margin-top:1mm}.pm-photo-desc{font-size:8pt;color:#333;font-style:italic}.pm-sign{text-align:center;padding-top:3mm}.pm-sign-line{width:160px;border-top:1px solid #666;margin:0 auto 2px}.pm-sign-name{font-size:8pt;font-weight:700}.pm-sign-title{font-size:7pt;color:#555}.pm-footer{margin-top:2mm;padding-top:2mm;border-top:1px solid #ccc;text-align:center;font-size:6.5pt;color:#888}';
+function _printDocIframe(contentElId,pageRule,extraCss){
   var src=document.getElementById(contentElId);
   if(!src){return;}
   var html=src.innerHTML.replace(/<style[\s\S]*?<\/style>/gi,''); // remove hacks @media print da pré-visualização
@@ -15976,6 +15981,7 @@ function _printDocIframe(contentElId,pageRule){
   d.write('<!DOCTYPE html><html><head><meta charset="utf-8"><style>'
     +'@page{'+(pageRule||'size:A4;margin:8mm')+'}'
     +'html,body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-family:Arial,sans-serif}'
+    +(extraCss||'')
     +'</style></head><body>'+html+'</body></html>');
   d.close();
   var win=ifr.contentWindow;
