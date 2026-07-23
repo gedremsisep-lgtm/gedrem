@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-117'; // Impressao Previsao: cabecalho com Prefeitura de Campo Grande + Secretaria (SISEP) entre os dois logos
+const SYSTEM_VERSION = '20260713-118'; // Impressao Previsao: EMPRESA sempre remapeada pela sigla (corrige registros salvos antes) -> razao social completa
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16125,7 +16125,7 @@ function prevBuildPrint(o){
   <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
     <b>A DIVEX/SISEP,</b><br>
     Ata: ${ataNum}<br>
-    EMPRESA: ${esc(o.empresaNome)}<br>
+    EMPRESA: ${esc((typeof PREV_EMP_NOME!=='undefined'&&PREV_EMP_NOME[o.empresa])||o.empresaNome||o.empresa)}<br>
     OBJETO: ${ataFull}
   </div>
   <div style="font-size:8pt;text-align:justify;line-height:1.4;margin-bottom:2.5mm">
