@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-116'; // Impressao Previsao: cabecalho com os dois logos (SISEP + GEDREM) e titulo apenas 'PEDIDO DE UTILIZACAO DE SALDO'
+const SYSTEM_VERSION = '20260713-117'; // Impressao Previsao: cabecalho com Prefeitura de Campo Grande + Secretaria (SISEP) entre os dois logos
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16113,9 +16113,13 @@ function prevBuildPrint(o){
   const ataFull=_objOverride[o.ataCod]||(_ataLbl?_ataLbl.replace(/^ATA\s+/i,'Ata '):esc(o.objeto||''));
   const gLogo=(typeof GEDREM_LOGO!=='undefined')?GEDREM_LOGO:'';
   return `
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:8mm;border-bottom:2px solid #000;padding-bottom:2mm;margin-bottom:3mm">
-    ${logo?`<img src="${logo}" style="height:16mm;object-fit:contain">`:'<span></span>'}
-    ${gLogo?`<img src="${gLogo}" style="height:16mm;object-fit:contain">`:'<span></span>'}
+  <div style="display:flex;align-items:center;gap:4mm;border-bottom:2px solid #000;padding-bottom:2mm;margin-bottom:3mm">
+    ${logo?`<img src="${logo}" style="height:16mm;object-fit:contain;flex-shrink:0">`:'<span></span>'}
+    <div style="text-align:center;flex:1">
+      <div style="font-weight:bold;font-size:10pt;color:#1a3a6b">PREFEITURA MUNICIPAL DE CAMPO GRANDE - MS</div>
+      <div style="font-size:8.5pt;color:#333">SECRETARIA MUNICIPAL DE INFRAESTRUTURA E SERVIÇOS PÚBLICOS - SISEP</div>
+    </div>
+    ${gLogo?`<img src="${gLogo}" style="height:16mm;object-fit:contain;flex-shrink:0">`:'<span></span>'}
   </div>
   <div style="text-align:center;font-weight:bold;font-size:12pt;margin-bottom:3mm">PEDIDO DE UTILIZAÇÃO DE SALDO</div>
   <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
