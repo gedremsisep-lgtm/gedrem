@@ -1662,7 +1662,7 @@ textarea{resize:vertical;min-height:60px}
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="fcg-count">0</b> registros</div>
     <div class="card tw">
       <table>
-        <thead><tr><th>OS</th><th>Pedido</th><th>Rua / Número</th><th>Bairro</th><th>Região</th><th>Serviço</th><th>Dt. Execução</th><th>GEDREM</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+        <thead><tr><th>OS</th><th>Pedido</th><th>Rua / Número</th><th>Bairro</th><th>Região</th><th>Serviço</th><th>Dt. Execução</th><th>Observação</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
         <tbody id="fcg-tb"></tbody>
       </table>
     </div>
@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-110'; // Orçamento/Despesas: pagamentos por fornecedor que abatem o saldo (saldo por fornecedor + total pago + saldo a pagar)
+const SYSTEM_VERSION = '20260713-111'; // Despesas: saldo por fornecedor na impressão; Fala CG: coluna Observação (era GEDREM); Programação: observação nos cards de demanda
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -6079,7 +6079,25 @@ async function orcDespPrint(){
     });
     body+=`<tr><td colspan="5" style="${B}text-align:right;font-weight:bold;background:#f0f0f0">Subtotal ${_ORCD_MES[parseInt(mes,10)-1]||mes}/${ano}</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(sub)}</td></tr></table>`;
   });
-  body+=`<table style="width:100%;border-collapse:collapse"><tr><td style="border:1px solid #000;border-top:none;padding:1.5mm 2mm;text-align:right;font-weight:bold;font-size:9pt;background:#e0e0e0">TOTAL GERAL: ${_orcdM(grand)}</td></tr></table>`;
+  body+=`<table style="width:100%;border-collapse:collapse"><tr><td style="border:1px solid #000;border-top:none;padding:1.5mm 2mm;text-align:right;font-weight:bold;font-size:9pt;background:#e0e0e0">TOTAL GERAL (despesas): ${_orcdM(grand)}</td></tr></table>`;
+  // Saldo por fornecedor (despesas − pagamentos)
+  let pagAll=[]; try{ pagAll=await dbGetAll('orc_pagamentos'); }catch(e){}
+  const pagFil=_orcpFiltrar(pagAll);
+  const pagoTotal=pagFil.reduce((s,p)=>s+(p.valor||0),0);
+  const porForn={};
+  fil.forEach(d=>{ const f=d.fornecedor||'(sem fornecedor)'; (porForn[f]=porForn[f]||{desp:0,pago:0}).desp+=(d.quantidade||0)*(d.valorUnit||0); });
+  pagFil.forEach(p=>{ const f=p.fornecedor||'(sem fornecedor)'; (porForn[f]=porForn[f]||{desp:0,pago:0}).pago+=(p.valor||0); });
+  const fornKeys=Object.keys(porForn).sort();
+  if(fornKeys.length){
+    body+=`<div style="border:1px solid #000;border-top:none;padding:1mm 2mm;font-weight:bold;font-size:8pt;background:#c8c8c8;margin-top:3mm">SALDO POR FORNECEDOR (despesas − pagamentos)</div>
+    <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+      <col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%">
+      <tr><td style="${TH}">Fornecedor</td><td style="${TH}text-align:right">Despesas</td><td style="${TH}text-align:right">Pago</td><td style="${TH}text-align:right">Saldo a pagar</td></tr>`
+      +fornKeys.map(f=>{ const o=porForn[f]; const saldo=o.desp-o.pago;
+        return `<tr><td style="${B}">${f.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td><td style="${B}text-align:right">${_orcdM(o.desp)}</td><td style="${B}text-align:right">${_orcdM(o.pago)}</td><td style="${B}text-align:right;font-weight:bold">${_orcdM(saldo)}</td></tr>`;
+      }).join('')
+      +`<tr><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">TOTAL</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(grand)}</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(pagoTotal)}</td><td style="${B}text-align:right;font-weight:bold;background:#f0f0f0">${_orcdM(grand-pagoTotal)}</td></tr></table>`;
+  }
   let el=document.getElementById('orcd-print-content');
   if(!el){ el=document.createElement('div'); el.id='orcd-print-content'; el.style.display='none'; document.body.appendChild(el); }
   el.innerHTML=body;
@@ -9844,7 +9862,7 @@ async function fcgRenderLista(){
     if(fst&&x.status!==fst) return false;
     if(fde&&(!x.data||x.data<fde)) return false;
     if(fate&&(!x.data||x.data>fate)) return false;
-    if(busca){ const _b=((x.os||'')+' '+(x.rua||'')+' '+(x.numero||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.servico||'')+' '+(x.refGedrem||'')).toLowerCase(); if(!_b.includes(busca)) return false; }
+    if(busca){ const _b=((x.os||'')+' '+(x.rua||'')+' '+(x.numero||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.servico||'')+' '+(x.refGedrem||'')+' '+(x.obs||'')).toLowerCase(); if(!_b.includes(busca)) return false; }
     return true;
   }).sort((a,b)=>(b._ts||0)-(a._ts||0));
   const cnt=document.getElementById('fcg-count');
@@ -9870,7 +9888,7 @@ async function fcgRenderLista(){
         <td>${x.regiao||'—'}</td>
         <td>${x.servico||'—'}</td>
         <td>${x.dataExec?`<span style="color:var(--green);font-weight:600">${fmtDataBR(x.dataExec)}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
-        <td>${x.refGedrem?`<span style="background:var(--blue-bg);color:var(--blue);padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700">${x.refGedrem}</span>`:'—'}</td>
+        <td style="max-width:220px"><div style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(x.obs||'').replace(/"/g,'&quot;')}">${x.obs?String(x.obs).replace(/</g,'&lt;'):'<span style="color:var(--text3)">—</span>'}</div></td>
         <td><span class="st ${si.cls}">${si.emoji} ${x.status||'—'}</span></td>
         <td class="no-print" style="white-space:nowrap;min-width:190px">
           <select class="st-sel" onchange="fcgQuickStatus(${x.id},this.value)" title="Alterar status">
@@ -12699,11 +12717,11 @@ async function demFlutRender(){
   let itens=[];
   if(fori!=='ofc'){
     const fcg=await dbGetAll('falacg').catch(()=>[]);
-    fcg.filter(x=>x.status==='Pendente').forEach(x=>itens.push({ori:'Fala CG',cor:'#185FA5',num:x.os||'',data:x.data||'',end:(x.rua||'')+(x.numero?', '+x.numero:''),bairro:x.bairro||'',regiao:x.regiao||'',srv:x.servico||''}));
+    fcg.filter(x=>x.status==='Pendente').forEach(x=>itens.push({ori:'Fala CG',cor:'#185FA5',num:x.os||'',data:x.data||'',end:(x.rua||'')+(x.numero?', '+x.numero:''),bairro:x.bairro||'',regiao:x.regiao||'',srv:x.servico||'',obs:x.obs||''}));
   }
   if(fori!=='fcg'){
     const ofc=await dbGetAll('oficios').catch(()=>[]);
-    ofc.filter(x=>x.status==='Pendente'||x.status==='Em análise').forEach(x=>itens.push({ori:'Ofício',cor:'#7A4A0A',num:x.numero||x.codigo||'',data:x.data||'',end:x.endereco||'',bairro:x.bairro||'',regiao:x.regiao||'',srv:x.descricao||''}));
+    ofc.filter(x=>x.status==='Pendente'||x.status==='Em análise').forEach(x=>itens.push({ori:'Ofício',cor:'#7A4A0A',num:x.numero||x.codigo||'',data:x.data||'',end:x.endereco||'',bairro:x.bairro||'',regiao:x.regiao||'',srv:x.descricao||'',obs:x.obs||''}));
   }
   itens=itens.filter(it=>{
     if(fsrv && norm(it.srv)!==norm(fsrv) && !norm(it.srv).includes(norm(fsrv))) return false;
@@ -12724,6 +12742,7 @@ async function demFlutRender(){
       <div style="font-size:12px;font-weight:600">${esc2(it.srv||'—')}</div>
       <div style="font-size:11px;color:var(--text2)">${esc2(it.end||'—')}</div>
       <div style="font-size:10px;color:var(--text3)">${esc2(it.bairro||'')}${it.regiao?' · '+esc2(it.regiao):''}</div>
+      ${it.obs?`<div style="font-size:10.5px;color:var(--text2);margin-top:4px;padding-top:4px;border-top:1px dashed var(--bd)"><b style="color:var(--text3)">Obs:</b> ${esc2(it.obs)}</div>`:''}
     </div>`).join('') : '<div style="text-align:center;color:var(--text3);padding:22px;font-size:12px">Nenhuma demanda com esses filtros.</div>';
 }
 document.addEventListener('mousedown',function(e){
