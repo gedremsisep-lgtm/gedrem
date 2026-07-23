@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-115'; // Previsão/impressão: OBJETO da ATA 038 personalizado + razão social completa das empresas (G.A.P., São José, M. Bassi) nas ATAs 107/109
+const SYSTEM_VERSION = '20260713-116'; // Impressao Previsao: cabecalho com os dois logos (SISEP + GEDREM) e titulo apenas 'PEDIDO DE UTILIZACAO DE SALDO'
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16111,8 +16111,13 @@ function prevBuildPrint(o){
   const ataNum=_ataLbl?_ataLbl.split(' – ')[0].replace(/^ATA\s+/i,'').trim():esc(o.ata||'');
   const _objOverride={'060':'Ata 038 AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA'};
   const ataFull=_objOverride[o.ataCod]||(_ataLbl?_ataLbl.replace(/^ATA\s+/i,'Ata '):esc(o.objeto||''));
+  const gLogo=(typeof GEDREM_LOGO!=='undefined')?GEDREM_LOGO:'';
   return `
-  <div style="text-align:center;font-weight:bold;font-size:11pt;margin-bottom:3mm">PEDIDO DE UTILIZAÇÃO DE SALDO Nº ${esc(o.numero)}/SISEP/SUSEP/GEPLAGE/${esc(ano)}</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8mm;border-bottom:2px solid #000;padding-bottom:2mm;margin-bottom:3mm">
+    ${logo?`<img src="${logo}" style="height:16mm;object-fit:contain">`:'<span></span>'}
+    ${gLogo?`<img src="${gLogo}" style="height:16mm;object-fit:contain">`:'<span></span>'}
+  </div>
+  <div style="text-align:center;font-weight:bold;font-size:12pt;margin-bottom:3mm">PEDIDO DE UTILIZAÇÃO DE SALDO</div>
   <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
     <b>A DIVEX/SISEP,</b><br>
     Ata: ${ataNum}<br>
