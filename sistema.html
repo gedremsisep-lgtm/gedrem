@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-114'; // Impressão Previsão (Pedido de Utilização de Saldo): cabeçalho enxuto, Ata/OBJETO pelo nome oficial, sem PE e sem coluna Código, +assinatura do Secretário
+const SYSTEM_VERSION = '20260713-115'; // Previsão/impressão: OBJETO da ATA 038 personalizado + razão social completa das empresas (G.A.P., São José, M. Bassi) nas ATAs 107/109
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -15921,7 +15921,7 @@ function prevPctSum(){
 function prevIgualar(){ PREV_PCTS=prevDefaultPcts(PREV_PCTS.length||parseInt(document.getElementById('prev-nmeses')?.value)||4); prevBuildPcts(); prevCalc(); }
 async function prevFillEmp(){ const sel=document.getElementById('prev-emp'); if(!sel)return; const emps=Array.from(new Set(D.filter(it=>it.ata===PREV_ATA).map(it=>it.e).filter(Boolean))).sort(); sel.innerHTML='<option value="">Selecione a empresa...</option>'+emps.map(e=>`<option value="${e}">${(PREV_EMP_NOME[e]||e)}</option>`).join(''); }
 const PREV_CODBASE=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','11.1','17.1','18.1','19.1'];
-const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA'};
+const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', GAP:'G.A.P. SOLUÇÕES E CONSTRUÇÕES LTDA', SANJOSE:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', MBASSI:'M. BASSI COMÉRCIO DE MADEIRAS E MATERIAIS PARA CONSTRUÇÃO LTDA'};
 const PREV_MESNOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function prevMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 async function prevSaldoMap(){
@@ -16109,7 +16109,8 @@ function prevBuildPrint(o){
   const ano=(o.mes||'').slice(0,4)||String(new Date().getFullYear());
   const _ataLbl=(typeof ATA_COR!=='undefined'&&ATA_COR[o.ataCod]?.label)||'';
   const ataNum=_ataLbl?_ataLbl.split(' – ')[0].replace(/^ATA\s+/i,'').trim():esc(o.ata||'');
-  const ataFull=_ataLbl?_ataLbl.replace(/^ATA\s+/i,'Ata '):esc(o.objeto||'');
+  const _objOverride={'060':'Ata 038 AQUISIÇÃO DE MATERIAIS DE CONSTRUÇÃO E DRENAGEM URBANA'};
+  const ataFull=_objOverride[o.ataCod]||(_ataLbl?_ataLbl.replace(/^ATA\s+/i,'Ata '):esc(o.objeto||''));
   return `
   <div style="text-align:center;font-weight:bold;font-size:11pt;margin-bottom:3mm">PEDIDO DE UTILIZAÇÃO DE SALDO Nº ${esc(o.numero)}/SISEP/SUSEP/GEPLAGE/${esc(ano)}</div>
   <div style="font-size:8.5pt;line-height:1.5;margin-bottom:2mm">
