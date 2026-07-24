@@ -4413,7 +4413,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-118'; // Impressao Previsao: EMPRESA sempre remapeada pela sigla (corrige registros salvos antes) -> razao social completa
+const SYSTEM_VERSION = '20260713-119'; // Impressao Previsao: quadro DIVEX/DICOM (disponibilidade orcamentaria) abaixo das assinaturas
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16148,6 +16148,18 @@ function prevBuildPrint(o){
     <div style="border-top:1px solid #000;padding-top:1mm;flex:1">Juvenil Ferreira Lopes<br><b>Chefe da Divisão de Drenagem Urbana</b></div>
     <div style="border-top:1px solid #000;padding-top:1mm;flex:1"><br><b>Superintendente de Serviços Públicos</b></div>
     <div style="border-top:1px solid #000;padding-top:1mm;flex:1"><br><b>Secretário Municipal de Infraestrutura e Serviços Públicos</b></div>
+  </div>
+  <div style="border:1.2px solid #000;padding:3mm 4mm;margin-top:10mm;font-size:8pt;line-height:1.55">
+    <div style="font-weight:bold;margin-bottom:2mm">A DIVISÃO DE EXPEDIENTE E COMPRAS/DICOM/SISEP</div>
+    <div style="text-align:justify;margin-bottom:2.5mm">Após consulta a esta DIVEX/SISEP informamos que, na presente data, possuímos a disponibilidade financeira/orçamentária para atender esta solicitação.</div>
+    <div style="margin-bottom:1.5mm">Ação orçamentária: __________________________________</div>
+    <div style="margin-bottom:2.5mm">Fonte: Tesouro (&nbsp;&nbsp;&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;Cosip (&nbsp;&nbsp;&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;Outra (&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</div>
+    <div style="text-align:justify;margin-bottom:2.5mm">Segue processo para emissão de PAM/PPS e os demais trâmites desta despesa.</div>
+    <div>Atenciosamente,</div>
+    <div style="margin-top:8mm;text-align:center">
+      <div style="font-weight:bold">Elevaine da Silva Ribeiro</div>
+      <div>DIVEX/SISEP</div>
+    </div>
   </div>
   <div style="font-size:7.5pt;color:#444;border-top:1px solid #999;margin-top:8mm;padding-top:1mm">Referência: Processo nº ${esc(o.processo)}</div>`;
 }
