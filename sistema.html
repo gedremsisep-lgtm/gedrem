@@ -484,6 +484,13 @@ textarea{resize:vertical;min-height:60px}
   <div class="ni" id="n-a100" onclick="go('a100')"><i class="ti ti-chart-dots"></i>ATA 100 – Hidráulicos III</div>
   <div class="ni" id="n-a107" onclick="go('a107')"><i class="ti ti-chart-dots"></i>ATA 107/2024 – Construção IV</div>
   <div class="ni" id="n-a109" onclick="go('a109')"><i class="ti ti-chart-dots"></i>ATA 109/2024 – Construção III</div>
+  <div class="ni" id="n-a005" onclick="go('a005')"><i class="ti ti-chart-dots"></i>ATA 005/2026 – Elétricos II</div>
+  <div class="ni" id="n-a006" onclick="go('a006')"><i class="ti ti-chart-dots"></i>ATA 006/2025 – Elétricos V</div>
+  <div class="ni" id="n-a009" onclick="go('a009')"><i class="ti ti-chart-dots"></i>ATA 009/2025 – Construção II</div>
+  <div class="ni" id="n-a019" onclick="go('a019')"><i class="ti ti-chart-dots"></i>ATA 019/2026 – Construção I</div>
+  <div class="ni" id="n-a020" onclick="go('a020')"><i class="ti ti-chart-dots"></i>ATA 020/2026 – Elétricos III</div>
+  <div class="ni" id="n-a072" onclick="go('a072')"><i class="ti ti-chart-dots"></i>ATA 072/2024 – Elétricos I</div>
+  <div class="ni" id="n-a089" onclick="go('a089')"><i class="ti ti-chart-dots"></i>ATA 089/2024 – Elétricos IV</div>
   <div class="ns">Serviços do Setor</div>
   <div class="ni" id="n-rf" onclick="go('rf');rfInitCod()"><i class="ti ti-camera"></i>Rel. Fotográfico</div>
   <div class="ni" id="n-cs" onclick="go('cs')"><i class="ti ti-tool"></i>Ctrl. de Serviços</div>
@@ -1630,6 +1637,294 @@ textarea{resize:vertical;min-height:60px}
       <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
     </div>
     <div id="ata109-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+
+<!-- ── ATA 005 ── -->
+<div class="pg" id="pg-a005">
+  <div class="pt">Ata 005/2026 – Registro de Preços · Materiais Elétricos II</div>
+  <div class="ps">17 itens · FENIX / SANJOSE</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a005-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a005-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a005-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a005-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a005-fil" onchange="ataRender('005')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>FENIX</option><option>SANJOSE</option>
+    </select>
+    <input id="a005-busca" placeholder="Buscar material..." oninput="ataRender('005')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('005')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('005')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('005')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('005')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('005')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('005')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a005"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 005 -->
+<div id="ata005-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata005-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata005-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata005-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 006 ── -->
+<div class="pg" id="pg-a006">
+  <div class="pt">Ata 006/2025 – Registro de Preços · Materiais Elétricos V</div>
+  <div class="ps">35 itens · FENIX / GAP / BOMANI / SANJOSE</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a006-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a006-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a006-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a006-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a006-fil" onchange="ataRender('006')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>FENIX</option><option>GAP</option><option>BOMANI</option><option>SANJOSE</option>
+    </select>
+    <input id="a006-busca" placeholder="Buscar material..." oninput="ataRender('006')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('006')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('006')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('006')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('006')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('006')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('006')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a006"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 006 -->
+<div id="ata006-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata006-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata006-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata006-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 009 ── -->
+<div class="pg" id="pg-a009">
+  <div class="pt">Ata 009/2025 – Registro de Preços · Material de Construção II</div>
+  <div class="ps">24 itens · HARMONIA / FENIX / GAP / NACIONAL / SANJOSE</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a009-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a009-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a009-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a009-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a009-fil" onchange="ataRender('009')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>HARMONIA</option><option>FENIX</option><option>GAP</option><option>NACIONAL</option><option>SANJOSE</option>
+    </select>
+    <input id="a009-busca" placeholder="Buscar material..." oninput="ataRender('009')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('009')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('009')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('009')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('009')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('009')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('009')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a009"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 009 -->
+<div id="ata009-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata009-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata009-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata009-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 019 ── -->
+<div class="pg" id="pg-a019">
+  <div class="pt">Ata 019/2026 – Registro de Preços · Materiais de Construção I</div>
+  <div class="ps">24 itens · NSC / FENIX / RRNOG / SANJOSE</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a019-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a019-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a019-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a019-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a019-fil" onchange="ataRender('019')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>NSC</option><option>FENIX</option><option>RRNOG</option><option>SANJOSE</option>
+    </select>
+    <input id="a019-busca" placeholder="Buscar material..." oninput="ataRender('019')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('019')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('019')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('019')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('019')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('019')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('019')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a019"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 019 -->
+<div id="ata019-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata019-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata019-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata019-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 020 ── -->
+<div class="pg" id="pg-a020">
+  <div class="pt">Ata 020/2026 – Registro de Preços · Materiais Elétricos III</div>
+  <div class="ps">32 itens · RRNOG / LEDLUZ</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a020-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a020-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a020-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a020-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a020-fil" onchange="ataRender('020')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>RRNOG</option><option>LEDLUZ</option>
+    </select>
+    <input id="a020-busca" placeholder="Buscar material..." oninput="ataRender('020')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('020')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('020')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('020')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('020')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('020')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('020')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a020"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 020 -->
+<div id="ata020-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata020-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata020-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata020-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 072 ── -->
+<div class="pg" id="pg-a072">
+  <div class="pt">Ata 072/2024 – Aquisição de Materiais Elétricos I</div>
+  <div class="ps">30 itens · GAPGEST / FENIX</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a072-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a072-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a072-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a072-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a072-fil" onchange="ataRender('072')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>GAPGEST</option><option>FENIX</option>
+    </select>
+    <input id="a072-busca" placeholder="Buscar material..." oninput="ataRender('072')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('072')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('072')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('072')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('072')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('072')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('072')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a072"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 072 -->
+<div id="ata072-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata072-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata072-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata072-pm-body" style="padding:12mm 14mm;background:#fff"></div>
+  </div>
+</div>
+<!-- ── ATA 089 ── -->
+<div class="pg" id="pg-a089">
+  <div class="pt">Ata 089/2024 – Aquisição de Materiais Elétricos IV</div>
+  <div class="ps">38 itens · FENIX / NSC</div>
+  <div class="kg">
+    <div class="kc bl"><div class="kl">Total itens</div><div class="kv" id="a089-total">—</div></div>
+    <div class="kc gn"><div class="kl">Com saldo</div><div class="kv" id="a089-com">—</div></div>
+    <div class="kc am"><div class="kl">Saldo baixo (&lt;20%)</div><div class="kv" id="a089-baixo">—</div></div>
+    <div class="kc rd"><div class="kl">Zerados</div><div class="kv" id="a089-zero">—</div></div>
+  </div>
+  <div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;align-items:center" class="no-print">
+    <select id="a089-fil" onchange="ataRender('089')" style="font-size:11px;padding:6px 10px;width:auto">
+      <option value="">Todas as empresas</option><option>FENIX</option><option>NSC</option>
+    </select>
+    <input id="a089-busca" placeholder="Buscar material..." oninput="ataRender('089')"
+      style="font-size:11px;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);flex:2;min-width:160px">
+    <button class="btn bg2" onclick="ataPrint('089')"><i class="ti ti-printer"></i>Imprimir</button>
+    <button class="btn bp" onclick="abrirPedidoAta('089')"><i class="ti ti-plus"></i>Novo pedido</button>
+    <button class="btn" onclick="prevOpen('089')"><i class="ti ti-calendar-stats"></i>Previsão de consumo</button>
+    <button class="btn" onclick="contrOpen('089')"><i class="ti ti-file-description"></i>Contratos</button>
+    <button class="btn" onclick="docOpen('089')"><i class="ti ti-files"></i>Documentação</button>
+    <button class="btn" onclick="fotorelOpen('089')"><i class="ti ti-camera"></i>Rel. Fotográfico</button>
+  </div>
+  <div class="card tw"><table><thead><tr>
+    <th>Item</th><th>Empresa</th><th>Material</th><th>Und.</th>
+    <th style="text-align:right">Vl. Unit.</th>
+    <th style="text-align:right">Contrato</th>
+    <th style="text-align:right">Saldo</th><th>%</th>
+  </tr></thead><tbody id="tb-a089"></tbody></table></div>
+</div>
+<!-- MODAL PRINT ATA 089 -->
+<div id="ata089-print-modal" class="modal-overlay" style="display:none;padding:16px;overflow-y:auto" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;width:297mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+    <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
+      <button class="btn bp" onclick="_printDocIframe('ata089-pm-body','size:A4 landscape;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn" onclick="document.getElementById('ata089-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
+      <span style="font-size:11px;color:#666">A4 Paisagem · Ctrl+P para PDF</span>
+    </div>
+    <div id="ata089-pm-body" style="padding:12mm 14mm;background:#fff"></div>
   </div>
 </div>
 
@@ -4382,7 +4677,7 @@ textarea{resize:vertical;min-height:60px}
   }
 
   // Fallback navigation — sobrescrito pelo script principal quando carrega OK
-  var _ALL=['dash','rf','cs','falacg','oficios','ci','ssi','prog','mapa','a60','a059','a100','a107','a109','adm','cfg'];
+  var _ALL=['dash','rf','cs','falacg','oficios','ci','ssi','prog','mapa','a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089','adm','cfg'];
   if(typeof go==='undefined'){
     window.go=function(pg){
       document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
@@ -4413,7 +4708,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-119'; // Impressao Previsao: quadro DIVEX/DICOM (disponibilidade orcamentaria) abaixo das assinaturas
+const SYSTEM_VERSION = '20260713-120'; // +7 ATAs (005/2026, 006/2025, 009/2025, 019/2026, 020/2026, 072/2024, 089/2024) pelos PDFs, contabilizando pelo Saldo do Orgao
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5121,11 +5416,211 @@ const D=[
   {n:171,  ata:'060',e:'FENIX',  m:'Tubo - Uso: águas pluviais; Tipo: Concreto armado; Classe: PA-1; Diâmetro nominal: 1500 mm.', u:'M',  v:1045.9, qtdAta:75, c:75, en:0, siga:15967, marca:'Pav Tubos'},
   {n:172,  ata:'060',e:'FENIX',  m:'Tubo - Uso: águas pluviais; Tipo: Concreto armado; Classe: PA-1; Diâmetro nominal: 600 mm.', u:'M',  v:247.9, qtdAta:112, c:112, en:0, siga:15969, marca:'Pav Tubos'},
   {n:173,  ata:'060',e:'FENIX',  m:'Tubo - Uso: águas pluviais; Tipo: Concreto armado; Classe: PA-1; Diâmetro nominal: 400 mm.', u:'M',  v:127.85, qtdAta:375, c:375, en:0, siga:15968, marca:'Pav Tubos'},
+  {n:3000, tipo:'Item 001', ata:'005', e:'FENIX', cod:'00014869', m:'Abraçadeira - Material: nylon; Medida: 3,6 x 200 mm.', u:'Pct. 100 Un.', v:13.82, c:100, en:0, saldo:100},
+  {n:3001, tipo:'Item 002', ata:'005', e:'SANJOSE', cod:'00014870', m:'Abraçadeira - Material: nylon; Medida: 3,6 x 250 mm.', u:'Pct. 100 Un.', v:12.9, c:100, en:0, saldo:100},
+  {n:3002, tipo:'Item 003', ata:'005', e:'FENIX', cod:'00014871', m:'Abraçadeira - Material: nylon; Medida: 4,8 mm x 120 mm.', u:'Pct. 100 Un.', v:13.44, c:2, en:0, saldo:2},
+  {n:3003, tipo:'Item 004', ata:'005', e:'FENIX', cod:'00015489', m:'Abraçadeira - Tipo: D; Material: aço; Tamanho: 1"; Requisito: com cunha.', u:'1 Un.', v:0.83, c:40, en:0, saldo:40},
+  {n:3004, tipo:'Item 005', ata:'005', e:'FENIX', cod:'00014872', m:'Abraçadeira - Tipo: D; Material: aço; Tamanho: 3/4"; Acompanha: parafuso e porca.', u:'1 Un.', v:1.28, c:40, en:0, saldo:40},
+  {n:3005, tipo:'Item 006', ata:'005', e:'SANJOSE', cod:'00009411', m:'Base - Tipo: para relé fotoelétrico; Material: plástico resistente; Características adicionais: possuir haste metálica; Corrente nominal: 10 A.', u:'1 Un.', v:6.68, c:1000, en:0, saldo:1000},
+  {n:3006, tipo:'Item 007', ata:'005', e:'FENIX', cod:'00014037', m:'Canaleta - Material: PVC; Requisito: com divisória; Medida: 20 x 10 x 2000 mm.', u:'1 Un.', v:6.0, c:200, en:0, saldo:200},
+  {n:3007, tipo:'Item 009', ata:'005', e:'FENIX', cod:'00015477', m:'Condulete - Material: alumínio; Tipo: múltiplo x; Diâmetro do encaixe: 1"; Acompanha: parafusos.', u:'1 Un.', v:15.23, c:40, en:0, saldo:40},
+  {n:3008, tipo:'Item 010', ata:'005', e:'SANJOSE', cod:'0004585', m:'Condulete - Material: PVC; Formato: 4x2; Bitola: 3/4"; Requisito: sem rosca.', u:'1 Un.', v:10.36, c:20, en:0, saldo:20},
+  {n:3009, tipo:'Item 012', ata:'005', e:'SANJOSE', cod:'00015478', m:'Conjunto - Tipo: arstop; Contém: tomada 20A (2P+T) + disjuntor 20A bipolar; Fixação: de sobrepor.', u:'1 Un.', v:37.01, c:20, en:0, saldo:20},
+  {n:3010, tipo:'Item 013', ata:'005', e:'FENIX', cod:'0000712', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 10.', u:'1 Un.', v:22.06, c:50, en:0, saldo:50},
+  {n:3011, tipo:'Item 014', ata:'005', e:'FENIX', cod:'0000714', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 16.', u:'1 Un.', v:21.92, c:50, en:0, saldo:50},
+  {n:3012, tipo:'Item 015', ata:'005', e:'SANJOSE', cod:'0000716', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 20.', u:'1 Un.', v:24.0, c:50, en:0, saldo:50},
+  {n:3013, tipo:'Item 016', ata:'005', e:'FENIX', cod:'0000717', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 25.', u:'1 Un.', v:22.76, c:50, en:0, saldo:50},
+  {n:3014, tipo:'Item 017', ata:'005', e:'FENIX', cod:'0000719', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 32.', u:'1 Un.', v:25.47, c:50, en:0, saldo:50},
+  {n:3015, tipo:'Item 018', ata:'005', e:'SANJOSE', cod:'0000720', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 40.', u:'1 Un.', v:22.89, c:50, en:0, saldo:50},
+  {n:3016, tipo:'Item 019', ata:'005', e:'SANJOSE', cod:'0008693', m:'Disjuntor - Tipo: bipolar - DIN; Ampere : 50.', u:'1 Un.', v:20.09, c:50, en:0, saldo:50},
+  {n:3017, tipo:'Item 001', ata:'006', e:'FENIX', cod:'00014772', m:'Lâmpada - Tipo: fluorescente 3U; Potência: 15 w; Voltagem: 127 V.', u:'1 Un.', v:4.69, c:82, en:82, saldo:0},
+  {n:3018, tipo:'Item 002', ata:'006', e:'FENIX', cod:'00014773', m:'Lâmpada - Tipo: fluorescente 3U; Potência: 15 w; Voltagem: 220 V.', u:'1 Un.', v:4.69, c:69, en:69, saldo:0},
+  {n:3019, tipo:'Item 003', ata:'006', e:'FENIX', cod:'00014774', m:'Lâmpada - Tipo: fluorescente 3U; Potência: 20 w; Voltagem: 127 V.', u:'1 Un.', v:5.84, c:74, en:74, saldo:0},
+  {n:3020, tipo:'Item 004', ata:'006', e:'FENIX', cod:'00014775', m:'Lâmpada - Tipo: fluorescente 3U; Potência: 20 w; Voltagem: 220 V.', u:'1 Un.', v:5.76, c:58, en:58, saldo:0},
+  {n:3021, tipo:'Item 005', ata:'006', e:'FENIX', cod:'00014776', m:'Lâmpada - Tipo: fluorescente 3U; Potência: 25 w; Voltagem: 127 V.', u:'1 Un.', v:7.8, c:50, en:0, saldo:50},
+  {n:3022, tipo:'Item 006', ata:'006', e:'FENIX', cod:'00014779', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 15 w; Voltagem: 127 V.', u:'1 Un.', v:9.39, c:48, en:0, saldo:48},
+  {n:3023, tipo:'Item 007', ata:'006', e:'FENIX', cod:'00014780', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 15 w; Voltagem: 220 V.', u:'1 Un.', v:7.82, c:50, en:0, saldo:50},
+  {n:3024, tipo:'Item 008', ata:'006', e:'FENIX', cod:'00014781', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 20 w; Voltagem: 127 V.', u:'1 Un.', v:8.34, c:50, en:0, saldo:50},
+  {n:3025, tipo:'Item 009', ata:'006', e:'FENIX', cod:'00014782', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 20 w; Voltagem: 220 V.', u:'1 Un.', v:8.12, c:50, en:0, saldo:50},
+  {n:3026, tipo:'Item 010', ata:'006', e:'FENIX', cod:'00014783', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 25 w; Voltagem: 127 V.', u:'1 Un.', v:7.75, c:50, en:0, saldo:50},
+  {n:3027, tipo:'Item 011', ata:'006', e:'FENIX', cod:'00014784', m:'Lâmpada - Tipo: fluorescente espiral; Potência: 25 w; Voltagem: 220 V.', u:'1 Un.', v:7.82, c:50, en:0, saldo:50},
+  {n:3028, tipo:'Item 012', ata:'006', e:'FENIX', cod:'00009403', m:'Lâmpada - Tipo: LED; Potência: 10 w; Voltagem: bivolt; Base: E27.', u:'1 Un.', v:2.48, c:89, en:0, saldo:89},
+  {n:3029, tipo:'Item 013', ata:'006', e:'GAP', cod:'00009437', m:'Lâmpada - Tipo: tubular LED; Potência: 20 w; Medida: 120 cm.', u:'1 Un.', v:7.08, c:53, en:0, saldo:53},
+  {n:3030, tipo:'Item 013.1', ata:'006', e:'FENIX', cod:'00009437', m:'Lâmpada - Tipo: tubular LED; Potência: 20 w; Medida: 120 cm.', u:'1 Un.', v:3.63, c:17, en:0, saldo:17},
+  {n:3031, tipo:'Item 015', ata:'006', e:'FENIX', cod:'00014841', m:'Luminária - Tipo: calha; Material: chapa de aço; Uso: lâmpada tubular de LED ou fluorescente de 20 W; Quantidade de lâmpadas: 02.', u:'1 Un.', v:11.64, c:151, en:0, saldo:151},
+  {n:3032, tipo:'Item 017', ata:'006', e:'FENIX', cod:'0007963', m:'Luminária - Tipo: de emergência; Quantidade de LED: 30 LED(S); Voltagem: bivolt.', u:'1 Un.', v:14.5, c:72, en:0, saldo:72},
+  {n:3033, tipo:'Item 018', ata:'006', e:'FENIX', cod:'0004587', m:'Luminária - Tipo: plafon; Requisito: base E27; Material: polipropileno; Formato: redondo.', u:'1 Un.', v:3.12, c:223, en:0, saldo:223},
+  {n:3034, tipo:'Item 019', ata:'006', e:'FENIX', cod:'00014041', m:'Luminária - Tipo: spot de sobrepor; Potência: máxima de 60 w; Requisito: aletado e base E27; Voltagem: bivolt.', u:'1 Un.', v:8.72, c:74, en:0, saldo:74},
+  {n:3035, tipo:'Item 020', ata:'006', e:'FENIX', cod:'00014757', m:'Quadro de distribuição - Capacidade: 12/16 disjuntores; Material: PVC; Formato: embutir; Contendo: barramento.', u:'1 Un.', v:90.82, c:2, en:0, saldo:2},
+  {n:3036, tipo:'Item 022', ata:'006', e:'FENIX', cod:'00014759', m:'Quadro de distribuição - Capacidade: 27/36 disjuntores; Material: PVC; Formato: embutir; Contendo: barramento.', u:'1 Un.', v:188.45, c:2, en:0, saldo:2},
+  {n:3037, tipo:'Item 023', ata:'006', e:'FENIX', cod:'00014760', m:'Quadro de distribuição - Capacidade: 48 disjuntores; Material: PVC;', u:'1 Un.', v:259.66, c:2, en:0, saldo:2},
+  {n:3038, tipo:'Item 024', ata:'006', e:'FENIX', cod:'00014761', m:'Quadro de distribuição - Capacidade: 6/8 disjuntores; Material: PVC; Formato: embutir; Contendo: barramento.', u:'1 Un.', v:40.72, c:2, en:0, saldo:2},
+  {n:3039, tipo:'Item 025', ata:'006', e:'FENIX', cod:'0001883', m:'Reator - Tipo: eletrônico; Tensão: bivolt; Potência: 2 x 20W, alto fator de potência; Dados complementares: T8.', u:'1 Un.', v:36.65, c:0, en:0, saldo:0},
+  {n:3040, tipo:'Item 026', ata:'006', e:'BOMANI', cod:'0001921', m:'Reator - Tipo: eletrônico; Tensão: bivolt; Potência: 2 x 40W, alto fator de potência; Dados complementares: T8.', u:'1 Un.', v:45.94, c:43, en:0, saldo:43},
+  {n:3041, tipo:'Item 030', ata:'006', e:'FENIX', cod:'00014008', m:'Fita - Tipo: auto fusão isolante; Material: borracha; Medida: 19 mm x 10m (L x C).', u:'1 Un.', v:12.98, c:525, en:0, saldo:525},
+  {n:3042, tipo:'Item 031', ata:'006', e:'SANJOSE', cod:'00014849', m:'Fita - Tipo: dupla face adesiva; Medida: 19 mm x 5 m (L X C).', u:'1 Un.', v:15.45, c:394, en:0, saldo:394},
+  {n:3043, tipo:'Item 032', ata:'006', e:'FENIX', cod:'00014539', m:'Fita - Tipo: isolante; Medida: 19 mm x 10m (L x C); Requisito: pvc antichamas.', u:'1 Un.', v:2.09, c:89, en:0, saldo:89},
+  {n:3044, tipo:'Item 034', ata:'006', e:'SANJOSE', cod:'00014850', m:'Espuma - Material: poliuretano; Tipo: expansiva; Informação Adicional: isenta', u:'1 Un.', v:10.76, c:51, en:0, saldo:51},
+  {n:3045, tipo:'Item 036', ata:'006', e:'FENIX', cod:'0002229', m:'Lâmpada - Tipo: tubular LED; Potência: mínima 9 w; Voltagem: bivolt; Medida: 60 cm.', u:'1 Un.', v:6.26, c:27, en:0, saldo:27},
+  {n:3046, tipo:'Item 037', ata:'006', e:'FENIX', cod:'00021785', m:'Refletor Led - Tipo: LED; Potência: 400 w; Material: alumínio; Cor da luz: branco frio; Tensão: bivolt; Proteção: mínimo IP65; Dados complementares: informações complementares ao Termo de Referência.', u:'1 Un.', v:148.26, c:26, en:26, saldo:0},
+  {n:3047, tipo:'Item 037.1', ata:'006', e:'GAP', cod:'00021785', m:'Refletor Led - Tipo: LED; Potência: 400 w; Material: alumínio; Cor da luz: branco frio; Tensão: bivolt; Proteção: mínimo IP65; Dados complementares: informações complementares ao Termo de Referência.', u:'1 Un.', v:93.97, c:8, en:8, saldo:0},
+  {n:3048, tipo:'Item 038', ata:'006', e:'FENIX', cod:'00141235', m:'Luminária - Tipo: plafon; Potência: 18 w; Cor: branco frio; Requisito: embutir; Formato: quadrado; Voltagem: bivolt; Lâmpada: LED.', u:'1 Un.', v:12.3, c:0, en:0, saldo:0},
+  {n:3049, tipo:'Item 039', ata:'006', e:'FENIX', cod:'00141237', m:'Luminária - Tipo: plafon; Potência: 25 w; Cor: branco frio; Requisito: embutir; Formato: quadrado; Voltagem: bivolt; Lâmpada: LED.', u:'1 Un.', v:34.46, c:0, en:0, saldo:0},
+  {n:3050, tipo:'Item 040', ata:'006', e:'FENIX', cod:'00141239', m:'Luminária - Tipo: plafon; Potência: 36 w; Cor: branco frio; Requisito: embutir; Formato: quadrado; Voltagem: bivolt; Lâmpada: LED.', u:'1 Un.', v:101.38, c:0, en:0, saldo:0},
+  {n:3051, tipo:'Item 041', ata:'006', e:'FENIX', cod:'00141238', m:'Luminária - Tipo: plafon; Potência: 25 w; Cor: branco frio; Requisito: sobrepor; Formato: quadrado; Voltagem: bivolt; Lâmpada: LED.', u:'1 Un.', v:27.56, c:0, en:0, saldo:0},
+  {n:3052, tipo:'Item 001', ata:'009', e:'HARMONIA', cod:'0004407', m:'Fechadura - Tipo: tubular; Medida: 90 mm; Uso: para porta de divisória; Características mínimas: maçanetas e espelhos em aço, mecanismos em aço galvanizado, cilíndrica, cromada, travamento no centro da maçaneta, rotor em latão de 5 pinos.', u:'1 Un.', v:49.0, c:12, en:0, saldo:12},
+  {n:3053, tipo:'Item 003', ata:'009', e:'HARMONIA', cod:'00013737', m:'Ferro - Tipo: coluna; Comprimento: 14 cm; Espessura: 8 mm; Material: aço; Largura: 7 cm; Altura: 6 m.', u:'1 Un.', v:98.3, c:41, en:0, saldo:41},
+  {n:3054, tipo:'Item 004', ata:'009', e:'FENIX', cod:'00013738', m:'Treliça - Material: aço CA-60; Dimensão: 4,2 mm x 12 cm x 6 m (D x A x C).', u:'1 Un.', v:41.26, c:82, en:0, saldo:82},
+  {n:3055, tipo:'Item 005', ata:'009', e:'FENIX', cod:'0003860', m:'Treliça - Material: aço CA-60; Dimensão: 4,2 mm x 8 cm x 6 m (D x A x C).', u:'1 Un.', v:39.88, c:66, en:0, saldo:66},
+  {n:3056, tipo:'Item 006', ata:'009', e:'GAP', cod:'0008966', m:'Forro - Tipo: PVC; Largura: 20 cm;', u:'1 M²', v:23.88, c:99, en:0, saldo:99},
+  {n:3057, tipo:'Item 006.1', ata:'009', e:'GAP', cod:'0008966', m:'Forro - Tipo: PVC; Largura: 20 cm; Espessura: 8 mm a 10 mm; Comprimento: 6 m.', u:'1 M²', v:23.88, c:33, en:0, saldo:33},
+  {n:3058, tipo:'Item 007', ata:'009', e:'FENIX', cod:'0004374', m:'Maçaneta - Tipo: alavanca; Material: cromado.', u:'1 Un.', v:12.37, c:49, en:0, saldo:49},
+  {n:3059, tipo:'Item 008', ata:'009', e:'FENIX', cod:'00013750', m:'Produtos de limpeza - Tipo: palha de aço; Tamanho: nº 0.', u:'1 Un.', v:1.25, c:33, en:0, saldo:33},
+  {n:3060, tipo:'Item 009', ata:'009', e:'FENIX', cod:'00013751', m:'Produtos de limpeza - Tipo: palha de aço; Tamanho: nº 1.', u:'1 Un.', v:1.25, c:33, en:0, saldo:33},
+  {n:3061, tipo:'Item 010', ata:'009', e:'FENIX', cod:'00013790', m:'Produtos de limpeza - Tipo: palha de aço; Tamanho: nº 2.', u:'1 Un.', v:1.34, c:33, en:0, saldo:33},
+  {n:3062, tipo:'Item 015', ata:'009', e:'FENIX', cod:'00013748', m:'Parafuso - Tamanho: S8; Tipo: fenda simples.', u:'1 Un.', v:0.26, c:699, en:0, saldo:699},
+  {n:3063, tipo:'Item 016', ata:'009', e:'FENIX', cod:'00013749', m:'Parafuso - Tamanho: S8; Tipo: philips.', u:'1 Un.', v:0.24, c:699, en:0, saldo:699},
+  {n:3064, tipo:'Item 017', ata:'009', e:'FENIX', cod:'00013773', m:'Parafuso - Tamanho: S10; Tipo:', u:'1 Un.', v:0.81, c:699, en:0, saldo:699},
+  {n:3065, tipo:'Item 018', ata:'009', e:'NACIONAL', cod:'00013774', m:'Parafuso - Tamanho: S10; Tipo: philips.', u:'1 Un.', v:0.85, c:699, en:0, saldo:699},
+  {n:3066, tipo:'Item 020', ata:'009', e:'SANJOSE', cod:'00013771', m:'Parafuso - Tamanho: 5/16" x 110 mm; Tipo: rosca soberba; Modelo: sextavado; Requisito: zincado; Uso: fixação de telha.', u:'1 Un.', v:0.68, c:677, en:0, saldo:677},
+  {n:3067, tipo:'Item 021', ata:'009', e:'SANJOSE', cod:'0003802', m:'Pedra - Tipo: brita; Número: 01.', u:'1 M³', v:137.61, c:132, en:0, saldo:132},
+  {n:3068, tipo:'Item 022', ata:'009', e:'SANJOSE', cod:'00013770', m:'Pedra - Tipo: pedrisco.', u:'1 M³', v:162.32, c:132, en:0, saldo:132},
+  {n:3069, tipo:'Item 025', ata:'009', e:'GAP', cod:'00013739', m:'Piso - Tipo: cerâmico antiderrapante; Dimensão: 50 x 50 cm; Resistência: PEI 4 ou superior; Cor: branco.', u:'1 M²', v:25.57, c:40, en:0, saldo:40},
+  {n:3070, tipo:'Item 025.1', ata:'009', e:'GAP', cod:'00013739', m:'Piso - Tipo: cerâmico antiderrapante; Dimensão: 50 x 50 cm; Resistência: PEI 4 ou superior; Cor: branco.', u:'1 M²', v:25.57, c:13, en:0, saldo:13},
+  {n:3071, tipo:'Item 026', ata:'009', e:'FENIX', cod:'00013741', m:'Piso - Tipo: cerâmico; Dimensão: 50 x 50 cm; Resistência: PEI 4 ou superior; Cor: branco.', u:'1 M²', v:25.53, c:86, en:0, saldo:86},
+  {n:3072, tipo:'Item 026.1', ata:'009', e:'FENIX', cod:'00013741', m:'Piso - Tipo: cerâmico; Dimensão:', u:'1 M²', v:25.53, c:29, en:0, saldo:29},
+  {n:3073, tipo:'Item 027', ata:'009', e:'FENIX', cod:'0008671', m:'Pistola - Função: aplicadora de silicone e produtos em cartucho; Requisito: com aplicador de uso profissional.', u:'1 Un.', v:14.62, c:6, en:0, saldo:6},
+  {n:3074, tipo:'Item 029', ata:'009', e:'SANJOSE', cod:'0001917', m:'Ferragens - Tipo: porta cadeado; Material: ferro; Tamanho: 2.1/2\'\'.', u:'1 Un.', v:3.65, c:41, en:0, saldo:41},
+  {n:3075, tipo:'Item 030', ata:'009', e:'SANJOSE', cod:'0001914', m:'Ferragens - Tipo: porta cadeado; Material: ferro; Tamanho: 3.1/2\'\'.', u:'1 Un.', v:6.15, c:41, en:0, saldo:41},
+  {n:3076, tipo:'Item 001', ata:'019', e:'NSC', cod:'0007795', m:'Argamassa - Tipo: Aditivo concetrado; Uso: Assentamento e reboco; Dados Complementares: plastificante e estabilizador.', u:'Emb 1 L', v:10.27, c:488, en:0, saldo:488},
+  {n:3077, tipo:'Item 002', ata:'019', e:'FENIX', cod:'00013788', m:'Anel - Uso: vaso sanitário; Tipo: vedação; Material: borracha; Requisito: com guia.', u:'1 Un.', v:5.75, c:225, en:0, saldo:225},
+  {n:3078, tipo:'Item 003', ata:'019', e:'FENIX', cod:'0003559', m:'Arame - Tipo: recozido; Material: aço; Medida: 18 BWG.', u:'1 Kg', v:16.1, c:480, en:0, saldo:480},
+  {n:3079, tipo:'Item 004', ata:'019', e:'RRNOG', cod:'0003805', m:'Areia - Tipo: lavada fina.', u:'1 M³', v:61.5, c:435, en:0, saldo:435},
+  {n:3080, tipo:'Item 004.1', ata:'019', e:'RRNOG', cod:'0003805', m:'Areia - Tipo: lavada fina.', u:'1 M³', v:61.5, c:145, en:0, saldo:145},
+  {n:3081, tipo:'Item 005', ata:'019', e:'NSC', cod:'0006374', m:'Argamassa - Tipo: secagem rápida; Uso: piso sobre piso.', u:'saco 20 Kg', v:24.7, c:226, en:0, saldo:226},
+  {n:3082, tipo:'Item 005.1', ata:'019', e:'NSC', cod:'0006374', m:'Argamassa - Tipo: secagem rápida; Uso: piso sobre piso.', u:'saco 20 Kg', v:24.7, c:74, en:0, saldo:74},
+  {n:3083, tipo:'Item 006', ata:'019', e:'NSC', cod:'00013786', m:'Argamassa - Tipo: colante; Uso: cerâmica externa.', u:'saco 20 Kg', v:19.99, c:300, en:0, saldo:300},
+  {n:3084, tipo:'Item 007', ata:'019', e:'SANJOSE', cod:'00013787', m:'Argamassa - Tipo: colante; Uso: cerâmica interna.', u:'saco 20 Kg', v:12.1, c:300, en:0, saldo:300},
+  {n:3085, tipo:'Item 008', ata:'019', e:'FENIX', cod:'00013785', m:'Azulejo - Dimensão: 15 x 15 cm; Cor: branca.', u:'1 M²', v:91.79, c:300, en:0, saldo:300},
+  {n:3086, tipo:'Item 009', ata:'019', e:'SANJOSE', cod:'00013767', m:'Batente - Uso: porta de madeira; Material: madeira; Medida: 210 x 90 x 14 cm (A x L x P).', u:'1 Un.', v:204.99, c:10, en:0, saldo:10},
+  {n:3087, tipo:'Item 010', ata:'019', e:'FENIX', cod:'00013760', m:'Ferragens - Tipo: bucha; Modelo: com parafuso fenda simples; Medida: 05 mm.', u:'1 Un.', v:0.59, c:1000, en:0, saldo:1000},
+  {n:3088, tipo:'Item 011', ata:'019', e:'FENIX', cod:'00009420', m:'Ferragens - Tipo: bucha; Modelo:', u:'1 Un.', v:0.29, c:1000, en:0, saldo:1000},
+  {n:3089, tipo:'Item 012', ata:'019', e:'FENIX', cod:'00009421', m:'Ferragens - Tipo: bucha; Modelo: com parafuso fenda simples; Medida: 08 mm.', u:'1 Un.', v:0.44, c:1000, en:0, saldo:1000},
+  {n:3090, tipo:'Item 013', ata:'019', e:'FENIX', cod:'00009422', m:'Ferragens - Tipo: bucha; Modelo: com parafuso fenda simples; Medida: 10 mm.', u:'1 Un.', v:0.55, c:1000, en:0, saldo:1000},
+  {n:3091, tipo:'Item 014', ata:'019', e:'FENIX', cod:'0008847', m:'Tubos e conexões - Tipo: caixa de luz; Material: metal; Requisito: de embutir ; Medida: 4x2".', u:'1 Un.', v:2.79, c:384, en:0, saldo:384},
+  {n:3092, tipo:'Item 015', ata:'019', e:'FENIX', cod:'00018713', m:'Cal - Uso: construção civil; Tipo: hidratado.', u:'saco 20 Kg', v:17.49, c:108, en:0, saldo:108},
+  {n:3093, tipo:'Item 016', ata:'019', e:'RRNOG', cod:'00009373', m:'Carrinho - Tipo: de mão; Capacidade: 65 litros; Material: chapa de aço.', u:'1 Un.', v:217.5, c:104, en:0, saldo:104},
+  {n:3094, tipo:'Item 017', ata:'019', e:'FENIX', cod:'00013783', m:'Ferragens - Tipo: cilindro; Uso: fechadura simples; Requisito: compatível com modelo Soprano.', u:'1 Un.', v:19.5, c:20, en:0, saldo:20},
+  {n:3095, tipo:'Item 018', ata:'019', e:'FENIX', cod:'00013782', m:'Ferragens - Tipo: cilindro; Uso: fechadura simples; Requisito: compatível com modelo Aliança.', u:'1 Un.', v:29.01, c:20, en:0, saldo:20},
+  {n:3096, tipo:'Item 019', ata:'019', e:'FENIX', cod:'0003937', m:'Disco de corte - Uso: concreto; Tipo: segmentado diamantado; Diâmetro : 105 mm.', u:'1 Un.', v:8.85, c:400, en:0, saldo:400},
+  {n:3097, tipo:'Item 020', ata:'019', e:'SANJOSE', cod:'0008749', m:'Dobradiça - Tipo: comum; Medida: 3.1/2; Requisito: com pino solto; Dados Complementares: conjunto c/ 03 peças.', u:'1 Un.', v:5.67, c:100, en:0, saldo:100},
+  {n:3098, tipo:'Item 021', ata:'019', e:'SANJOSE', cod:'0008332', m:'Fechadura - Tipo: completa; Material: metal cromado; Uso: para banheiro com chave de pino.', u:'1 Un.', v:42.95, c:100, en:0, saldo:100},
+  {n:3099, tipo:'Item 022', ata:'019', e:'FENIX', cod:'00013779', m:'Fechadura - Tipo: completa; Requisito: compatível com modelo Soprano e Aliança.', u:'1 Un.', v:45.44, c:100, en:0, saldo:100},
+  {n:3100, tipo:'Item 001', ata:'020', e:'RRNOG', cod:'00143714', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 1,5 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:76.63, c:360, en:360, saldo:0},
+  {n:3101, tipo:'Item 002', ata:'020', e:'LEDLUZ', cod:'00143715', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 1,5 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:109.2, c:360, en:360, saldo:0},
+  {n:3102, tipo:'Item 003', ata:'020', e:'LEDLUZ', cod:'00143716', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 1,5 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:109.2, c:360, en:360, saldo:0},
+  {n:3103, tipo:'Item 004', ata:'020', e:'LEDLUZ', cod:'00143717', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 1,5 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:109.2, c:360, en:360, saldo:0},
+  {n:3104, tipo:'Item 005', ata:'020', e:'RRNOG', cod:'00143718', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: azul;', u:'Rl 100 Mts.', v:533.4, c:91, en:91, saldo:0},
+  {n:3105, tipo:'Item 005.1', ata:'020', e:'RRNOG', cod:'00143718', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:533.4, c:29, en:29, saldo:0},
+  {n:3106, tipo:'Item 006', ata:'020', e:'RRNOG', cod:'00143719', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:554.83, c:91, en:91, saldo:0},
+  {n:3107, tipo:'Item 006.1', ata:'020', e:'RRNOG', cod:'00143719', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:554.83, c:29, en:29, saldo:0},
+  {n:3108, tipo:'Item 007', ata:'020', e:'RRNOG', cod:'00143720', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: preta; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:736.96, c:91, en:91, saldo:0},
+  {n:3109, tipo:'Item 007.1', ata:'020', e:'RRNOG', cod:'00143720', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: preta; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:736.96, c:29, en:29, saldo:0},
+  {n:3110, tipo:'Item 008', ata:'020', e:'RRNOG', cod:'00143721', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:589.35, c:91, en:91, saldo:0},
+  {n:3111, tipo:'Item 008.1', ata:'020', e:'RRNOG', cod:'00143721', m:'Fio - Tipo: elétrico; Material: cobre;', u:'Rl 100 Mts.', v:589.35, c:29, en:29, saldo:0},
+  {n:3112, tipo:'Item 009', ata:'020', e:'RRNOG', cod:'00143722', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:589.35, c:91, en:91, saldo:0},
+  {n:3113, tipo:'Item 009.1', ata:'020', e:'RRNOG', cod:'00143722', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 10 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:589.35, c:29, en:29, saldo:0},
+  {n:3114, tipo:'Item 010', ata:'020', e:'RRNOG', cod:'00143723', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 2,5 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:124.16, c:360, en:360, saldo:0},
+  {n:3115, tipo:'Item 011', ata:'020', e:'RRNOG', cod:'00143724', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 2,5 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:138.48, c:360, en:360, saldo:0},
+  {n:3116, tipo:'Item 012', ata:'020', e:'RRNOG', cod:'00143725', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 2,5 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:124.16, c:360, en:360, saldo:0},
+  {n:3117, tipo:'Item 013', ata:'020', e:'RRNOG', cod:'00143726', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 2,5 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:124.16, c:360, en:360, saldo:0},
+  {n:3118, tipo:'Item 014', ata:'020', e:'RRNOG', cod:'00143727', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 4 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:230.0, c:120, en:120, saldo:0},
+  {n:3119, tipo:'Item 015', ata:'020', e:'RRNOG', cod:'00143728', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 4 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:196.0, c:120, en:120, saldo:0},
+  {n:3120, tipo:'Item 016', ata:'020', e:'RRNOG', cod:'00143729', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 4 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:270.0, c:120, en:120, saldo:0},
+  {n:3121, tipo:'Item 017', ata:'020', e:'RRNOG', cod:'00143730', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 4 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:226.0, c:120, en:120, saldo:0},
+  {n:3122, tipo:'Item 018', ata:'020', e:'RRNOG', cod:'00143731', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:185.0, c:91, en:91, saldo:0},
+  {n:3123, tipo:'Item 018.1', ata:'020', e:'RRNOG', cod:'00143731', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: azul; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:185.0, c:29, en:29, saldo:0},
+  {n:3124, tipo:'Item 019', ata:'020', e:'RRNOG', cod:'00143732', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:230.0, c:91, en:91, saldo:0},
+  {n:3125, tipo:'Item 019.1', ata:'020', e:'RRNOG', cod:'00143732', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: branco; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:230.0, c:29, en:29, saldo:0},
+  {n:3126, tipo:'Item 020', ata:'020', e:'RRNOG', cod:'00143733', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:268.0, c:91, en:91, saldo:0},
+  {n:3127, tipo:'Item 020.1', ata:'020', e:'RRNOG', cod:'00143733', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: verde; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:268.0, c:29, en:29, saldo:0},
+  {n:3128, tipo:'Item 021', ata:'020', e:'RRNOG', cod:'00143734', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:274.0, c:91, en:91, saldo:0},
+  {n:3129, tipo:'Item 021.1', ata:'020', e:'RRNOG', cod:'00143734', m:'Fio - Tipo: elétrico; Material: cobre; Tensão: 750 volts; Medida: 6 mm; Cor: vermelho; Requisito: isolado; Dados complementares: flexível.', u:'Rl 100 Mts.', v:274.0, c:29, en:29, saldo:0},
+  {n:3130, tipo:'Item 022', ata:'020', e:'RRNOG', cod:'0008744', m:'Fio - Tipo: flexível paralelo; Material: cobre; Tensão: 300 V; Medida: 2 x 2,5 mm; Isolamento: PVC.', u:'Rl 100 Mts.', v:290.0, c:181, en:181, saldo:0},
+  {n:3131, tipo:'Item 022.1', ata:'020', e:'RRNOG', cod:'0008744', m:'Fio - Tipo: flexível paralelo; Material: cobre; Tensão: 300 V; Medida: 2 x 2,5 mm; Isolamento: PVC.', u:'Rl 100 Mts.', v:290.0, c:59, en:59, saldo:0},
+  {n:3132, tipo:'Item 001', ata:'072', e:'GAPGEST', cod:'00014035', m:'Cabo - Tipo: duplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 10 mm; Isolamento: polietileno.', u:'1 Mt.', v:2.57, c:2880, en:2880, saldo:0},
+  {n:3133, tipo:'Item 002', ata:'072', e:'FENIX', cod:'00014804', m:'Cabo - Tipo: duplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 16 mm; Isolamento: polietileno.', u:'1 Mt.', v:3.8, c:2880, en:2880, saldo:0},
+  {n:3134, tipo:'Item 003', ata:'072', e:'FENIX', cod:'00014813', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 1 KV; Bitola: 16 mm; Isolamento: PVC; Cor: azul.', u:'Rl 100 Mts.', v:951.0, c:12, en:12, saldo:0},
+  {n:3135, tipo:'Item 004', ata:'072', e:'FENIX', cod:'00014814', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 1 KV; Bitola: 16 mm; Isolamento: PVC; Cor: preto.', u:'Rl 100 Mts.', v:951.0, c:0, en:0, saldo:0},
+  {n:3136, tipo:'Item 007', ata:'072', e:'GAPGEST', cod:'00014818', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts;', u:'Rl 100 Mts.', v:113.19, c:50, en:50, saldo:0},
+  {n:3137, tipo:'Item 008', ata:'072', e:'GAPGEST', cod:'00014824', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 1,5 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:113.3, c:50, en:50, saldo:0},
+  {n:3138, tipo:'Item 009', ata:'072', e:'GAPGEST', cod:'00014823', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 1,5 mm; Isolamento: PVC; Cor: verde.', u:'Rl 100 Mts.', v:113.3, c:50, en:50, saldo:0},
+  {n:3139, tipo:'Item 010', ata:'072', e:'FENIX', cod:'00014825', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 1,5 mm; Isolamento: PVC; Cor: vermelho.', u:'Rl 100 Mts.', v:113.1, c:50, en:50, saldo:0},
+  {n:3140, tipo:'Item 011', ata:'072', e:'GAPGEST', cod:'00014817', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: azul.', u:'Rl 100 Mts.', v:765.0, c:20, en:20, saldo:0},
+  {n:3141, tipo:'Item 012', ata:'072', e:'GAPGEST', cod:'00014819', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:765.0, c:15, en:15, saldo:0},
+  {n:3142, tipo:'Item 012.1', ata:'072', e:'FENIX', cod:'00014819', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:765.0, c:5, en:5, saldo:0},
+  {n:3143, tipo:'Item 013', ata:'072', e:'FENIX', cod:'00014820', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: preto.', u:'Rl 100 Mts.', v:765.0, c:8, en:8, saldo:0},
+  {n:3144, tipo:'Item 014', ata:'072', e:'FENIX', cod:'00014821', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: verde.', u:'Rl 100 Mts.', v:765.0, c:12, en:12, saldo:0},
+  {n:3145, tipo:'Item 015', ata:'072', e:'FENIX', cod:'00014822', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 10 mm; Isolamento: PVC; Cor: vermelho.', u:'Rl 100 Mts.', v:765.0, c:4, en:4, saldo:0},
+  {n:3146, tipo:'Item 016', ata:'072', e:'FENIX', cod:'00014826', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 2,5 mm; Cor: azul.', u:'Rl 100 Mts.', v:198.0, c:24, en:24, saldo:0},
+  {n:3147, tipo:'Item 017', ata:'072', e:'FENIX', cod:'00014827', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 2,5 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:200.0, c:24, en:24, saldo:0},
+  {n:3148, tipo:'Item 018', ata:'072', e:'FENIX', cod:'00014828', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 2,5 mm; Isolamento: PVC; Cor: verde.', u:'Rl 100 Mts.', v:200.0, c:24, en:24, saldo:0},
+  {n:3149, tipo:'Item 019', ata:'072', e:'FENIX', cod:'00014829', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 2,5 mm; Isolamento: PVC; Cor: vermelho.', u:'Rl 100 Mts.', v:190.8, c:24, en:24, saldo:0},
+  {n:3150, tipo:'Item 020', ata:'072', e:'FENIX', cod:'00014830', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 4 mm; Cor: azul.', u:'Rl 100 Mts.', v:245.0, c:24, en:24, saldo:0},
+  {n:3151, tipo:'Item 021', ata:'072', e:'FENIX', cod:'00014831', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 4 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:272.5, c:24, en:24, saldo:0},
+  {n:3152, tipo:'Item 022', ata:'072', e:'GAPGEST', cod:'00014832', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 4 mm; Isolamento: PVC; Cor: verde.', u:'Rl 100 Mts.', v:351.0, c:24, en:24, saldo:0},
+  {n:3153, tipo:'Item 023', ata:'072', e:'GAPGEST', cod:'00014833', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 4 mm; Isolamento: PVC; Cor: vermelho.', u:'Rl 100 Mts.', v:300.0, c:24, en:24, saldo:0},
+  {n:3154, tipo:'Item 024', ata:'072', e:'GAPGEST', cod:'00014834', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 6 mm; Cor: azul.', u:'Rl 100 Mts.', v:514.0, c:24, en:24, saldo:0},
+  {n:3155, tipo:'Item 025', ata:'072', e:'FENIX', cod:'00014835', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 6 mm; Isolamento: PVC; Cor: branco.', u:'Rl 100 Mts.', v:511.5, c:24, en:24, saldo:0},
+  {n:3156, tipo:'Item 026', ata:'072', e:'FENIX', cod:'00014836', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 6 mm; Isolamento: PVC; Cor: verde.', u:'Rl 100 Mts.', v:511.5, c:24, en:24, saldo:0},
+  {n:3157, tipo:'Item 027', ata:'072', e:'FENIX', cod:'00014837', m:'Cabo - Tipo: flexível; Material: cobre; Requisito: isolado; Tensão: 750 volts; Bitola: 6 mm; Isolamento: PVC; Cor: vermelho.', u:'Rl 100 Mts.', v:490.8, c:24, en:24, saldo:0},
+  {n:3158, tipo:'Item 028', ata:'072', e:'FENIX', cod:'00014805', m:'Cabo - Tipo: quadruplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 10 mm; Isolamento: polietileno.', u:'1 Mt.', v:7.8, c:0, en:0, saldo:0},
+  {n:3159, tipo:'Item 029', ata:'072', e:'GAPGEST', cod:'00014806', m:'Cabo - Tipo: quadruplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 16 mm; Isolamento: polietileno.', u:'1 Mt.', v:5.92, c:1480, en:1480, saldo:0},
+  {n:3160, tipo:'Item 030', ata:'072', e:'FENIX', cod:'00014807', m:'Cabo - Tipo: triplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 10 mm; Isolamento: polietileno.', u:'1 Mt.', v:4.65, c:0, en:0, saldo:0},
+  {n:3161, tipo:'Item 031', ata:'072', e:'GAPGEST', cod:'00014808', m:'Cabo - Tipo: triplex; Material: condutor de fase em alumínio isolado e condutor neutro em alumínio nú; Tensão: 1 KV; Bitola: 16 mm; Isolamento: polietileno.', u:'1 Mt.', v:4.89, c:0, en:0, saldo:0},
+  {n:3162, tipo:'Item 001', ata:'089', e:'FENIX', cod:'0002784', m:'Interruptor - Tipo: 1 TP; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:5.28, c:165, en:0, saldo:165},
+  {n:3163, tipo:'Item 002', ata:'089', e:'FENIX', cod:'0002783', m:'Interruptor - Tipo: 1 TS; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:4.23, c:165, en:0, saldo:165},
+  {n:3164, tipo:'Item 003', ata:'089', e:'NSC', cod:'00014855', m:'Interruptor - Tipo: 1 TS; Fixação: de sobrepor; Ampere : 10; Dados complementares: sistema x.', u:'1 Un.', v:8.0, c:165, en:0, saldo:165},
+  {n:3165, tipo:'Item 004', ata:'089', e:'FENIX', cod:'00015481', m:'Interruptor - Tipo: 1 TS; Fixação: para condulete; Ampere : 10.', u:'1 Un.', v:4.65, c:165, en:0, saldo:165},
+  {n:3166, tipo:'Item 005', ata:'089', e:'FENIX', cod:'0002781', m:'Interruptor - Tipo: 2 TP; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:8.24, c:165, en:0, saldo:165},
+  {n:3167, tipo:'Item 006', ata:'089', e:'FENIX', cod:'0002779', m:'Interruptor - Tipo: 2 TS; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:7.29, c:165, en:100, saldo:65},
+  {n:3168, tipo:'Item 007', ata:'089', e:'FENIX', cod:'00014857', m:'Interruptor - Tipo: 2 TS; Fixação: de sobrepor; Ampere : 10; Dados complementares: sistema x.', u:'1 Un.', v:10.57, c:165, en:100, saldo:65},
+  {n:3169, tipo:'Item 008', ata:'089', e:'NSC', cod:'00015482', m:'Interruptor - Tipo: 2 TS; Fixação: para condulete; Ampere : 10.', u:'1 Un.', v:8.58, c:165, en:100, saldo:65},
+  {n:3170, tipo:'Item 009', ata:'089', e:'FENIX', cod:'00014858', m:'Interruptor - Tipo: 3 TP; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:14.48, c:165, en:100, saldo:65},
+  {n:3171, tipo:'Item 010', ata:'089', e:'FENIX', cod:'0002777', m:'Interruptor - Tipo: 3 TS; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:10.76, c:165, en:100, saldo:65},
+  {n:3172, tipo:'Item 012', ata:'089', e:'FENIX', cod:'00014862', m:'Interruptor - Tipo: conjunto 1 TP + tomada 2P + T; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:9.72, c:165, en:100, saldo:65},
+  {n:3173, tipo:'Item 013', ata:'089', e:'FENIX', cod:'00014859', m:'Interruptor - Tipo: conjunto 1 TS + tomada 2 P + T; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:7.93, c:165, en:100, saldo:65},
+  {n:3174, tipo:'Item 014', ata:'089', e:'NSC', cod:'00014863', m:'Interruptor - Tipo: conjunto 1 TS + tomada 2 P + T; Fixação: de sobrepor; Ampere : 10; Dados complementares: sistema x.', u:'1 Un.', v:10.3, c:165, en:100, saldo:65},
+  {n:3175, tipo:'Item 015', ata:'089', e:'NSC', cod:'00015483', m:'Interruptor - Tipo: conjunto 1 TS + tomada 2 P + T; Fixação: para condulete; Ampere : 10.', u:'1 Un.', v:9.02, c:165, en:100, saldo:65},
+  {n:3176, tipo:'Item 016', ata:'089', e:'NSC', cod:'00014864', m:'Interruptor - Tipo: conjunto 2 TS + tomada 2 P + T; Fixação: de embutir; Ampere : 10; Acompanha: placa 4x2.', u:'1 Un.', v:13.0, c:165, en:100, saldo:65},
+  {n:3177, tipo:'Item 017', ata:'089', e:'FENIX', cod:'00014860', m:'Interruptor - Tipo: conjunto 2 TS + tomada 2 P + T; Fixação: de sobrepor; Ampere : 10; Dados complementares: sistema x.', u:'1 Un.', v:12.95, c:370, en:150, saldo:220},
+  {n:3178, tipo:'Item 018', ata:'089', e:'FENIX', cod:'00014852', m:'Placa - Tipo: cega 2x4; Material: plástico.', u:'1 Un.', v:2.04, c:65, en:65, saldo:0},
+  {n:3179, tipo:'Item 019', ata:'089', e:'FENIX', cod:'00014710', m:'Placa - Tipo: cega 4x4; Material: de plástico.', u:'1 Un.', v:3.59, c:65, en:65, saldo:0},
+  {n:3180, tipo:'Item 020', ata:'089', e:'FENIX', cod:'0008916', m:'Placa - Tipo: cega redonda 3x3; Material: de plástico.', u:'1 Un.', v:3.78, c:65, en:65, saldo:0},
+  {n:3181, tipo:'Item 023', ata:'089', e:'NSC', cod:'0007099', m:'Plug - Tipo: fêmea; Ampere : 10; Tensão: 250 volts; Dados complementares: modelo brasileiro.', u:'1 Un.', v:3.25, c:206, en:206, saldo:0},
+  {n:3182, tipo:'Item 024', ata:'089', e:'NSC', cod:'0007104', m:'Plug - Tipo: fêmea; Ampere : 20; Tensão: 250 volts; Dados complementares: modelo brasileiro.', u:'1 Un.', v:4.17, c:82, en:82, saldo:0},
+  {n:3183, tipo:'Item 025', ata:'089', e:'FENIX', cod:'0001993', m:'Plug - Tipo: macho; Ampere : 10; Tensão: 250 volts; Dados complementares: modelo brasileiro.', u:'1 Un.', v:3.21, c:206, en:206, saldo:0},
+  {n:3184, tipo:'Item 026', ata:'089', e:'NSC', cod:'0004550', m:'Plug - Tipo: macho; Ampere : 20; Tensão: 250 volts; Dados complementares: modelo brasileiro.', u:'1 Un.', v:3.96, c:82, en:82, saldo:0},
+  {n:3185, tipo:'Item 027', ata:'089', e:'FENIX', cod:'0001806', m:'Tomada - Uso: rede elétrica; Tipo: 2P + T, dupla; Ampere : 10; Tamanho: 4 x 2; Cor: branca; Voltagem: 250 V; Acompanha: placa, suporte e parafusos.', u:'1 Un.', v:8.07, c:247, en:247, saldo:0},
+  {n:3186, tipo:'Item 028', ata:'089', e:'NSC', cod:'00009408', m:'Tomada - Uso: rede elétrica; Tipo: 2P + T; Ampere : 10; Tamanho: 4 x 2; Cor: branca; Voltagem: 250 V; Acompanha: suporte e parafusos.', u:'1 Un.', v:5.17, c:247, en:247, saldo:0},
+  {n:3187, tipo:'Item 029', ata:'089', e:'FENIX', cod:'00009407', m:'Tomada - Uso: rede elétrica; Tipo: 2P + T; Ampere : 20; Tamanho: 4 x 2; Cor: branca; Voltagem: 250 V; Acompanha: placa, suporte e parafusos.', u:'1 Un.', v:5.76, c:247, en:247, saldo:0},
+  {n:3188, tipo:'Item 031', ata:'089', e:'FENIX', cod:'00009409', m:'Soquete - Uso: lâmpada E-27; Requisito: com rabicho; Tipo: receptáculo termoplástico.', u:'1 Un.', v:2.06, c:247, en:150, saldo:97},
+  {n:3189, tipo:'Item 032', ata:'089', e:'NSC', cod:'00014847', m:'Soquete - Uso: lâmpada fluorescente, E-27; Material do Corpo: porcelana.', u:'1 Un.', v:1.65, c:247, en:150, saldo:97},
+  {n:3190, tipo:'Item 033', ata:'089', e:'FENIX', cod:'0001812', m:'Soquete - Uso: lâmpada fluorescente; Requisito: pressão antivibratório.', u:'1 Un.', v:3.59, c:247, en:150, saldo:97},
+  {n:3191, tipo:'Item 034', ata:'089', e:'FENIX', cod:'00015484', m:'Tampa - Tipo: condulete; Material: alumínio; Bitola: 1"; Requisito: para 1 posto; Tamanho: 4x2.', u:'1 Un.', v:5.48, c:99, en:99, saldo:0},
+  {n:3192, tipo:'Item 040', ata:'089', e:'FENIX', cod:'00014844', m:'Terminal - Tipo: pino pré-isolado; Bitola do condutor: 2,5 mm.', u:'1 Un.', v:0.54, c:823, en:823, saldo:0},
+  {n:3193, tipo:'Item 041', ata:'089', e:'FENIX', cod:'00014845', m:'Terminal - Tipo: pino pré-isolado; Bitola do condutor: 4,0 mm.', u:'1 Un.', v:0.87, c:823, en:823, saldo:0},
+  {n:3194, tipo:'Item 042', ata:'089', e:'FENIX', cod:'00014846', m:'Terminal - Tipo: pino pré-isolado; Bitola do condutor: 6,0 mm.', u:'1 Un.', v:0.99, c:823, en:823, saldo:0},
+  {n:3195, tipo:'Item 043', ata:'089', e:'FENIX', cod:'00014866', m:'Transformador - Tipo: auto transformador; Voltagem: bivolt; Potência: 2.000 VA; Frequência mínima: 60 Hz.', u:'1 Un.', v:189.48, c:3, en:3, saldo:0},
+  {n:3196, tipo:'Item 044', ata:'089', e:'FENIX', cod:'00015470', m:'Tubos e conexões - Tipo: box reto; Material: alumínio; Bitola: 1"; Uso: para eletroduto; Requisito: com rosca; Acompanha: parafuso e arruela.', u:'1 Un.', v:6.09, c:82, en:0, saldo:82},
+  {n:3197, tipo:'Item 045', ata:'089', e:'FENIX', cod:'00015487', m:'Tubos e conexões - Tipo: caixa de passagem; Material: aço; Medida: 20 x 20 x 10 cm; Fixação: parede; Contém: tampa.', u:'1 Un.', v:79.26, c:82, en:82, saldo:0},
+  {n:3198, tipo:'Item 046', ata:'089', e:'FENIX', cod:'00014024', m:'Tubos e conexões - Tipo: conduíte; Material: PVC flexível corrugado; Bitola: 1"; Comprimento: 50 metros.', u:'1 Rl.', v:116.24, c:82, en:82, saldo:0},
+  {n:3199, tipo:'Item 047', ata:'089', e:'NSC', cod:'00014025', m:'Tubos e conexões - Tipo: conduíte; Material: PVC flexível corrugado; Bitola: 3/4"; Comprimento: 50 metros.', u:'1 Rl.', v:49.67, c:82, en:82, saldo:0},
 ];
-const EC={FENIX:'#185FA5',NSC:'#2D7A3A',EVF:'#C55A11',SJ:'#4A42A0',TOMAZ:'#0F6E56',SANJOSE:'#A32D2D',IAENG:'#854F0B',CAMPOS:'#8E44AD',GAP:'#1B6B6B',MBASSI:'#7A4A0A',GEDREM:'#1B6B8F'};
+const EC={FENIX:'#185FA5',NSC:'#2D7A3A',EVF:'#C55A11',SJ:'#4A42A0',TOMAZ:'#0F6E56',SANJOSE:'#A32D2D',IAENG:'#854F0B',CAMPOS:'#8E44AD',GAP:'#1B6B6B',MBASSI:'#7A4A0A',RRNOG:'#B0447A',GAPGEST:'#5A6E0F',HARMONIA:'#2E7D7D',NACIONAL:'#8A5A2B',LEDLUZ:'#C0392B',BOMANI:'#6C5CE7',GEDREM:'#1B6B8F'};
 const ATA038_TOTAL=()=>D.filter(it=>it.ata==='060').reduce((s,it)=>s+(it.v||0)*(it.qtdAta||it.c||0),0); // Valor total da ATA 038 (dinâmico)
-const EB={FENIX:'#E6F1FB',NSC:'#EAF3DE',EVF:'#FCE4D6',SJ:'#EEEDFD',TOMAZ:'#E0F5EE',SANJOSE:'#FCEBEB',IAENG:'#FAEEDA',CAMPOS:'#F2EAFB',GAP:'#E0F0F0',MBASSI:'#F5EDE0',GEDREM:'#E0F2F7'};
-const EMP_NOME={FENIX:'Fênix Comércio e Construções LTDA',SJ:'São José Engenharia e Comércio LTDA',NSC:'NSC Comércio e Serviços',EVF:'EVF Comércio e Serviços LTDA',SANJOSE:'São José Engenharia e Comércio LTDA',IAENG:'IAENG',CAMPOS:'CAMPOS',GAP:'GAP',MBASSI:'MBASSI',TOMAZ:'TOMAZ',GEDREM:'GEDREM/SISEP'};
+const EB={FENIX:'#E6F1FB',NSC:'#EAF3DE',EVF:'#FCE4D6',SJ:'#EEEDFD',TOMAZ:'#E0F5EE',SANJOSE:'#FCEBEB',IAENG:'#FAEEDA',CAMPOS:'#F2EAFB',GAP:'#E0F0F0',MBASSI:'#F5EDE0',RRNOG:'#FBE9F2',GAPGEST:'#F0F3DE',HARMONIA:'#E0F2F2',NACIONAL:'#F5EBDE',LEDLUZ:'#FBEAE8',BOMANI:'#EEEBFD',GEDREM:'#E0F2F7'};
+const EMP_NOME={FENIX:'Fênix Comércio e Construções LTDA',SJ:'São José Engenharia e Comércio LTDA',NSC:'NSC Comércio e Serviços',EVF:'EVF Comércio e Serviços LTDA',SANJOSE:'São José Engenharia e Comércio LTDA',IAENG:'IAENG',CAMPOS:'CAMPOS',GAP:'GAP',MBASSI:'MBASSI',TOMAZ:'TOMAZ',RRNOG:'RR Nogueira Soluções em Negócios LTDA - ME',GAPGEST:'G.A.P. Gestão, Avaliação e Perícia Patrimonial LTDA',HARMONIA:'Harmonia Serviços Administrativos LTDA',NACIONAL:'Nacional Comércio de Embalagens LTDA',LEDLUZ:'Ledluz Indústria e Comércio LTDA',BOMANI:'Bomani Comércio e Licitações LTDA',GEDREM:'GEDREM/SISEP'};
 const sal=it=>it.saldo!==undefined?it.saldo:(it.c-it.en);
 
 const BR={
@@ -5151,9 +5646,9 @@ function onBairro(input, regId){
 }
 
 const PERMS={
-  g:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'],
-  a:['dash','rf','cs','a60','a059','a100','a107','a109','falacg','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
-  b:['dash','a60','a059','a100','a107','a109','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
+  g:['dash','rf','cs','a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'],
+  a:['dash','rf','cs','a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089','falacg','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
+  b:['dash','a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa'],
 };
 const HOMES={g:'dash',a:'cs',b:'a60'};
 let CU='g';
@@ -5224,6 +5719,13 @@ function go(pg){
   if(pg==='a100') ataRender('100');
   if(pg==='a107') ataRender('107');
   if(pg==='a109') ataRender('109');
+  if(pg==='a005') ataRender('005');
+  if(pg==='a006') ataRender('006');
+  if(pg==='a009') ataRender('009');
+  if(pg==='a019') ataRender('019');
+  if(pg==='a020') ataRender('020');
+  if(pg==='a072') ataRender('072');
+  if(pg==='a089') ataRender('089');
   if(pg==='cfg') renderCfgStats();
   if(pg==='said'){ saidInit(); saidRenderLista(); }
   if(pg==='reqab'){ reqabInit(); reqabRenderLista(); }
@@ -7878,6 +8380,13 @@ const ATA_COR = {
   '100':{bg:'#EAF3DE',co:'#2D7A3A',label:'ATA 100 – Materiais Hidráulicos III'},
   '107':{bg:'#FAEEDA',co:'#854F0B',label:'ATA 107/2024 – Aquisição de materiais de construção IV'},
   '109':{bg:'#F2EAFB',co:'#8E44AD',label:'ATA 109/2024 – Aquisição de Materiais de construção III'},
+  '005':{bg:'#FBF3DE',co:'#B8860B',label:'ATA 005/2026 – Materiais Elétricos II'},
+  '006':{bg:'#E1ECF9',co:'#1565C0',label:'ATA 006/2025 – Materiais Elétricos V'},
+  '009':{bg:'#DEF0EE',co:'#00695C',label:'ATA 009/2025 – Material de Construção II'},
+  '019':{bg:'#E7F3E1',co:'#2E7D32',label:'ATA 019/2026 – Materiais de Construção I'},
+  '020':{bg:'#F0E5F7',co:'#6A1B9A',label:'ATA 020/2026 – Materiais Elétricos III'},
+  '072':{bg:'#F6E7E0',co:'#7B341E',label:'ATA 072/2024 – Materiais Elétricos I'},
+  '089':{bg:'#FBE8DE',co:'#C2410C',label:'ATA 089/2024 – Materiais Elétricos IV'},
 };
 
 let PEDIDO_ATA_CTX = '060';
@@ -7887,6 +8396,13 @@ const PEDIDO_ATA_EMPRESAS = {
   '100':['TOMAZ'],
   '107':['FENIX','GAP','MBASSI','SANJOSE'],
   '109':['FENIX','GAP','SANJOSE'],
+  '005':['FENIX','SANJOSE'],
+  '006':['FENIX','GAP','BOMANI','SANJOSE'],
+  '009':['HARMONIA','FENIX','GAP','NACIONAL','SANJOSE'],
+  '019':['NSC','FENIX','RRNOG','SANJOSE'],
+  '020':['RRNOG','LEDLUZ'],
+  '072':['GAPGEST','FENIX'],
+  '089':['FENIX','NSC'],
 };
 function pedidoAtaLabel(ata){
   return (ATA_COR[ata]?.label||('ATA '+ata)).split(' – ')[0];
@@ -8184,7 +8700,7 @@ function ataPrintConsolid(){
   document.getElementById('ata038-print-modal').style.display='flex';
 }
 
-function ataRenderAll(){ataRender('059');ataRender('100');ataRender('107');ataRender('109');}
+function ataRenderAll(){ataRender('059');ataRender('100');ataRender('107');ataRender('109');ataRender('005');ataRender('006');ataRender('009');ataRender('019');ataRender('020');ataRender('072');ataRender('089');}
 
 function renderA60F(){ataRenderAll();}
 function renderA60(f){renderA60F();}
@@ -15176,8 +15692,8 @@ let CFG_USERS=[
   {idx:2,nome:'Técnico B',cargo:'Adm. Técnico',role:'b',email:'',
    modulos:['dash','a60','a059','a100','a107','a109','oficios','prog','mapa','orc','indeniz']},
 ];
-const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'];
-const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','indeniz':'Indenização Transp.','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
+const ALL_MODULOS=['dash','rf','cs','a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089','falacg','oficios','ci','ssi','said','reqab','solalm','dboard','orc','indeniz','marmitex','resumo','prog','mapa','adm','cfg'];
+const MOD_LABELS={'dash':'Dashboard','rf':'Rel. Fotográfico','cs':'Ctrl. Serviços','a60':'ATA 038','a059':'ATA 059','a100':'ATA 100','a107':'ATA 107','a109':'ATA 109','a005':'ATA 005','a006':'ATA 006','a009':'ATA 009','a019':'ATA 019','a020':'ATA 020','a072':'ATA 072','a089':'ATA 089','falacg':'Fala CG','oficios':'Ofícios','ci':'C.I.','ssi':'S.S.I.','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','resumo':'Resumo Geral','prog':'Programação','said':'Saideiras','reqab':'Req. Abastecimento','solalm':'Sol. Almoxarifado','dboard':'Diário de Bordo','orc':'Orçamentos','indeniz':'Indenização Transp.','marmitex':'Req. Almoço','mapa':'Mapa','adm':'Área Admin.','cfg':'Configurações'};
 
 async function cfgAdmRender(){
   aplicarDisplayNames();
@@ -15221,7 +15737,7 @@ async function cfgAdmRender(){
 
 const MOD_GROUPS=[
   {t:'Painel',ms:['dash']},
-  {t:'Financeiro',ms:['a60','a059','a100','a107','a109']},
+  {t:'Financeiro',ms:['a60','a059','a100','a107','a109','a005','a006','a009','a019','a020','a072','a089']},
   {t:'Serviços do Setor',ms:['rf','cs','falacg','oficios','prog','mapa']},
   {t:'Serviços Internos',ms:['ci','ssi','said','reqab','solalm','marmitex','dboard']},
   {t:'Geral',ms:['resumo']},
@@ -15921,7 +16437,7 @@ function prevPctSum(){
 function prevIgualar(){ PREV_PCTS=prevDefaultPcts(PREV_PCTS.length||parseInt(document.getElementById('prev-nmeses')?.value)||4); prevBuildPcts(); prevCalc(); }
 async function prevFillEmp(){ const sel=document.getElementById('prev-emp'); if(!sel)return; const emps=Array.from(new Set(D.filter(it=>it.ata===PREV_ATA).map(it=>it.e).filter(Boolean))).sort(); sel.innerHTML='<option value="">Selecione a empresa...</option>'+emps.map(e=>`<option value="${e}">${(PREV_EMP_NOME[e]||e)}</option>`).join(''); }
 const PREV_CODBASE=['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','11.1','17.1','18.1','19.1'];
-const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', GAP:'G.A.P. SOLUÇÕES E CONSTRUÇÕES LTDA', SANJOSE:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', MBASSI:'M. BASSI COMÉRCIO DE MADEIRAS E MATERIAIS PARA CONSTRUÇÃO LTDA'};
+const PREV_EMP_NOME={FENIX:'FÊNIX COMÉRCIO E CONSTRUÇÕES LTDA', NSC:'NSC COMÉRCIO E SERVIÇOS', EVF:'EVF COMÉRCIO E SERVIÇOS LTDA', SJ:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', GAP:'G.A.P. SOLUÇÕES E CONSTRUÇÕES LTDA', SANJOSE:'SÃO JOSÉ ENGENHARIA E COMÉRCIO LTDA', MBASSI:'M. BASSI COMÉRCIO DE MADEIRAS E MATERIAIS PARA CONSTRUÇÃO LTDA', RRNOG:'RR NOGUEIRA SOLUÇÕES EM NEGÓCIOS LTDA - ME', GAPGEST:'G.A.P. GESTÃO, AVALIAÇÃO E PERÍCIA PATRIMONIAL LTDA', HARMONIA:'HARMONIA SERVIÇOS ADMINISTRATIVOS LTDA', NACIONAL:'NACIONAL COMÉRCIO DE EMBALAGENS LTDA', LEDLUZ:'LEDLUZ INDÚSTRIA E COMÉRCIO LTDA', BOMANI:'BOMANI COMÉRCIO E LICITAÇÕES LTDA'};
 const PREV_MESNOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function prevMoney(v){ return 'R$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 async function prevSaldoMap(){
