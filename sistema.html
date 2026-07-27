@@ -3696,6 +3696,7 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="fcard">
       <div class="sh"><i class="ti ti-map-pin"></i>Deslocamentos — vistorias, acompanhamentos e fiscalização de obras</div>
+      <div id="ind-visitas-note" style="display:none;font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-bg);border-radius:6px;padding:6px 10px;margin-bottom:6px"></div>
       <div class="brow no-print" style="margin-bottom:6px">
         <button class="btn bp" onclick="indPull()"><i class="ti ti-download"></i>Puxar do período (Ctrl. Serviços · Rel. Fotográfico)</button>
         <button class="btn" onclick="indAddDesl()"><i class="ti ti-plus"></i>Adicionar linha</button>
@@ -4374,6 +4375,8 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>Validade do contrato</label><input type="date" id="mf-validade"></div>
         <div class="fg"><label>Remuneração (R$)</label><input id="mf-salario" placeholder="R$ 0,00" oninput="fmaskMoeda(this)"></div>
         <div class="fg"><label>PIS / PASEP</label><input id="mf-pis"></div>
+        <div class="fg fl"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0"><input type="checkbox" id="mf-indeniz" onchange="document.getElementById('mf-visitas-row').style.display=this.checked?'':'none'" style="width:auto;margin:0"> <i class="ti ti-car"></i> Indenização de Transporte</label></div>
+        <div class="fg" id="mf-visitas-row" style="display:none"><label>Nº de visitas / deslocamentos</label><input type="number" id="mf-visitas" min="0" placeholder="Ex.: 10"></div>
       </div>
       <div class="sh"><i class="ti ti-file-description"></i>Documentação</div>
       <div class="fr2">
@@ -4708,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-120'; // +7 ATAs (005/2026, 006/2025, 009/2025, 019/2026, 020/2026, 072/2024, 089/2024) pelos PDFs, contabilizando pelo Saldo do Orgao
+const SYSTEM_VERSION = '20260713-121'; // Funcionarios: opcao Indenizacao de Transporte + nº de visitas; no modulo Indenizacao o Puxar apresenta exatamente as visitas do funcionario
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -6081,6 +6084,8 @@ async function indPickFunc(){
   set('ind-nome', f.nome||'');
   if(f.cargo) set('ind-cargo', f.cargo);
   if(f.tel) set('ind-tel', f.tel);
+  const _vn=document.getElementById('ind-visitas-note');
+  if(_vn){ if(f.indeniz&&(f.visitas||0)>0){ _vn.style.display='block'; _vn.innerHTML='<i class="ti ti-car"></i> Indenização de Transporte: <b>'+f.visitas+' visita(s)</b> cadastrada(s). Ao puxar do período, serão apresentadas exatamente '+f.visitas+' linha(s).'; } else { _vn.style.display='none'; _vn.innerHTML=''; } }
   try{
     const all=await dbGetAll('indenizacoes');
     const prev=(all||[]).filter(o=>o.funcId===id).sort((a,b)=>(b._ts||0)-(a._ts||0))[0];
@@ -6107,6 +6112,19 @@ async function indPull(){
   const seen=new Set(); const dedup=[];
   linhas.forEach(l=>{ const k=l.data+'|'+l.local.toLowerCase()+'|'+l.servico.toLowerCase(); if(seen.has(k))return; seen.add(k); dedup.push(l); });
   dedup.sort((a,b)=>String(a.data).localeCompare(String(b.data)));
+  // Nº de visitas do funcionário (se marcado para Indenização de Transporte): apresentar exatamente essa quantidade
+  let visitas=0;
+  try{
+    const fid=parseInt((document.getElementById('ind-func')||{}).value,10);
+    if(fid){ const fs=await dbGetAll('funcionarios'); const f=(fs||[]).find(x=>x.id===fid); if(f&&f.indeniz&&(f.visitas||0)>0) visitas=parseInt(f.visitas,10)||0; }
+  }catch(e){}
+  if(visitas>0){
+    const lst=dedup.slice(0,visitas);
+    while(lst.length<visitas) lst.push({data:'',local:'',servico:''});
+    IND_DESL=lst; indRenderDesl();
+    _om(visitas+' visita(s) do funcionário aplicada(s)'+(dedup.length>visitas?(' — '+dedup.length+' execuções no mês; exibindo as '+visitas+' primeiras.'):(dedup.length<visitas?(' — '+dedup.length+' execução(ões) encontrada(s); demais linhas em branco.'):'.')));
+    return;
+  }
   if(!dedup.length){ _om('Nenhuma execução encontrada em '+mes+' (Ctrl. de Serviços / Rel. Fotográfico).'); return; }
   IND_DESL=dedup;
   indRenderDesl();
@@ -6169,6 +6187,7 @@ function indReset(){
   IND_DESL=[]; IND_FOTOS=[]; IND_EDIT_ID=null;
   ['ind-nome','ind-cadastro','ind-classe','ind-cargo','ind-simbolo','ind-tel','ind-unidade','ind-num','ind-parecer-data'].forEach(id=>{const e=document.getElementById(id); if(e)e.value='';});
   const sel=document.getElementById('ind-func'); if(sel) sel.value='';
+  const _vn=document.getElementById('ind-visitas-note'); if(_vn){_vn.style.display='none';_vn.innerHTML='';}
   const mes=document.getElementById('ind-mes'); if(mes) mes.value=indMesAtual();
   indNovoNum(); indRenderDesl(); indRenderFotos();
 }
@@ -14646,6 +14665,9 @@ function funcOpenNew(){
   const mfVeicRow=document.getElementById('mf-veiculo-row');if(mfVeicRow)mfVeicRow.style.display='none';;
   ['mf-nasc','mf-inicio','mf-validade'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('mf-obs').value='';
+  const _ind=document.getElementById('mf-indeniz'); if(_ind)_ind.checked=false;
+  const _vis=document.getElementById('mf-visitas'); if(_vis)_vis.value='';
+  const _visR=document.getElementById('mf-visitas-row'); if(_visR)_visR.style.display='none';
   document.getElementById('mf-err').style.display='none';
   document.getElementById('modal-func').style.display='flex';
 }
@@ -14677,6 +14699,9 @@ async function funcOpenEdit(id){
   document.getElementById('mf-cnh').value=x.cnh||'';
   document.getElementById('mf-end').value=x.endereco||'';
   document.getElementById('mf-obs').value=x.obs||'';
+  const _ind=document.getElementById('mf-indeniz'); if(_ind)_ind.checked=!!x.indeniz;
+  const _vis=document.getElementById('mf-visitas'); if(_vis)_vis.value=x.visitas||'';
+  const _visR=document.getElementById('mf-visitas-row'); if(_visR)_visR.style.display=x.indeniz?'':'none';
   document.getElementById('mf-err').style.display='none';
   document.getElementById('modal-func').style.display='flex';
 }
@@ -14694,6 +14719,8 @@ async function funcSave(){
     pis:document.getElementById('mf-pis').value,titulo:document.getElementById('mf-titulo').value,
     cnh:document.getElementById('mf-cnh').value,endereco:document.getElementById('mf-end').value,
     obs:document.getElementById('mf-obs').value,veiculo:document.getElementById('mf-veiculo')?document.getElementById('mf-veiculo').value:'',
+    indeniz:document.getElementById('mf-indeniz')?document.getElementById('mf-indeniz').checked:false,
+    visitas:parseInt(document.getElementById('mf-visitas')&&document.getElementById('mf-visitas').value,10)||0,
   };
   const idVal=parseInt(document.getElementById('mf-id').value);
   if(idVal){const all=await dbGetAll('funcionarios');const old=all.find(r=>r.id===idVal);if(old)await dbPut('funcionarios',{...old,...rec});}
