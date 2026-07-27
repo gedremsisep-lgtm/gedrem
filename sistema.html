@@ -4711,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-122'; // Indenizacao: Puxar do periodo distribui datas aleatorias no mes; impressao 'Cargo' (sem Comissionado)
+const SYSTEM_VERSION = '20260713-123'; // Previsao: coluna Item usa o numero real do material (tipo), sem reiniciar por empresa
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -16511,7 +16511,7 @@ async function prevLoadItens(){
   if(!emp){ PREV_ITENS=[]; prevRenderItens(); prevCalc(); if(info)info.innerHTML='<i class="ti ti-arrow-up"></i>Selecione uma empresa para carregar os itens com saldo.'; return; }
   let salDin=()=>0; try{ ({salDin}=await prevSaldoMap()); }catch(e){}
   const itens=D.filter(it=>it.ata===PREV_ATA&&it.e===emp).sort((a,b)=>a.n-b.n);
-  PREV_ITENS=itens.map((it,idx)=>({ n:it.n, cod:(PREV_ATA==='060'?(PREV_CODBASE[it.n-146]||String(idx+1)):String(idx+1).padStart(2,'0')), siga:it.siga||'', desc:it.m||'', un:it.u||'', v:it.v||0, saldo:salDin(it), qtd:0 }));
+  PREV_ITENS=itens.map((it,idx)=>({ n:it.n, cod:(PREV_ATA==='060'?(PREV_CODBASE[it.n-146]||String(idx+1)):(it.tipo?it.tipo.replace(/^Item\s*/i,''):String(idx+1).padStart(2,'0'))), siga:it.siga||'', desc:it.m||'', un:it.u||'', v:it.v||0, saldo:salDin(it), qtd:0 }));
   if(info) info.innerHTML='<i class="ti ti-info-circle"></i>'+PREV_ITENS.length+' itens da '+emp+'. Preencha a quantidade solicitada — não pode passar do saldo restante.';
   prevRenderItens(); prevCalc();
 }
