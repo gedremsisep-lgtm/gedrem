@@ -4711,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-121'; // Funcionarios: opcao Indenizacao de Transporte + nº de visitas; no modulo Indenizacao o Puxar apresenta exatamente as visitas do funcionario
+const SYSTEM_VERSION = '20260713-122'; // Indenizacao: Puxar do periodo distribui datas aleatorias no mes; impressao 'Cargo' (sem Comissionado)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -6100,6 +6100,20 @@ async function indPickFunc(){
   }catch(e){}
   const uni=document.getElementById('ind-unidade'); if(uni&&!uni.value) uni.value='SISEP/PMCG';
 }
+function indDatasAleatorias(lst,mes){
+  if(!lst||!lst.length||!/^\d{4}-\d{2}$/.test(mes||'')) return lst;
+  const y=+mes.slice(0,4), mo=+mes.slice(5,7), dim=new Date(y,mo,0).getDate();
+  let dias;
+  if(lst.length<=dim){
+    const pool=Array.from({length:dim},(_,i)=>i+1);
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=pool[i];pool[i]=pool[j];pool[j]=t;}
+    dias=pool.slice(0,lst.length).sort((a,b)=>a-b);
+  } else {
+    dias=lst.map(()=>1+Math.floor(Math.random()*dim)).sort((a,b)=>a-b);
+  }
+  lst.forEach((r,i)=>{ r.data=mes+'-'+String(dias[i]).padStart(2,'0'); });
+  return lst;
+}
 async function indPull(){
   const mes=(document.getElementById('ind-mes')&&document.getElementById('ind-mes').value)||indMesAtual();
   let cs=[], rf=[];
@@ -6121,14 +6135,16 @@ async function indPull(){
   if(visitas>0){
     const lst=dedup.slice(0,visitas);
     while(lst.length<visitas) lst.push({data:'',local:'',servico:''});
+    indDatasAleatorias(lst,mes);
     IND_DESL=lst; indRenderDesl();
     _om(visitas+' visita(s) do funcionário aplicada(s)'+(dedup.length>visitas?(' — '+dedup.length+' execuções no mês; exibindo as '+visitas+' primeiras.'):(dedup.length<visitas?(' — '+dedup.length+' execução(ões) encontrada(s); demais linhas em branco.'):'.')));
     return;
   }
   if(!dedup.length){ _om('Nenhuma execução encontrada em '+mes+' (Ctrl. de Serviços / Rel. Fotográfico).'); return; }
+  indDatasAleatorias(dedup,mes);
   IND_DESL=dedup;
   indRenderDesl();
-  _om(dedup.length+' deslocamento(s) importado(s) de '+mes+'. Ajuste se necessário.');
+  _om(dedup.length+' deslocamento(s) importado(s) de '+mes+' (datas distribuídas no mês). Ajuste se necessário.');
 }
 function indAddDesl(){ IND_DESL.push({data:'',local:'',servico:''}); indRenderDesl(); }
 function indClearDesl(){ if(IND_DESL.length && !confirm('Limpar toda a lista de deslocamentos?'))return; IND_DESL=[]; indRenderDesl(); }
@@ -6268,7 +6284,7 @@ function indBuildPrint(o){
     </tr>
     <tr><td style="${cell}"><b>Referência/Classe:</b> ${esc(o.classe)}</td></tr>
     <tr>
-      <td style="${cell}" rowspan="2"><b>Cargo Comissionado:</b> ${esc(o.cargo)}</td>
+      <td style="${cell}" rowspan="2"><b>Cargo:</b> ${esc(o.cargo)}</td>
       <td style="${cell}"><b>Símbolo:</b> ${esc(o.simbolo)}</td>
     </tr>
     <tr><td style="${cell}"><b>Telefone de Contato:</b> ${esc(o.tel)}</td></tr>
