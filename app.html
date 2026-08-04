@@ -181,6 +181,7 @@ body.on-login{padding-bottom:0}
         <select id="f-orig"><option>Programação diária</option><option>Fala Campo Grande</option><option>Ofício</option><option>SISEP</option><option>OS interna</option></select></div>
       <div class="fg"><label>Nº OS / Referência</label><input id="f-os" placeholder="Ex: 852500"></div>
     </div>
+    <button class="btn" onclick="abrirRota()" style="width:100%;margin:2px 0 6px;background:#1a73e8;border-color:#1a73e8;color:#fff;font-weight:600">🗺️ Rota — abrir no Google Maps</button>
     <div class="fr" id="f-eqrow">
       <div class="fg"><label>Equipe</label><select id="f-eq" onchange="onEqForm();atualizarBotaoConcluir()"></select></div>
       <div class="fg"><label>Encarregado</label><select id="f-enc"></select></div>
@@ -507,7 +508,7 @@ function atualizaTopo(){
 function visiveis(all){return acessoTotal()?all:all.filter(d=>d.equipe===USER.equipe)}
 
 /* ════════════════ VERSÃO / AUTO-ATUALIZAÇÃO ════════════════ */
-const APP_VERSION='20260713-73';
+const APP_VERSION='20260713-74';
 async function checkAppUpdate(){
   const vl=document.getElementById('app-ver-lbl'); if(vl) vl.textContent=APP_VERSION;
   try{
@@ -1030,6 +1031,21 @@ function slotMapa(){
   if(atual.mapa)return;
   if(atual.lat!=null){gerarMapa()}else{toast('Capture o GPS primeiro (bloco 3) — o mapa é gerado automaticamente.')}
 }
+function abrirRota(){
+  let dest='';
+  const lat=(atual&&atual.lat!=null)?atual.lat:null, lon=(atual&&atual.lon!=null)?atual.lon:null;
+  if(lat!=null&&lon!=null){ dest=lat+','+lon; }
+  else{
+    const end=(($('f-end')&&$('f-end').value)||(atual&&atual.endereco)||'').trim();
+    const num=(($('f-numcruz')&&$('f-numcruz').value)||'').trim();
+    const bairro=(($('f-bairro')&&$('f-bairro').value)||(atual&&atual.bairro)||'').trim();
+    const q=[end,num,bairro,'Campo Grande - MS'].filter(Boolean).join(', ');
+    if(!end){ toast('Informe o endereço (ou capture o GPS) para traçar a rota.'); return; }
+    dest=q;
+  }
+  const url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(dest)+'&travelmode=driving';
+  try{ window.open(url,'_blank'); }catch(e){ location.href=url; }
+}
 function slotFoto(i){slotAtivo=i;$('foto-input').click()}
 document.addEventListener('DOMContentLoaded',()=>{
   $('foto-input').addEventListener('change',async e=>{
@@ -1040,7 +1056,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     else if(slotAtivo>=1000){ const k=slotAtivo-1000; if(!atual.fotosExtra)atual.fotosExtra=[]; if(!atual.fotosExtra[k])atual.fotosExtra[k]={b64:null,desc:''}; atual.fotosExtra[k].b64=data; }
     else if(slotAtivo>=0){ atual.fotos[slotAtivo]=data; }
     else return;
+    // Salva no aparelho IMEDIATAMENTE (evita perder fotos antes de concluir) e passa Pendente -> Em andamento
+    try{ if(typeof lerForm==='function') lerForm(); }catch(e){}
+    if(atual.status==='pendente'||!atual.status) atual.status='andamento';
+    atual.tocada=true;
+    try{ atual.id=await dbPut(atual); }catch(e){}
     renderFotos();
+    try{ if(typeof renderStChips==='function') renderStChips(); }catch(e){}
+    try{ if(typeof atualizarBotaoConcluir==='function') atualizarBotaoConcluir(); }catch(e){}
+    try{ toast('📷 Foto salva no aparelho.'); }catch(e){}
   });
   const _vl=document.getElementById('app-ver-lbl'); if(_vl) _vl.textContent=APP_VERSION;
   $('imp-input').addEventListener('change',importarProgramacao);
