@@ -2146,7 +2146,7 @@ textarea{resize:vertical;min-height:60px}
     <div style="font-size:11px;color:var(--text2);margin-bottom:6px">Exibindo <b id="ofc-count">0</b> registros</div>
     <div class="card tw">
       <table>
-        <thead><tr><th>Código</th><th>Ofício</th><th>Solicitante</th><th>Endereço</th><th>Bairro/Região</th><th>Serviço</th><th>Prazo</th><th>Vence em</th><th>📎</th><th>GEDREM</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+        <thead><tr><th>Código</th><th>Ofício</th><th>Data</th><th>Solicitante</th><th>Endereço</th><th>Bairro/Região</th><th>Serviço</th><th>Prazo</th><th>Vence em</th><th>📎</th><th>GEDREM</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
         <tbody id="ofc-tb"></tbody>
       </table>
     </div>
@@ -2373,7 +2373,6 @@ textarea{resize:vertical;min-height:60px}
           </select>
         </div>
         <div class="fg fl"><label>Descrição do serviço</label><textarea id="ofc-desc" placeholder="Descrição..."></textarea></div>
-        <div class="fg"><label>Encarregado GEDREM</label><select id="ofc-enc"><option value="">— Selecione —</option></select></div>
       </div>
       <div class="sh" style="margin-top:4px"><i class="ti ti-file-upload"></i>Ofício Scaneado (PDF) — opcional</div>
       <div id="ofcnew-dropzone" style="border:2px dashed var(--border2);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;margin-bottom:10px;background:var(--bg)"
@@ -4711,7 +4710,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-123'; // Previsao: coluna Item usa o numero real do material (tipo), sem reiniciar por empresa
+const SYSTEM_VERSION = '20260713-124'; // Oficios: remove Encarregado GEDREM no Registrar; Lista com coluna Data e botao Excluir
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -11372,7 +11371,7 @@ async function ofcRenderLista(){
   const tb=document.getElementById('ofc-tb');
 
   tb.innerHTML=fil.length===0
-    ?`<tr><td colspan="12" style="text-align:center;color:var(--text3);padding:24px">Nenhum ofício encontrado</td></tr>`
+    ?`<tr><td colspan="13" style="text-align:center;color:var(--text3);padding:24px">Nenhum ofício encontrado</td></tr>`
     :fil.map(x=>{
       const dias=ofcDiasRestantes(x);
       const fin=ofcFinalizado(x.status);
@@ -11388,6 +11387,7 @@ async function ofcRenderLista(){
       return `<tr style="${rowBg}">
         <td><b>${x.codigo||'—'}</b></td>
         <td style="font-size:10px">${x.numero||'—'}</td>
+        <td style="font-size:10px;white-space:nowrap">${(function(){const d=x.dataElaboracao||x.data;return d?String(d).split('-').reverse().join('/'):'—';})()}</td>
         <td style="font-size:11px">${x.solicitante||'—'}</td>
         <td style="font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${x.endereco||''}">${x.endereco||'—'}</td>
         <td style="font-size:11px">${x.bairro||'—'}${x.regiao?' / '+x.regiao:''}</td>
@@ -11401,10 +11401,24 @@ async function ofcRenderLista(){
           <button class="btn" style="padding:3px 6px;font-size:11px;margin-right:2px" onclick="ofcOpenModal(${x.id})" title="Editar"><i class="ti ti-edit"></i></button>
           <button class="btn" style="padding:3px 6px;font-size:11px;margin-right:2px;color:var(--blue);border-color:var(--blue)" onclick="ofcPrintItem(${x.id})" title="Imprimir"><i class="ti ti-printer"></i></button>
           ${!fin?`<button class="btn" style="padding:3px 6px;font-size:11px;color:var(--purple);border-color:var(--purple)" onclick="ofcRespIrAoOfc(${x.id})" title="Responder"><i class="ti ti-mail-forward"></i></button>`:''}
+          <button class="btn" style="padding:3px 6px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="ofcExcluir(${x.id})" title="Excluir"><i class="ti ti-trash"></i></button>
         </td>
       </tr>`;
     }).join('');
   await ofcUpdateKpis();
+}
+
+async function ofcExcluir(id){
+  const all=await dbGetAll('oficios').catch(()=>[]);
+  const o=(all||[]).find(x=>x.id===id);
+  if(!confirm('Excluir o ofício '+((o&&o.codigo)||'')+' definitivamente? Esta ação não pode ser desfeita.')) return;
+  try{
+    await dbDelete('oficios',id);
+    try{ const scans=await dbGetAll('ofc_scans').catch(()=>[]); for(const s of (scans||[]).filter(s=>s.ofcId===id)){ await dbDelete('ofc_scans',s.id); } }catch(e){}
+    try{ cacheInvalidate('oficios'); }catch(e){}
+    await ofcRenderLista();
+    _om('Ofício excluído.');
+  }catch(e){ _om('Erro ao excluir: '+e.message); }
 }
 
 async function ofcPopulateEncs(){
