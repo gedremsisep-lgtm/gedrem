@@ -4711,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-126'; // Oficios Lista: botao Ver resposta completa (reabre a impressao da resposta salva para reimprimir)
+const SYSTEM_VERSION = '20260713-127'; // Req. Abastecimento: corrige perda de historico (limpa edit-id e reseta apos salvar; nao sobrescreve mais o registro anterior)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -17105,6 +17105,7 @@ function _saidImprimirTerceirizado(r){
    REQUISIÇÃO DE ABASTECIMENTO
 ══════════════════════════════════════════════════════════════════════ */
 async function reqabInit(){
+  const _ei=document.getElementById('reqab-edit-id'); if(_ei) _ei.value='';
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('reqab-data').value=today;
   try{
@@ -17165,7 +17166,12 @@ async function reqabSave(){
   else{ await dbAdd('req_abastecimento',rec); }
   document.getElementById('reqab-ok-txt').textContent=`Requisição N.º ${num} salva!`;
   document.getElementById('reqab-ok').style.display='flex';
+  // Limpa a edição e o formulário para NÃO sobrescrever o próximo registro
+  const _ei=document.getElementById('reqab-edit-id'); if(_ei) _ei.value='';
+  reqabReset();
+  try{ const all=await dbGetAll('req_abastecimento'); const nums=all.map(x=>parseInt(x.numero)||0); document.getElementById('reqab-num').value=(nums.length?Math.max(...nums):0)+1; }catch(e){}
   await reqabAtualizarKpis();
+  try{ await reqabRenderLista(); }catch(e){}
   setTimeout(()=>{document.getElementById('reqab-ok').style.display='none';},3000);
 }
 
