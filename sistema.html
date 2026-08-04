@@ -4711,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-125'; // Rel. Fotografico Lista: busca por campos (sem stringify de base64) + debounce; filtro de regiao completo + filtro de bairro; Guanandi->Anhanduizinho
+const SYSTEM_VERSION = '20260713-126'; // Oficios Lista: botao Ver resposta completa (reabre a impressao da resposta salva para reimprimir)
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -11009,6 +11009,26 @@ async function ofcRespIrAoOfc(id){
   }
 }
 
+async function ofcVerResposta(id){
+  const all=await dbGetAll('oficios');
+  const rec=(all||[]).find(x=>x.id===id);
+  if(!rec){ _om('Ofício não encontrado.'); return; }
+  if(!rec.resposta){ _om('Este ofício ainda não possui resposta salva. Use "Responder" primeiro.'); return; }
+  const r=rec.resposta;
+  await ofcLoadRespDropdown();
+  const s=(k,v)=>{const e=document.getElementById(k); if(e) e.value=(v==null?'':v);};
+  s('resp-cod',rec.codigo); s('resp-num',rec.numero); s('resp-sol',rec.solicitante||'');
+  s('resp-dt-ofc',rec.data||''); s('resp-dt-elab',rec.dataElaboracao||'');
+  s('resp-bairro',rec.bairro||''); s('resp-reg',rec.regiao||''); s('resp-gedrem',rec.refGedrem||'');
+  s('resp-local', r.local||rec.endereco||'');
+  s('resp-srv', r.srv||''); s('resp-equipe', r.equipe||''); s('resp-enc', r.enc||'');
+  s('resp-dt-resp', r.dtResp||''); s('resp-dt-exec', r.dtExec||''); s('resp-texto', r.texto||'');
+  const ss=document.getElementById('resp-scan-sel'); if(ss) ss.value=r.scanId||'';
+  const cd=document.getElementById('resp-cod'); if(cd) cd.dataset.ofcId=id;
+  try{ await ofcRespCheckGedrem(); }catch(e){}
+  await ofcRespPrintPreview();
+}
+
 async function ofcRespSyncFromForm(){
   document.getElementById('resp-cod').dataset.ofcId='';
   const cod=(document.getElementById('resp-cod').value||'').trim().toLowerCase();
@@ -11423,6 +11443,7 @@ async function ofcRenderLista(){
           <button class="btn" style="padding:3px 6px;font-size:11px;margin-right:2px" onclick="ofcOpenModal(${x.id})" title="Editar"><i class="ti ti-edit"></i></button>
           <button class="btn" style="padding:3px 6px;font-size:11px;margin-right:2px;color:var(--blue);border-color:var(--blue)" onclick="ofcPrintItem(${x.id})" title="Imprimir"><i class="ti ti-printer"></i></button>
           ${!fin?`<button class="btn" style="padding:3px 6px;font-size:11px;color:var(--purple);border-color:var(--purple)" onclick="ofcRespIrAoOfc(${x.id})" title="Responder"><i class="ti ti-mail-forward"></i></button>`:''}
+          ${x.resposta?`<button class="btn" style="padding:3px 6px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A;margin-right:2px" onclick="ofcVerResposta(${x.id})" title="Ver resposta completa (reimprimir)"><i class="ti ti-file-text"></i></button>`:''}
           <button class="btn" style="padding:3px 6px;font-size:11px;color:var(--red);border-color:var(--red)" onclick="ofcExcluir(${x.id})" title="Excluir"><i class="ti ti-trash"></i></button>
         </td>
       </tr>`;
