@@ -690,9 +690,10 @@ textarea{resize:vertical;min-height:60px}
   </div>
   <div id="rf-lista" style="display:none">
     <div class="search-bar">
-      <input id="rf-busca" placeholder="Buscar código, endereço, bairro..." oninput="rfRenderLista()">
+      <input id="rf-busca" placeholder="Buscar código, endereço, bairro..." oninput="rfBuscaDebounce()">
       <select id="rf-fil-eq" onchange="rfRenderLista()"><option value="">Todas equipes</option><option>Limpeza I</option><option>Limpeza II</option><option>Limpeza III</option><option>Manutenção I</option><option>Manutenção II</option><option>Manutenção III</option><option>Manutenção IV</option></select>
-      <select id="rf-fil-reg" onchange="rfRenderLista()"><option value="">Todas regiões</option><option>Centro</option></select>
+      <select id="rf-fil-reg" onchange="rfRenderLista()"><option value="">Todas regiões</option><option>Anhanduizinho</option><option>Bandeira</option><option>Centro</option><option>Imbirussu</option><option>Lagoa</option><option>Prosa</option><option>Segredo</option></select>
+      <select id="rf-fil-bairro" onchange="rfRenderLista()" title="Filtrar por bairro"><option value="">Todos bairros</option></select>
       <select id="rf-fil-bairro-st" onchange="rfRenderLista()" title="Filtrar por bairro preenchido">
         <option value="">Todos</option>
         <option value="sem">Sem bairro</option>
@@ -4710,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-124'; // Oficios: remove Encarregado GEDREM no Registrar; Lista com coluna Data e botao Excluir
+const SYSTEM_VERSION = '20260713-125'; // Rel. Fotografico Lista: busca por campos (sem stringify de base64) + debounce; filtro de regiao completo + filtro de bairro; Guanandi->Anhanduizinho
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5629,7 +5630,7 @@ const BR={
   'Aero Rancho':'Anhanduizinho','Amambaí':'Centro','Carandá Bosque':'Prosa',
   'Caiobá':'Lagoa','Centro':'Centro','Centro Oeste':'Anhanduizinho',
   'Cidade Morena':'Anhanduizinho','Coophavila 2':'Lagoa','Coophasul':'Imbirussu',
-  'Dom Antônio Barbosa':'Bandeira','Estrela Dalva':'Bandeira','Guanandi':'Imbirussu',
+  'Dom Antônio Barbosa':'Bandeira','Estrela Dalva':'Bandeira','Guanandi':'Anhanduizinho',
   'Indubrasil':'Anhanduizinho','Itanhangá Park':'Prosa','Jacy':'Anhanduizinho',
   'Jardim Anache':'Segredo','Jardim Leblon':'Imbirussu','Jardim Tarumã':'Segredo',
   'Los Angeles':'Anhanduizinho','Maria Aparecida Pedrossian':'Bandeira','Moreninha':'Imbirussu',
@@ -7108,18 +7109,37 @@ function rfToggleSort(){
 
 let RF_SELECIONADOS_IDS=new Set();
 
+let _rfBuscaT=null;
+function rfBuscaDebounce(){ clearTimeout(_rfBuscaT); _rfBuscaT=setTimeout(()=>rfRenderLista(),220); }
+function rfFillBairroFiltro(all){
+  const sel=document.getElementById('rf-fil-bairro'); if(!sel)return;
+  const bairros=[...new Set((all||[]).map(x=>x.bairro).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b)));
+  const sig=bairros.join('|');
+  if(sel.dataset.sig===sig) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos bairros</option>'+bairros.map(b=>`<option>${String(b).replace(/</g,'&lt;')}</option>`).join('');
+  if(bairros.includes(cur)) sel.value=cur;
+  sel.dataset.sig=sig;
+}
+function rfMatchBusca(x,busca){
+  const _b=((x.codigo||'')+' '+(x.endereco||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.equipe||'')+' '+(x.tipo||'')+' '+(x.encarregado||'')+' '+(x.data||'')+' '+(x.status||'')).toLowerCase();
+  return _b.includes(busca);
+}
 async function rfRenderLista(){
   const all=await dbGetAll('relatorio_foto');
   const busca=(document.getElementById('rf-busca')?.value||'').toLowerCase();
   const feq=document.getElementById('rf-fil-eq')?.value||'';
   const freg=document.getElementById('rf-fil-reg')?.value||'';
+  const fbairro=document.getElementById('rf-fil-bairro')?.value||'';
   const fbst=document.getElementById('rf-fil-bairro-st')?.value||'';
+  rfFillBairroFiltro(all);
   const fil=all.filter(x=>{
     if(feq&&x.equipe!==feq) return false;
     if(freg&&x.regiao!==freg) return false;
+    if(fbairro&&x.bairro!==fbairro) return false;
     if(fbst==='sem'&&x.bairro) return false;
     if(fbst==='com'&&!x.bairro) return false;
-    if(busca&&!JSON.stringify(x).toLowerCase().includes(busca)) return false;
+    if(busca&&!rfMatchBusca(x,busca)) return false;
     return true;
   }).sort((a,b)=>{const da=a.data||'',db=b.data||'';return RF_SORT_ASC?(da<db?-1:da>db?1:0):(da>db?-1:da<db?1:0);});
   const stMap={Concluído:'s-ok','Em andamento':'s-bl','Sem fotos':'s-wn'};
@@ -7163,13 +7183,15 @@ async function rfToggleAll(checked){
   const busca=(document.getElementById('rf-busca')?.value||'').toLowerCase();
   const feq=document.getElementById('rf-fil-eq')?.value||'';
   const freg=document.getElementById('rf-fil-reg')?.value||'';
+  const fbairro=document.getElementById('rf-fil-bairro')?.value||'';
   const fbst=document.getElementById('rf-fil-bairro-st')?.value||'';
   const fil=all.filter(x=>{
     if(feq&&x.equipe!==feq) return false;
     if(freg&&x.regiao!==freg) return false;
+    if(fbairro&&x.bairro!==fbairro) return false;
     if(fbst==='sem'&&x.bairro) return false;
     if(fbst==='com'&&!x.bairro) return false;
-    if(busca&&!JSON.stringify(x).toLowerCase().includes(busca)) return false;
+    if(busca&&!rfMatchBusca(x,busca)) return false;
     return true;
   });
   if(checked) fil.forEach(x=>RF_SELECIONADOS_IDS.add(x.id));
