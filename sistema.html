@@ -656,7 +656,7 @@ textarea{resize:vertical;min-height:60px}
   </div>
   <div class="tabs">
     <div class="tab on" onclick="stab(this,'rf-nova');rfInitCod()">Nova demanda</div>
-    <div class="tab" onclick="stab(this,'rf-lista');rfRenderLista()">Lista</div>
+    <div class="tab" onclick="stab(this,'rf-lista');rfMetaInvalidate();rfRenderLista();rfUpdateKpis()">Lista</div>
   </div>
   <div id="rf-nova">
     <div class="fcard">
@@ -4711,7 +4711,26 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-131'; // ATA 038 item 11 (Grelha D-400 FENIX): valor 614,85 -> 614,89
+const SYSTEM_VERSION = '20260713-133'; // Auto-atualizacao via Supabase (build.json/build.html) + Rel. Fotografico lista so metadados
+/* ── AUTO-ATUALIZAÇÃO ──────────────────────────────────────────────
+   Depois de publicada uma vez, o sistema busca no Supabase a build mais
+   nova (sistema/build.json + build.html) e aplica automaticamente.
+   A versão do GitHub continua como reserva (se o Supabase falhar, abre normal).
+   Só troca para uma build ESTRITAMENTE mais nova, com tamanho e versão validados.
+   Para ignorar (abrir a versão do GitHub), use  ?nobuild  na URL. */
+(async function _gedremAutoUpdate(){
+  try{
+    if(String(location.search||'').indexOf('nobuild')>=0) return;
+    const vn=v=>{const m=String(v||'').match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;};
+    const base=SUPABASE_URL+'/storage/v1/object/public/gedrem-docs/sistema/';
+    const meta=await fetch(base+'build.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+    if(!meta||!meta.versao||vn(meta.versao)<=vn(SYSTEM_VERSION)) return;
+    const html=await fetch(base+'build.html?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).catch(()=>null);
+    if(!html||html.length<1000000) return;
+    if(html.indexOf("SYSTEM_VERSION = '"+meta.versao+"'")<0) return;
+    document.open();document.write(html);document.close();
+  }catch(e){}
+})();
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -7029,10 +7048,10 @@ async function rfSave(){
     regiao:document.getElementById('rf-reg').value,
     tipo:document.getElementById('rf-tipo').value,
     obs:document.getElementById('rf-obs').value,
-    fotos, status:fotos.length>0?'Concluído':'Sem fotos',
+    fotos, status:fotos.length>0?'Concluído':'Sem fotos', nfotos:fotos.length,
   };
   await dbAdd('relatorio_foto',rec);
-  cacheInvalidate('relatorio_foto');
+  cacheInvalidate('relatorio_foto'); if(typeof rfMetaInvalidate==='function') rfMetaInvalidate();
   document.getElementById('rf-ok-txt').textContent=`Demanda ${cod} salva com ${fotos.length} fotos.`;
   document.getElementById('rf-ok').style.display='flex';
   document.getElementById('rf-err').style.display='none';
@@ -7089,9 +7108,9 @@ async function rfMigrarLocal(){
 }
 
 async function rfUpdateKpis(){
-  const all=await dbGetAll('relatorio_foto');
+  const all=await rfFetchMeta();
   document.getElementById('rf-tot').textContent=all.length;
-  const cf=all.filter(x=>x.fotos&&x.fotos.length>0).length;
+  const cf=all.filter(x=>(x.nfotos!=null?x.nfotos>0:(x.status&&x.status!=='Sem fotos'))).length;
   document.getElementById('rf-foto').textContent=cf;
   document.getElementById('rf-sem').textContent=all.length-cf;
   document.getElementById('rf-pend').textContent=all.filter(x=>x.status==='Sem fotos'||x.status==='Em andamento').length;
@@ -7125,8 +7144,30 @@ function rfMatchBusca(x,busca){
   const _b=((x.codigo||'')+' '+(x.endereco||'')+' '+(x.bairro||'')+' '+(x.regiao||'')+' '+(x.equipe||'')+' '+(x.tipo||'')+' '+(x.encarregado||'')+' '+(x.data||'')+' '+(x.status||'')).toLowerCase();
   return _b.includes(busca);
 }
+// ── Lista leve: busca SÓ os metadados (sem as fotos base64) para não travar ──
+let _RF_META=null;
+function rfMetaInvalidate(){ _RF_META=null; }
+async function rfFetchMeta(force){
+  if(!force && _RF_META) return _RF_META;
+  const sel='id,c:data->>codigo,dt:data->>data,eq:data->>equipe,en:data->>endereco,ba:data->>bairro,rg:data->>regiao,tp:data->>tipo,st:data->>status,enc:data->>encarregado,vm:data->viaMobile,vl:data->validacoes,nf:data->>nfotos';
+  const PAGE=1000; let out=[]; let off=0;
+  while(true){
+    const res=await cloudRequest(`records?store=eq.relatorio_foto&select=${encodeURIComponent(sel)}&order=id.desc&limit=${PAGE}&offset=${off}`,{});
+    const rows=await res.json();
+    out=out.concat(rows);
+    if(rows.length<PAGE) break; off+=PAGE;
+  }
+  _RF_META=out.map(r=>({id:r.id,codigo:r.c,data:r.dt,equipe:r.eq,endereco:r.en,bairro:r.ba,regiao:r.rg,tipo:r.tp,status:r.st,encarregado:r.enc,viaMobile:r.vm,validacoes:r.vl,nfotos:(r.nf!=null?parseInt(r.nf,10):null)}));
+  return _RF_META;
+}
+async function rfGetFull(id){
+  const res=await cloudRequest(`records?store=eq.relatorio_foto&id=eq.${id}&select=id,data&limit=1`,{});
+  const rows=await res.json();
+  if(!rows.length) return null;
+  return Object.assign({id:rows[0].id}, rows[0].data);
+}
 async function rfRenderLista(){
-  const all=await dbGetAll('relatorio_foto');
+  const all=await rfFetchMeta();
   const busca=(document.getElementById('rf-busca')?.value||'').toLowerCase();
   const feq=document.getElementById('rf-fil-eq')?.value||'';
   const freg=document.getElementById('rf-fil-reg')?.value||'';
@@ -7158,7 +7199,7 @@ async function rfRenderLista(){
         <td>${x.bairro||'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
         <td>${x.regiao||'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
         <td style="max-width:105px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(x.tipo||'').replace(/"/g,'&quot;')}">${x.tipo||'—'}</td>
-        <td>${x.fotos?x.fotos.length:0}</td>
+        <td>${x.nfotos!=null?x.nfotos:'—'}</td>
         <td><span class="st ${stMap[x.status]||'s-pd'}">${x.status||'—'}</span></td>
         <td class="no-print" style="white-space:nowrap;text-align:right">
           ${(x.viaMobile||String(x.codigo).endsWith('-M'))&&!(x.validacoes&&x.validacoes.b)?`<button class="btn" style="padding:2px 6px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A;margin-right:2px" onclick="rfValidar(${x.id})" title="Validar relatório do app (Técnico B)">✓ Validar</button>`:''}<button class="btn" style="padding:2px 6px;font-size:14px;line-height:1;margin-right:2px" onclick="rfEditAbrir(${x.id})" title="Editar">✏️</button><button class="btn" style="padding:2px 6px;font-size:14px;line-height:1;margin-right:2px" onclick="rfPrintFromId(${x.id})" title="Imprimir">🖨️</button><button class="btn" style="padding:2px 6px;font-size:14px;line-height:1" onclick="rfExcluir(${x.id},'${x.codigo}')" title="Excluir">🗑️</button>
@@ -7179,7 +7220,7 @@ function rfToggleRow(chk){
 }
 
 async function rfToggleAll(checked){
-  const all=await dbGetAll('relatorio_foto');
+  const all=await rfFetchMeta();
   const busca=(document.getElementById('rf-busca')?.value||'').toLowerCase();
   const feq=document.getElementById('rf-fil-eq')?.value||'';
   const freg=document.getElementById('rf-fil-reg')?.value||'';
@@ -7222,16 +7263,16 @@ async function rfSalvarLote(){
   let ok=0,err=0;
   for(const id of ids){
     try{
-      const all=await dbGetAll('relatorio_foto');
-      const rec=all.find(x=>x.id===id);
+      const rec=await rfGetFull(id);
       if(!rec) continue;
       rec.bairro=bairro; rec.regiao=regiao;
       await dbPut('relatorio_foto',rec);
+      // atualiza metadata em memória
+      try{ if(_RF_META){ const _m=_RF_META.find(x=>x.id===id); if(_m){ _m.bairro=bairro; _m.regiao=regiao; } } }catch(_){}
       ok++;
       if(st) st.textContent=`Salvando... ${ok}/${ids.length}`;
     }catch(e){ err++; }
   }
-  cacheInvalidate('relatorio_foto');
   RF_SELECIONADOS_IDS.clear();
   if(btn){ btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i>Salvar'; }
   if(st) st.textContent=`✅ ${ok} registros atualizados${err?` (${err} erros)`:''}!`;
@@ -7241,13 +7282,13 @@ async function rfSalvarLote(){
 }
 
 async function rfExcluir(id, codigo){
-  const all=await dbGetAll('relatorio_foto');
-  const rec=all.find(x=>x.id===id);
-  const isMobile=rec&&(rec.viaMobile||String(codigo).endsWith('-M'));
+  const meta=await rfFetchMeta();
+  const mrec=meta.find(x=>x.id===id);
+  const isMobile=(mrec&&mrec.viaMobile)||String(codigo).endsWith('-M');
   if(!confirm(`Excluir o relatório ${codigo}${isMobile?' (originado do app Mobile)':''}?\n\nIsto exclui SOMENTE o Relatório Fotográfico. A Ordem de Serviço no Ctrl. de Serviços NÃO será afetada.\n\nEsta ação não pode ser desfeita.`)) return;
   await dbDelete('relatorio_foto', id);
-  // Não rebaixar todos os relatórios da nuvem: remove do array em memória e atualiza o cache.
-  try{ cacheSet('relatorio_foto', all.filter(x=>x.id!==id)); }catch(e){}
+  // Remove só da metadata em memória (sem rebaixar tudo).
+  try{ if(_RF_META) _RF_META=_RF_META.filter(x=>x.id!==id); }catch(e){}
   await rfRenderLista();
   rfUpdateKpis();
 }
@@ -7437,8 +7478,7 @@ async function rfUrlToB64(url){
 }
 
 async function rfPrintFromId(id){
-  const all=await dbGetAll('relatorio_foto');
-  const rec=all.find(x=>x.id===id);
+  const rec=await rfGetFull(id);
   if(!rec) return;
   if(rec.fotos && rec.fotos.length){
     rec.fotos = await Promise.all(rec.fotos.map(async f=>{
@@ -7471,8 +7511,7 @@ async function rfEditSetEnc(eq, enc){
   }
 }
 async function rfEditAbrir(id){
-  const all=await dbGetAll('relatorio_foto');
-  const x=all.find(r=>r.id===id); if(!x) return;
+  const x=await rfGetFull(id); if(!x) return;
   _rfEditId=id;
   document.getElementById('rfe-cod').value=x.codigo;
   const tit=document.getElementById('rfe-cod-titulo');if(tit)tit.textContent=x.codigo;
@@ -7514,8 +7553,7 @@ async function rfEditSalvar(){
     }
     return {letra:f.letra, url:f.src, nome:f.nome, descricao:f.descricao};
   }));
-  const all=await dbGetAll('relatorio_foto');
-  const original=all.find(r=>r.id===_rfEditId);
+  const original=await rfGetFull(_rfEditId);
   if(!original){
     document.getElementById('rfe-err-txt').textContent='Registro não encontrado (pode já ter sido excluído).';
     document.getElementById('rfe-err').style.display='flex'; return;
@@ -7527,11 +7565,11 @@ async function rfEditSalvar(){
     regiao:document.getElementById('rfe-reg').value,
     tipo:document.getElementById('rfe-tipo').value,
     obs:document.getElementById('rfe-obs').value,
-    fotos, status:fotos.length>0?'Concluído':'Sem fotos',
+    fotos, status:fotos.length>0?'Concluído':'Sem fotos', nfotos:fotos.length,
   };
   await dbPut('relatorio_foto',rec);
-  // Não rebaixar TODOS os relatórios da nuvem: apenas atualiza este registro no cache em memória.
-  try{ const _i=all.findIndex(r=>r.id===_rfEditId); if(_i>=0) all[_i]=rec; cacheSet('relatorio_foto', all); }catch(e){}
+  // Atualiza SÓ a metadata em memória (sem rebaixar tudo).
+  try{ if(_RF_META){ const m={id:rec.id,codigo:rec.codigo,data:rec.data,equipe:rec.equipe,endereco:rec.endereco,bairro:rec.bairro,regiao:rec.regiao,tipo:rec.tipo,status:rec.status,encarregado:rec.encarregado,viaMobile:rec.viaMobile,validacoes:rec.validacoes,nfotos:fotos.length}; const _i=_RF_META.findIndex(r=>r.id===_rfEditId); if(_i>=0)_RF_META[_i]=m; } }catch(e){}
   document.getElementById('modal-rf-edit').style.display='none';
   await rfRenderLista();
   rfUpdateKpis();
@@ -7889,21 +7927,31 @@ async function csValidar(id){
 
 async function rfValidar(id){
   if(CU!=='b'){alert('O Relatório Fotográfico é validado apenas pelo Técnico B — troque o usuário no topo da tela.');return;}
-  const all=await dbGetAll('relatorio_foto');
-  const rec=all.find(x=>x.id===id);
-  if(!rec) return;
-  const val=rec.validacoes||{};
-  if(val.b){alert('Este relatório já foi validado pelo Técnico B.');return;}
-  if(!confirm(`Validar o Relatório Fotográfico ${rec.codigo} (via GEDREM Mobile) como ${PROFILE_NAMES.b}?`)) return;
-  val.b={por:PROFILE_NAMES.b,em:new Date().toISOString()};
-  rec.validacoes=val;
-  // INSTANTÂNEO: atualiza a tela na hora (reaproveita o cache em memória) e salva em segundo plano — sem travar.
-  try{ cacheSet('relatorio_foto', all); }catch(e){}
+  const meta=await rfFetchMeta();
+  const mrec=meta.find(x=>x.id===id);
+  if(!mrec) return;
+  if(mrec.validacoes&&mrec.validacoes.b){alert('Este relatório já foi validado pelo Técnico B.');return;}
+  if(!confirm(`Validar o Relatório Fotográfico ${mrec.codigo} (via GEDREM Mobile) como ${PROFILE_NAMES.b}?`)) return;
+  const em=new Date().toISOString();
+  // INSTANTÂNEO: marca só na metadata em memória e re-renderiza — nada de baixar todos os relatórios.
+  mrec.validacoes=Object.assign({},mrec.validacoes,{b:{por:PROFILE_NAMES.b,em}});
   rfRenderLista();
   try{ rfUpdateKpis(); }catch(e){}
-  _om('✅ '+rec.codigo+' validado. Salvando...');
-  dbPut('relatorio_foto',rec).then(function(){ try{ cacheSet('relatorio_foto', all); }catch(e){} _om('✅ '+rec.codigo+' validado e salvo.'); })
-    .catch(function(e){ try{ if(rec.validacoes) delete rec.validacoes.b; cacheSet('relatorio_foto', all); }catch(_){} rfRenderLista(); _om('Não foi possível salvar a validação de '+rec.codigo+'. Verifique a conexão e tente novamente.'); });
+  _om('✅ '+mrec.codigo+' validado. Salvando...');
+  // Salva em 2º plano buscando SÓ este registro (rápido), sem travar a tela.
+  (async()=>{
+    try{
+      const full=await rfGetFull(id); if(!full) throw new Error('registro não encontrado');
+      full.validacoes=Object.assign({},full.validacoes,{b:{por:PROFILE_NAMES.b,em}});
+      full.nfotos=(full.fotos||[]).length;
+      await dbPut('relatorio_foto',full);
+      _om('✅ '+mrec.codigo+' validado e salvo.');
+    }catch(e){
+      try{ if(mrec.validacoes) delete mrec.validacoes.b; }catch(_){}
+      rfRenderLista();
+      _om('Não foi possível salvar a validação de '+mrec.codigo+'. Verifique a conexão e tente novamente.');
+    }
+  })();
 }
 
 function admAbrirMobile(){
@@ -7993,7 +8041,7 @@ async function admMobileExcluirCs(id,os){
 }
 async function admMobileExcluirRf(id,cod){
   if(!confirm(`Excluir o relatório ${cod} lançado via app? As fotos permanecem no armazenamento.`))return;
-  await dbDelete('relatorio_foto',id);cacheInvalidate('relatorio_foto');
+  await dbDelete('relatorio_foto',id);cacheInvalidate('relatorio_foto'); if(typeof rfMetaInvalidate==='function') rfMetaInvalidate();
   await admMobileRender();
 }
 
