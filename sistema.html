@@ -2355,12 +2355,13 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg"><label>Código *</label><input id="ofc-cod" placeholder="Ex: 515/26"></div>
         <div class="fg"><label>Nº do Ofício *</label><input id="ofc-num" placeholder="OF.515/CMCG"></div>
         <div class="fg"><label>Solicitante</label>
-          <select id="ofc-sol">
+          <select id="ofc-sol" onchange="ofcSolOutros()">
             <option>Câmara Municipal</option><option>Assembleia Legislativa</option>
             <option>Ministério Público</option><option>PMCG</option>
             <option>Comunicação Interna</option><option>Manifestação</option><option>Outros</option>
           </select>
         </div>
+        <div class="fg" id="ofc-sol-outro-wrap" style="display:none"><label>Qual solicitante? *</label><input id="ofc-sol-outro" placeholder="Escreva o nome do solicitante"></div>
         <div class="fg"><label>Data de chegada ao depto.</label><input type="date" id="ofc-dt"></div>
         <div class="fg"><label>Data de elaboração do ofício</label><input type="date" id="ofc-dt-elab"></div>
         <div class="fg fl"><label>Endereço / Arruamento</label><input id="ofc-end" placeholder="Rua, Avenida, Córrego..."></div>
@@ -4711,26 +4712,10 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-133'; // Auto-atualizacao via Supabase (build.json/build.html) + Rel. Fotografico lista so metadados
-/* ── AUTO-ATUALIZAÇÃO ──────────────────────────────────────────────
-   Depois de publicada uma vez, o sistema busca no Supabase a build mais
-   nova (sistema/build.json + build.html) e aplica automaticamente.
-   A versão do GitHub continua como reserva (se o Supabase falhar, abre normal).
-   Só troca para uma build ESTRITAMENTE mais nova, com tamanho e versão validados.
-   Para ignorar (abrir a versão do GitHub), use  ?nobuild  na URL. */
-(async function _gedremAutoUpdate(){
-  try{
-    if(String(location.search||'').indexOf('nobuild')>=0) return;
-    const vn=v=>{const m=String(v||'').match(/(\d+)\s*$/);return m?parseInt(m[1],10):0;};
-    const base=SUPABASE_URL+'/storage/v1/object/public/gedrem-docs/sistema/';
-    const meta=await fetch(base+'build.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
-    if(!meta||!meta.versao||vn(meta.versao)<=vn(SYSTEM_VERSION)) return;
-    const html=await fetch(base+'build.html?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.text():null).catch(()=>null);
-    if(!html||html.length<1000000) return;
-    if(html.indexOf("SYSTEM_VERSION = '"+meta.versao+"'")<0) return;
-    document.open();document.write(html);document.close();
-  }catch(e){}
-})();
+const SYSTEM_VERSION = '20260713-136'; // Oficios: solicitante "Outros" abre campo livre; + Rel. Fotografico lista rapida
+/* Auto-atualização por document.write foi removida: reescrever a página inteira
+   colide com os const/let já declarados (ex.: SYSTEM_VERSION) e quebra o script.
+   Atualização de versão continua pelo aviso via versao.json (banner de update). */
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -7150,14 +7135,18 @@ function rfMetaInvalidate(){ _RF_META=null; }
 async function rfFetchMeta(force){
   if(!force && _RF_META) return _RF_META;
   const sel='id,c:data->>codigo,dt:data->>data,eq:data->>equipe,en:data->>endereco,ba:data->>bairro,rg:data->>regiao,tp:data->>tipo,st:data->>status,enc:data->>encarregado,vm:data->viaMobile,vl:data->validacoes,nf:data->>nfotos';
+  // IMPORTANTE: sem "order" na query. Ordenar no banco (order=id.desc) sobre os
+  // ~9k registros estoura o statement_timeout do Postgres (não há índice store+id).
+  // Buscamos sem ordenar (rápido) e ordenamos aqui no navegador.
   const PAGE=1000; let out=[]; let off=0;
   while(true){
-    const res=await cloudRequest(`records?store=eq.relatorio_foto&select=${encodeURIComponent(sel)}&order=id.desc&limit=${PAGE}&offset=${off}`,{});
+    const res=await cloudRequest(`records?store=eq.relatorio_foto&select=${encodeURIComponent(sel)}&limit=${PAGE}&offset=${off}`,{});
     const rows=await res.json();
     out=out.concat(rows);
     if(rows.length<PAGE) break; off+=PAGE;
   }
   _RF_META=out.map(r=>({id:r.id,codigo:r.c,data:r.dt,equipe:r.eq,endereco:r.en,bairro:r.ba,regiao:r.rg,tipo:r.tp,status:r.st,encarregado:r.enc,viaMobile:r.vm,validacoes:r.vl,nfotos:(r.nf!=null?parseInt(r.nf,10):null)}));
+  _RF_META.sort((a,b)=>b.id-a.id);
   return _RF_META;
 }
 async function rfGetFull(id){
@@ -7167,6 +7156,8 @@ async function rfGetFull(id){
   return Object.assign({id:rows[0].id}, rows[0].data);
 }
 async function rfRenderLista(){
+  const _tbEl=document.getElementById('rf-tb');
+  if(!_RF_META && _tbEl) _tbEl.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:24px">⏳ Carregando registros da nuvem… (pode levar alguns segundos na primeira vez)</td></tr>';
   const all=await rfFetchMeta();
   const busca=(document.getElementById('rf-busca')?.value||'').toLowerCase();
   const feq=document.getElementById('rf-fil-eq')?.value||'';
@@ -7188,8 +7179,13 @@ async function rfRenderLista(){
   const semBairro=fil.filter(x=>!x.bairro).length;
   const btnLote=document.getElementById('rf-btn-lote');
   if(btnLote) btnLote.textContent=`⊞ Preencher em lote${RF_SELECIONADOS_IDS.size?' ('+RF_SELECIONADOS_IDS.size+' sel.)':''}`;
+  // Limite de linhas desenhadas: 8.998 <tr> de uma vez trava o navegador.
+  // Mostramos as primeiras RF_MAX; a busca/filtros refinam o conjunto.
+  const RF_MAX=400;
+  const filShown=fil.length>RF_MAX?fil.slice(0,RF_MAX):fil;
+  const _trunc=fil.length>RF_MAX?`<tr><td colspan="11" style="text-align:center;color:var(--text2);padding:12px;background:rgba(59,130,246,.06)">Mostrando <b>${RF_MAX}</b> de <b>${fil.length}</b> registros. Use a busca e os filtros acima para encontrar um registro específico.</td></tr>`:'';
   tb.innerHTML=fil.length===0?`<tr><td colspan="11" style="text-align:center;color:var(--text3);padding:20px">Nenhum registro encontrado</td></tr>`:
-    fil.map(x=>{
+    (_trunc+filShown.map(x=>{
       const chk=RF_SELECIONADOS_IDS.has(x.id)?'checked':'';
       const semB=!x.bairro?'style="background:rgba(251,191,36,.08)"':'';
       return `<tr ${semB}>
@@ -7205,7 +7201,7 @@ async function rfRenderLista(){
           ${(x.viaMobile||String(x.codigo).endsWith('-M'))&&!(x.validacoes&&x.validacoes.b)?`<button class="btn" style="padding:2px 6px;font-size:11px;color:#2D7A3A;border-color:#2D7A3A;margin-right:2px" onclick="rfValidar(${x.id})" title="Validar relatório do app (Técnico B)">✓ Validar</button>`:''}<button class="btn" style="padding:2px 6px;font-size:14px;line-height:1;margin-right:2px" onclick="rfEditAbrir(${x.id})" title="Editar">✏️</button><button class="btn" style="padding:2px 6px;font-size:14px;line-height:1;margin-right:2px" onclick="rfPrintFromId(${x.id})" title="Imprimir">🖨️</button><button class="btn" style="padding:2px 6px;font-size:14px;line-height:1" onclick="rfExcluir(${x.id},'${x.codigo}')" title="Excluir">🗑️</button>
         </td>
       </tr>`;
-    }).join('');
+    }).join(''));
   // Atualizar info sem bairro
   const chkAll=document.getElementById('rf-chk-all');
   if(chkAll) chkAll.indeterminate=RF_SELECIONADOS_IDS.size>0&&RF_SELECIONADOS_IDS.size<fil.length;
@@ -11531,10 +11527,26 @@ async function ofcPopulateEncs(){
   });
 }
 
+function ofcSolOutros(){
+  const sel=document.getElementById('ofc-sol');
+  const wrap=document.getElementById('ofc-sol-outro-wrap');
+  if(!sel||!wrap)return;
+  const isOutros=sel.value==='Outros';
+  wrap.style.display=isOutros?'':'none';
+  if(isOutros){ const inp=document.getElementById('ofc-sol-outro'); if(inp) setTimeout(()=>inp.focus(),50); }
+}
 async function ofcSave(){
   const cod=document.getElementById('ofc-cod').value.trim();
   const num=document.getElementById('ofc-num').value.trim();
-  const sol=document.getElementById('ofc-sol').value;
+  let sol=document.getElementById('ofc-sol').value;
+  if(sol==='Outros'){
+    const _o=(document.getElementById('ofc-sol-outro')?.value||'').trim();
+    if(!_o){
+      document.getElementById('ofc-err-txt').textContent='Informe quem é o solicitante (campo "Qual solicitante?").';
+      document.getElementById('ofc-err').style.display='flex'; return;
+    }
+    sol=_o;
+  }
   if(!cod||!num){
     document.getElementById('ofc-err-txt').textContent='Preencha código e número.';
     document.getElementById('ofc-err').style.display='flex'; return;
@@ -11573,9 +11585,10 @@ async function ofcSave(){
   await ofcRenderAll();
 }
 function ofcReset(){
-  ['ofc-cod','ofc-num','ofc-end','ofc-bairro','ofc-prazo','ofc-desc'].forEach(id=>{
+  ['ofc-cod','ofc-num','ofc-end','ofc-bairro','ofc-prazo','ofc-desc','ofc-sol-outro'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
+  const _sw=document.getElementById('ofc-sol-outro-wrap'); if(_sw)_sw.style.display='none';
   document.getElementById('ofc-reg').value='';
   document.getElementById('ofc-err').style.display='none';
   ofcNewFileClear();
