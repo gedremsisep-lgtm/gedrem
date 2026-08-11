@@ -2708,9 +2708,9 @@ textarea{resize:vertical;min-height:60px}
 <div id="dboard-print-modal" class="modal-overlay" style="display:none;padding:0;overflow-y:auto;align-items:flex-start;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
   <div id="dboard-print-wrapper" style="background:#fff;width:220mm;max-width:100%;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.2);margin:16px auto">
     <div class="no-print" style="position:sticky;top:0;z-index:10;background:#f5f5f5;border-bottom:1px solid #ddd;padding:10px 14px;display:flex;gap:8px;align-items:center;border-radius:4px 4px 0 0">
-      <button class="btn bp" onclick="_printFit1('dboard-print-content','portrait')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
+      <button class="btn bp" onclick="_printDocIframe('dboard-print-content','size:A4 portrait;margin:8mm')"><i class="ti ti-printer"></i>Imprimir / PDF</button>
       <button class="btn" onclick="document.getElementById('dboard-print-modal').style.display='none'"><i class="ti ti-x"></i>Fechar</button>
-      <span id="dboard-print-label" style="font-size:11px;color:#666">A4 Retrato · 1 página</span>
+      <span id="dboard-print-label" style="font-size:11px;color:#666">A4 Retrato</span>
     </div>
     <div id="dboard-print-content" style="padding:10mm;font-family:Arial,sans-serif;font-size:8pt;color:#000;background:#fff"></div>
   </div>
@@ -4711,7 +4711,7 @@ const STORES = ['falacg','oficios','programacao','relatorio_foto','ctrl_servicos
 const LOCAL_STORES = []; // fotos/scans agora no Supabase Storage
 const SUPABASE_URL = 'https://bmmakxofvzyjatscwfex.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbWFreG9mdnp5amF0c2N3ZmV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMDQwMjYsImV4cCI6MjA5NzY4MDAyNn0.OvUMaKuOLJmUYeQZAQLa89vFRAs96iLbLvJhr2eYxN4';
-const SYSTEM_VERSION = '20260713-127'; // Req. Abastecimento: corrige perda de historico (limpa edit-id e reseta apos salvar; nao sobrescreve mais o registro anterior)
+const SYSTEM_VERSION = '20260713-131'; // ATA 038 item 11 (Grelha D-400 FENIX): valor 614,85 -> 614,89
 let GEDREM_TOKEN=localStorage.getItem('gedrem_token')||''; // + integração GEDREM Mobile (badges -M e validação) // versão atual do sistema
 
 // ── Supabase Storage helpers ──────────────────────────────────
@@ -5401,7 +5401,7 @@ const D=[
   {n:153,  ata:'060',e:'NSC',    m:'Ferro - Tipo: vergalhão nervurado; Comprimento: 12m; Espessura: 4,2 mm; Material: aço CA-60', u:'Kg',  v:8.5, qtdAta:800, c:320, en:280, siga:14040, marca:'GERDAU'},
   {n:154,  ata:'060',e:'NSC',    m:'Tampa - Tipo: tampão; Uso: rede pluvial; Material: ferro fundido; Modelo: articulado; Formato: redondo; Classe: no mínimo classe D-400; Diâmetro nominl: 600 mm.', u:'UN.',  v:489.7, qtdAta:1000, c:400, en:300, siga:15888, marca:'VOIGT'},
   {n:155,  ata:'060',e:'EVF',    m:'Gabião - Tipo: caixa, Medida: 2,00 x 1,00 x 1,00 M (C x A x L); Medida do fio do arame: 2,4 mm; Resistência à tração: 35 a 50 Kg/mm²; Material: malha hexagonal de dupla torção 8 x 10 em aço BTC (baixo teor de carbono) e recoberto de plástico PVC.', u:'UN.',  v:680, qtdAta:75, c:30, en:10, siga:15876, marca:null},
-  {n:156,  ata:'060',e:'FENIX',    m:'Grelha - Tipo: boca de lobo; Material: ferro fundido; Medida: 50 x 100 cm; Modelo: articulado; Classe no mínimo D-400', u:'UN.',  v:614.85, qtdAta:750, c:150, en:150, siga:15963, marca:'VOIGT'},
+  {n:156,  ata:'060',e:'FENIX',    m:'Grelha - Tipo: boca de lobo; Material: ferro fundido; Medida: 50 x 100 cm; Modelo: articulado; Classe no mínimo D-400', u:'UN.',  v:614.89, qtdAta:750, c:150, en:150, siga:15963, marca:'VOIGT'},
   {n:157,  ata:'060',e:'FENIX',    m:'Manta - Tipo: geotêxtil não tecido; Uso: drenagem; Material: 100% poliéster, resistencia à tração e à punção; Medida: 2,15x100m (LxC); Gramatura: 1,61g/m²', u:'M²',  v:13.45, qtdAta:1075, c:430, en:430, siga:15972, marca:'Bidim'},
   {n:158,  ata:'060',e:'SJ',    m:'Pedra - Tipo: Marroada; Granulometria: 100mm a 400 mm', u:'M³',  v:91.4, qtdAta:500, c:200, en:100, siga:15806, marca:'MCG'},
   {n:159,  ata:'060',e:'SJ',    m:'Pedra - Tipo brita; nº: 04', u:'M³',  v:89.8, qtdAta:500, c:200, en:100, siga:15805, marca:'SANTO ANTÔNIO'},
@@ -7246,7 +7246,8 @@ async function rfExcluir(id, codigo){
   const isMobile=rec&&(rec.viaMobile||String(codigo).endsWith('-M'));
   if(!confirm(`Excluir o relatório ${codigo}${isMobile?' (originado do app Mobile)':''}?\n\nIsto exclui SOMENTE o Relatório Fotográfico. A Ordem de Serviço no Ctrl. de Serviços NÃO será afetada.\n\nEsta ação não pode ser desfeita.`)) return;
   await dbDelete('relatorio_foto', id);
-  cacheInvalidate('relatorio_foto');
+  // Não rebaixar todos os relatórios da nuvem: remove do array em memória e atualiza o cache.
+  try{ cacheSet('relatorio_foto', all.filter(x=>x.id!==id)); }catch(e){}
   await rfRenderLista();
   rfUpdateKpis();
 }
@@ -7481,7 +7482,7 @@ async function rfEditAbrir(id){
   await rfEditSetEnc(x.equipe||'', x.encarregado||'');
   document.getElementById('rfe-end').value=x.endereco||'';
   document.getElementById('rfe-bairro').value=x.bairro||'';
-  document.getElementById('rfe-reg').value=x.regiao||BAIRRO_REGIAO_MAP[x.bairro]||BR[x.bairro]||'';
+  document.getElementById('rfe-reg').value=BAIRRO_REGIAO_MAP[x.bairro]||BR[x.bairro]||x.regiao||'';
   document.getElementById('rfe-tipo').value=x.tipo||'';
   document.getElementById('rfe-obs').value=x.obs||'';
   rfBuildSlots('rfe','rfe-fgrid',x.fotos||[]);
@@ -7529,7 +7530,8 @@ async function rfEditSalvar(){
     fotos, status:fotos.length>0?'Concluído':'Sem fotos',
   };
   await dbPut('relatorio_foto',rec);
-  cacheInvalidate('relatorio_foto');
+  // Não rebaixar TODOS os relatórios da nuvem: apenas atualiza este registro no cache em memória.
+  try{ const _i=all.findIndex(r=>r.id===_rfEditId); if(_i>=0) all[_i]=rec; cacheSet('relatorio_foto', all); }catch(e){}
   document.getElementById('modal-rf-edit').style.display='none';
   await rfRenderLista();
   rfUpdateKpis();
@@ -7895,10 +7897,13 @@ async function rfValidar(id){
   if(!confirm(`Validar o Relatório Fotográfico ${rec.codigo} (via GEDREM Mobile) como ${PROFILE_NAMES.b}?`)) return;
   val.b={por:PROFILE_NAMES.b,em:new Date().toISOString()};
   rec.validacoes=val;
-  await dbPut('relatorio_foto',rec);
-  cacheInvalidate('relatorio_foto');
-  await rfRenderLista();
-  alert('✅ Relatório '+rec.codigo+' validado pelo Técnico B!');
+  // INSTANTÂNEO: atualiza a tela na hora (reaproveita o cache em memória) e salva em segundo plano — sem travar.
+  try{ cacheSet('relatorio_foto', all); }catch(e){}
+  rfRenderLista();
+  try{ rfUpdateKpis(); }catch(e){}
+  _om('✅ '+rec.codigo+' validado. Salvando...');
+  dbPut('relatorio_foto',rec).then(function(){ try{ cacheSet('relatorio_foto', all); }catch(e){} _om('✅ '+rec.codigo+' validado e salvo.'); })
+    .catch(function(e){ try{ if(rec.validacoes) delete rec.validacoes.b; cacheSet('relatorio_foto', all); }catch(_){} rfRenderLista(); _om('Não foi possível salvar a validação de '+rec.codigo+'. Verifique a conexão e tente novamente.'); });
 }
 
 function admAbrirMobile(){
@@ -18019,7 +18024,7 @@ function _dbManutencao(c){
   </tr>
 </table>
 <div style="border:1px solid #000;border-top:none;padding:1.5mm 2mm;font-weight:bold;font-size:8pt;background:#c8c8c8">SERVIÇOS</div>
-${_dbSvc(10)}${_dbKm(6,true)}${_dbDiario(3)}
+${_dbSvc(15)}${_dbKm(7,true)}${_dbDiario(4)}
 ${_dbAssin('Chefe de Divisão — Juvenil Lopes','Encarregado de Divisão — Manutenção')}`;
 
   const dir=`<table style="width:100%;border-collapse:collapse;table-layout:fixed">
