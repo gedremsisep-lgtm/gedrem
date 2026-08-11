@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SISEP GEDREM – Sistema</title>
+<link rel="manifest" href="manifest_sistema.webmanifest">
+<meta name="theme-color" content="#0B5FA5">
+<link rel="apple-touch-icon" href="sistema-192.png">
+<style>
+html,body{margin:0;height:100%;background:#0B5FA5;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+#ld{position:fixed;inset:0;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center;color:#fff}
+.sp{width:46px;height:46px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#ld small{font-size:13px;opacity:.9;max-width:80%;text-align:center;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="ld"><div class="sp"></div><small id="msg">Carregando o sistema…</small></div>
+<script>
+(function(){
+  "use strict";
+  var SUP="https://bmmakxofvzyjatscwfex.supabase.co/storage/v1/object/public/gedrem-docs/sistema/build.html";
+  var FULL="sistema-full.html";
+  var CN="gedrem-shell-cache";
+  function paint(h){ document.open(); document.write(h); document.close(); }
+  function ok(h){ return !!h && h.length>500000 && h.indexOf("SYSTEM_VERSION")>=0; }
+  function save(h){ try{ if(window.caches) caches.open(CN).then(function(c){ c.put("build", new Response(h,{headers:{"Content-Type":"text/html; charset=utf-8"}})); }); }catch(e){} }
+  function cached(){ if(!window.caches) return Promise.resolve(null); return caches.open(CN).then(function(c){return c.match("build");}).then(function(r){return r?r.text():null;}).catch(function(){return null;}); }
+  function msg(t){ var e=document.getElementById("msg"); if(e) e.textContent=t; }
+  function getFULL(){ msg("Buscando versão reserva…"); return fetch(FULL+"?t="+Date.now(),{cache:"reload"}).then(function(r){return r.ok?r.text():null;}).catch(function(){return null;}); }
+  fetch(SUP+"?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():null;}).catch(function(){return null;})
+  .then(function(h){
+    if(ok(h)){ save(h); paint(h); return; }
+    cached().then(function(c){
+      if(ok(c)){ paint(c); return; }
+      getFULL().then(function(f){ if(ok(f)){ save(f); paint(f); } else { msg("Sem conexão e sem versão salva. Conecte-se à internet e recarregue (F5)."); } });
+    });
+  });
+})();
+</script>
+</body>
+</html>
